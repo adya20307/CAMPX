@@ -17,7 +17,7 @@ import Topbar from "../components/Topbar";
 const TIMETABLE_KEY = "campx_timetable";
 const HOLIDAYS_KEY = "campx_academic_holidays";
 
-const defaultTimetable = {
+export const defaultTimetable = {
   Monday: [
     {
       id: "MON-1",
@@ -125,7 +125,7 @@ const defaultTimetable = {
   ],
 };
 
-const defaultHolidays = [
+export const defaultHolidays = [
   {
     id: "HOL-1",
     date: "14 September 2026",

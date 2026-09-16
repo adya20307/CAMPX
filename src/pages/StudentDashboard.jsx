@@ -18,18 +18,94 @@ import { Link } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import { getNotifications } from "../notificationStorage";
+import {
+  defaultHolidays,
+  defaultTimetable,
+} from "./Timetable";
 
 const COMPLAINTS_KEY = "campxComplaints";
 const REQUESTS_KEY = "campxRequests";
 const GATEPASS_KEY = "campx_gate_passes";
+const ATTENDANCE_KEY = "campx_attendance";
+const TIMETABLE_KEY = "campx_timetable";
+const HOLIDAYS_KEY = "campx_academic_holidays";
 
 const CURRENT_STUDENT_ID = "CX2026001";
+
+const DEFAULT_ATTENDANCE = [
+  { present: 28, total: 32 },
+  { present: 24, total: 30 },
+  { present: 27, total: 30 },
+  { present: 21, total: 30 },
+  { present: 25, total: 30 },
+];
+
+function getCurrentStudentAttendance(savedData) {
+  if (!Array.isArray(savedData) || savedData.length === 0) {
+    return DEFAULT_ATTENDANCE;
+  }
+
+  const studentRecord = savedData.find(
+    (record) =>
+      record &&
+      record.studentId === CURRENT_STUDENT_ID &&
+      Array.isArray(record.subjects)
+  );
+
+  if (studentRecord) {
+    return studentRecord.subjects;
+  }
+
+  const looksLikeSubjectArray = savedData.every(
+    (item) =>
+      item &&
+      typeof item === "object" &&
+      ("subject" in item || "code" in item) &&
+      ("present" in item || "total" in item)
+  );
+
+  return looksLikeSubjectArray
+    ? savedData
+    : DEFAULT_ATTENDANCE;
+}
+
+function calculateAttendancePercentage(present, total) {
+  if (!total) return 0;
+
+  return Math.round((Number(present) / Number(total)) * 100);
+}
+
+function getTodayClasses(timetable, holidays) {
+  const today = new Date();
+  const todayDay = today.toLocaleDateString("en-US", {
+    weekday: "long",
+  });
+  const todayFormatted = today.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+
+  const isHoliday = Array.isArray(holidays)
+    ? holidays.some((holiday) => holiday.date === todayFormatted)
+    : false;
+
+  if (isHoliday) return [];
+
+  const schedule = timetable || defaultTimetable;
+
+  return Array.isArray(schedule[todayDay])
+    ? schedule[todayDay]
+    : defaultTimetable[todayDay] || [];
+}
 
 export default function StudentDashboard() {
   const [complaints, setComplaints] = useState([]);
   const [requests, setRequests] = useState([]);
   const [gatePasses, setGatePasses] = useState([]);
   const [notifications, setNotifications] = useState([]);
+  const [attendance, setAttendance] = useState(DEFAULT_ATTENDANCE);
+  const [todayClasses, setTodayClasses] = useState([]);
 
   /* =====================================================
      LOAD DATA
@@ -51,6 +127,18 @@ export default function StudentDashboard() {
         JSON.parse(
           localStorage.getItem(GATEPASS_KEY) || "[]"
         );
+
+      const savedAttendance = JSON.parse(
+        localStorage.getItem(ATTENDANCE_KEY) || "[]"
+      );
+
+      const savedTimetable = JSON.parse(
+        localStorage.getItem(TIMETABLE_KEY) || "null"
+      );
+
+      const savedHolidays = JSON.parse(
+        localStorage.getItem(HOLIDAYS_KEY) || "[]"
+      );
 
       setComplaints(
         Array.isArray(savedComplaints)
@@ -82,6 +170,19 @@ export default function StudentDashboard() {
           : []
       );
 
+      setAttendance(
+        getCurrentStudentAttendance(savedAttendance)
+      );
+
+      setTodayClasses(
+        getTodayClasses(
+          savedTimetable || defaultTimetable,
+          Array.isArray(savedHolidays)
+            ? savedHolidays
+            : defaultHolidays
+        )
+      );
+
       setNotifications(
         getNotifications("student").filter(
           (notification) =>
@@ -99,6 +200,8 @@ export default function StudentDashboard() {
       setRequests([]);
       setGatePasses([]);
       setNotifications([]);
+      setAttendance(DEFAULT_ATTENDANCE);
+      setTodayClasses([]);
     }
   };
 
@@ -134,6 +237,21 @@ export default function StudentDashboard() {
     );
 
     window.addEventListener(
+      "campx-attendance-updated",
+      handleUpdate
+    );
+
+    window.addEventListener(
+      "campx-timetable-updated",
+      handleUpdate
+    );
+
+    window.addEventListener(
+      "campx-holiday-updated",
+      handleUpdate
+    );
+
+    window.addEventListener(
       "campx-notification",
       handleUpdate
     );
@@ -161,6 +279,21 @@ export default function StudentDashboard() {
 
       window.removeEventListener(
         "campx-gatepass-updated",
+        handleUpdate
+      );
+
+      window.removeEventListener(
+        "campx-attendance-updated",
+        handleUpdate
+      );
+
+      window.removeEventListener(
+        "campx-timetable-updated",
+        handleUpdate
+      );
+
+      window.removeEventListener(
+        "campx-holiday-updated",
         handleUpdate
       );
 
@@ -208,6 +341,23 @@ export default function StudentDashboard() {
     notifications.filter(
       (item) => !item.read
     ).length;
+
+  const totalPresent = attendance.reduce(
+    (sum, subject) =>
+      sum + Number(subject.present || 0),
+    0
+  );
+
+  const totalClasses = attendance.reduce(
+    (sum, subject) =>
+      sum + Number(subject.total || 0),
+    0
+  );
+
+  const overallAttendance = calculateAttendancePercentage(
+    totalPresent,
+    totalClasses
+  );
 
   const recentComplaints =
     complaints.slice(0, 3);
@@ -386,6 +536,68 @@ export default function StudentDashboard() {
               type="green"
             />
 
+            <DashboardStat
+              icon={<CheckCircle2 size={21} />}
+              title="Overall Attendance"
+              value={`${overallAttendance}%`}
+              subtitle={`${totalPresent} of ${totalClasses} classes`}
+              type="blue"
+            />
+
+          </section>
+
+          <section className="dashboard-section student-today-classes">
+            <div className="section-heading">
+              <div>
+                <h2>Today's Classes</h2>
+                <p>
+                  {todayClasses.length === 0
+                    ? "No classes scheduled for today"
+                    : `${todayClasses.length} classes scheduled for today`}
+                </p>
+              </div>
+
+              <Link
+                to="/timetable"
+                className="dashboard-view-link"
+              >
+                View timetable
+                <ArrowRight size={15} />
+              </Link>
+            </div>
+
+            {todayClasses.length > 0 ? (
+              <div className="student-class-list">
+                {todayClasses.map((classItem) => (
+                  <div
+                    className="student-class-card"
+                    key={classItem.id || `${classItem.subject}-${classItem.time}`}
+                  >
+                    <div className="student-class-icon">
+                      <CalendarDays size={18} />
+                    </div>
+
+                    <div className="student-class-details">
+                      <strong>{classItem.subject}</strong>
+                      <span>
+                        {classItem.faculty || "Faculty"} •{" "}
+                        {classItem.room || "Room not assigned"}
+                      </span>
+                    </div>
+
+                    <div className="student-class-time">
+                      <Clock3 size={15} />
+                      <span>{classItem.time}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="student-class-empty">
+                <CalendarDays size={24} />
+                <span>Enjoy your day! There are no classes scheduled.</span>
+              </div>
+            )}
           </section>
 
 
