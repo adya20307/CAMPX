@@ -3,8 +3,11 @@ const cors = require("cors");
 require("dotenv").config();
 
 const db = require("./db");
+
 const authRoutes = require("./routes/auth");
 const studentRoutes = require("./routes/students");
+const facultyRoutes = require("./routes/faculty");
+const canteenRoutes = require("./routes/canteen");
 
 const app = express();
 
@@ -64,7 +67,24 @@ app.get("/api/health", async (req, res) => {
 // ============================================
 
 app.use("/api/auth", authRoutes);
+
+// ============================================
+// STUDENT ROUTES
+// ============================================
+
 app.use("/api/students", studentRoutes);
+
+// ============================================
+// FACULTY / ADMIN ROUTES
+// ============================================
+
+app.use("/api/faculty", facultyRoutes);
+
+// ============================================
+// CANTEEN ROUTES
+// ============================================
+
+app.use("/api/canteen", canteenRoutes);
 
 // ============================================
 // TEST POST
@@ -116,6 +136,8 @@ app.listen(PORT, () => {
   console.log(`Server: http://localhost:${PORT}`);
   console.log(`API:    http://localhost:${PORT}/api`);
   console.log("Auth:   /api/auth");
+  console.log("Students: /api/students");
+  console.log("Faculty:  /api/faculty");
   console.log("================================");
   console.log("");
 });

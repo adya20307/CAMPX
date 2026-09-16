@@ -12,6 +12,9 @@ import {
   ArrowRight,
   Sparkles,
   RefreshCw,
+  BookOpen,
+  MapPin,
+  UserRound,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -22,14 +25,122 @@ import { getNotifications } from "../notificationStorage";
 const COMPLAINTS_KEY = "campxComplaints";
 const REQUESTS_KEY = "campxRequests";
 const GATEPASS_KEY = "campx_gate_passes";
+const ATTENDANCE_KEY = "campx_attendance";
+const TIMETABLE_KEY = "campx_timetable";
 
-const CURRENT_STUDENT_ID = "CX2026001";
+const DEFAULT_ATTENDANCE = [
+  { id: "sub1", subject: "Data Base Management System", code: "DBMS", present: 28, total: 32 },
+  { id: "sub2", subject: "Computer Networks", code: "CN", present: 24, total: 30 },
+  { id: "sub3", subject: "Artificial Intelligence", code: "AI", present: 27, total: 30 },
+  { id: "sub4", subject: "Software Engineering", code: "SE", present: 21, total: 30 },
+  { id: "sub5", subject: "Environmental Engineering", code: "EE", present: 25, total: 30 },
+];
+
+const DEFAULT_TIMETABLE = {
+  Monday: [
+    { id: "MON-1", time: "09:00 AM - 10:00 AM", subject: "Artificial Intelligence", faculty: "Dr. Sharma", room: "Room 201", status: "Scheduled" },
+    { id: "MON-2", time: "10:00 AM - 11:00 AM", subject: "Computer Networks", faculty: "Prof. Das", room: "Room 204", status: "Scheduled" },
+    { id: "MON-3", time: "11:30 AM - 12:30 PM", subject: "Database Management", faculty: "Dr. Patnaik", room: "Lab 2", status: "Scheduled" },
+  ],
+  Tuesday: [
+    { id: "TUE-1", time: "09:00 AM - 10:00 AM", subject: "Operating Systems", faculty: "Prof. Mishra", room: "Room 202", status: "Scheduled" },
+    { id: "TUE-2", time: "10:00 AM - 11:00 AM", subject: "Machine Learning", faculty: "Dr. Sharma", room: "Lab 3", status: "Scheduled" },
+  ],
+  Wednesday: [
+    { id: "WED-1", time: "09:00 AM - 10:00 AM", subject: "Computer Networks", faculty: "Prof. Das", room: "Room 204", status: "Scheduled" },
+    { id: "WED-2", time: "11:00 AM - 12:00 PM", subject: "Artificial Intelligence", faculty: "Dr. Sharma", room: "Room 201", status: "Scheduled" },
+  ],
+  Thursday: [
+    { id: "THU-1", time: "10:00 AM - 11:00 AM", subject: "Database Management", faculty: "Dr. Patnaik", room: "Room 205", status: "Scheduled" },
+  ],
+  Friday: [
+    { id: "FRI-1", time: "09:00 AM - 10:00 AM", subject: "Operating Systems", faculty: "Prof. Mishra", room: "Room 202", status: "Scheduled" },
+    { id: "FRI-2", time: "11:00 AM - 12:00 PM", subject: "Machine Learning", faculty: "Dr. Sharma", room: "Lab 3", status: "Scheduled" },
+  ],
+  Saturday: [
+    { id: "SAT-1", time: "09:00 AM - 10:00 AM", subject: "Project / Practical", faculty: "Department Faculty", room: "Lab 1", status: "Scheduled" },
+  ],
+};
+
+function readLocalData(key, fallback) {
+  try {
+    const saved = localStorage.getItem(key);
+    if (!saved) return fallback;
+    const parsed = JSON.parse(saved);
+    return parsed || fallback;
+  } catch (error) {
+    console.error(`Error loading ${key}:`, error);
+    return fallback;
+  }
+}
+
+function getStudentAttendance(savedData, studentId) {
+  if (!Array.isArray(savedData) || savedData.length === 0) {
+    return DEFAULT_ATTENDANCE;
+  }
+
+  const studentRecord = savedData.find(
+    (record) =>
+      record &&
+      record.studentId === studentId &&
+      Array.isArray(record.subjects)
+  );
+
+  if (studentRecord) {
+    return studentRecord.subjects;
+  }
+
+  const looksLikeSubjectArray = savedData.every(
+    (item) =>
+      item &&
+      typeof item === "object" &&
+      ("subject" in item || "code" in item) &&
+      ("present" in item || "total" in item)
+  );
+
+  return looksLikeSubjectArray ? savedData : DEFAULT_ATTENDANCE;
+}
+
+function attendancePercentage(present, total) {
+  if (!Number(total)) return 0;
+  return Math.round((Number(present) / Number(total)) * 100);
+}
+
 
 export default function StudentDashboard() {
   const [complaints, setComplaints] = useState([]);
   const [requests, setRequests] = useState([]);
   const [gatePasses, setGatePasses] = useState([]);
   const [notifications, setNotifications] = useState([]);
+  const [attendance, setAttendance] = useState(DEFAULT_ATTENDANCE);
+  const [timetable, setTimetable] = useState(DEFAULT_TIMETABLE);
+
+  // =====================================================
+  // CURRENT LOGGED-IN STUDENT
+  // =====================================================
+
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      const storedUser = localStorage.getItem("campx_user");
+      return storedUser ? JSON.parse(storedUser) : null;
+    } catch (error) {
+      console.error("Invalid CAMPX user data:", error);
+      return null;
+    }
+  });
+
+  const currentStudentId =
+    currentUser?.studentId ||
+    currentUser?.student_id ||
+    "";
+
+  const isHosteller =
+    currentUser?.hostelStatus === "HOSTELLER" ||
+    currentUser?.hostel_status === "HOSTELLER";
+
+  const studentName = currentUser?.name || "Student";
+  const studentBranch = currentUser?.branch || "—";
+  const studentSemester = currentUser?.semester || "—";
 
   /* =====================================================
      LOAD DATA
@@ -37,6 +148,25 @@ export default function StudentDashboard() {
 
   const loadDashboardData = () => {
     try {
+      const savedAttendance = readLocalData(
+        ATTENDANCE_KEY,
+        DEFAULT_ATTENDANCE
+      );
+
+      setAttendance(
+        getStudentAttendance(
+          savedAttendance,
+          currentStudentId
+        )
+      );
+
+      setTimetable(
+        readLocalData(
+          TIMETABLE_KEY,
+          DEFAULT_TIMETABLE
+        )
+      );
+
       const savedComplaints =
         JSON.parse(
           localStorage.getItem(COMPLAINTS_KEY) || "[]"
@@ -56,8 +186,8 @@ export default function StudentDashboard() {
         Array.isArray(savedComplaints)
           ? savedComplaints.filter(
               (item) =>
-                !item.studentId ||
-                item.studentId === CURRENT_STUDENT_ID
+                currentStudentId &&
+                item.studentId === currentStudentId
             )
           : []
       );
@@ -66,8 +196,8 @@ export default function StudentDashboard() {
         Array.isArray(savedRequests)
           ? savedRequests.filter(
               (item) =>
-                !item.studentId ||
-                item.studentId === CURRENT_STUDENT_ID
+                currentStudentId &&
+                item.studentId === currentStudentId
             )
           : []
       );
@@ -76,8 +206,8 @@ export default function StudentDashboard() {
         Array.isArray(savedGatePasses)
           ? savedGatePasses.filter(
               (item) =>
-                !item.studentId ||
-                item.studentId === CURRENT_STUDENT_ID
+                currentStudentId &&
+                item.studentId === currentStudentId
             )
           : []
       );
@@ -86,7 +216,7 @@ export default function StudentDashboard() {
         getNotifications("student").filter(
           (notification) =>
             !notification.studentId ||
-            notification.studentId === CURRENT_STUDENT_ID
+            notification.studentId === currentStudentId
         )
       );
     } catch (error) {
@@ -99,6 +229,8 @@ export default function StudentDashboard() {
       setRequests([]);
       setGatePasses([]);
       setNotifications([]);
+      setAttendance(DEFAULT_ATTENDANCE);
+      setTimetable(DEFAULT_TIMETABLE);
     }
   };
 
@@ -209,12 +341,78 @@ export default function StudentDashboard() {
       (item) => !item.read
     ).length;
 
+  // =====================================================
+  // ACADEMIC DASHBOARD
+  // =====================================================
+
+  const totalPresent = attendance.reduce(
+    (sum, subject) =>
+      sum + Number(subject.present || 0),
+    0
+  );
+
+  const totalClasses = attendance.reduce(
+    (sum, subject) =>
+      sum + Number(subject.total || 0),
+    0
+  );
+
+  const overallAttendance = attendancePercentage(
+    totalPresent,
+    totalClasses
+  );
+
+  const todayDay = new Date().toLocaleDateString(
+    "en-US",
+    { weekday: "long" }
+  );
+
+  const todayClasses = timetable[todayDay] || [];
+
   const recentComplaints =
     complaints.slice(0, 3);
 
   /* =====================================================
      RETURN
   ===================================================== */
+
+  if (!currentUser || currentUser.role !== "student") {
+    return (
+      <div className="app-layout">
+        <Sidebar />
+
+        <main className="main-content">
+          <Topbar title="Student Dashboard" />
+
+          <div className="content">
+            <section className="dashboard-section">
+              <div className="panel">
+                <div className="student-empty-state">
+                  <AlertTriangle size={30} />
+
+                  <strong>
+                    Student session not found
+                  </strong>
+
+                  <p>
+                    Please log in again using your student registration number.
+                  </p>
+
+                  <Link
+                    to="/login"
+                    className="campy-dashboard-btn"
+                  >
+                    Go to Student Login
+                    <ArrowRight size={17} />
+                  </Link>
+                </div>
+              </div>
+            </section>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="app-layout">
@@ -237,7 +435,7 @@ export default function StudentDashboard() {
               </p>
 
               <h1>
-                Good morning, Adya 👋
+                {`Good morning, ${studentName} 👋`}
               </h1>
 
               <p>
@@ -264,17 +462,23 @@ export default function StudentDashboard() {
           <section className="student-profile-card">
 
             <div className="student-avatar">
-              AD
+              {studentName
+                .split(" ")
+                .filter(Boolean)
+                .slice(0, 2)
+                .map((part) => part[0])
+                .join("")
+                .toUpperCase()}
             </div>
 
             <div className="student-profile-info">
 
               <h3>
-                Adya Dash
+                {studentName}
               </h3>
 
               <p>
-                CX2026001 • CSE • 6th Semester
+                {currentStudentId || "—"} • {studentBranch} • {studentSemester}
               </p>
 
             </div>
@@ -369,8 +573,8 @@ export default function StudentDashboard() {
             <DashboardStat
               icon={<DoorOpen size={21} />}
               title="Gate Passes"
-              value={approvedGatePasses}
-              subtitle="Approved passes"
+              value={isHosteller ? approvedGatePasses : 0}
+              subtitle={isHosteller ? "Approved passes" : "Not applicable"}
               type="purple"
             />
 
@@ -386,6 +590,316 @@ export default function StudentDashboard() {
               type="green"
             />
 
+          </section>
+
+
+          {/* =================================================
+              ACADEMIC OVERVIEW
+          ================================================= */}
+
+          <section
+            className="dashboard-section"
+            style={{ marginTop: "24px" }}
+          >
+            <div
+              className="dashboard-grid"
+              style={{
+                gridTemplateColumns:
+                  "minmax(0, 0.85fr) minmax(0, 1.15fr)",
+                alignItems: "stretch",
+              }}
+            >
+
+              {/* OVERALL ATTENDANCE */}
+
+              <div className="panel">
+                <div className="panel-header">
+                  <div>
+                    <h3>Overall Attendance</h3>
+                    <p>Your attendance across all subjects</p>
+                  </div>
+
+                  <BookOpen size={20} />
+                </div>
+
+                <div style={{ padding: "10px 4px 20px" }}>
+
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: "20px",
+                    }}
+                  >
+                    <div>
+                      <strong
+                        style={{
+                          display: "block",
+                          fontSize: "42px",
+                          lineHeight: 1,
+                          color: "#102d52",
+                        }}
+                      >
+                        {overallAttendance}%
+                      </strong>
+
+                      <span
+                        style={{
+                          display: "block",
+                          marginTop: "10px",
+                          color: "#71829a",
+                          fontSize: "14px",
+                        }}
+                      >
+                        {totalPresent} / {totalClasses} classes attended
+                      </span>
+                    </div>
+
+                    <div
+                      style={{
+                        width: "78px",
+                        height: "78px",
+                        borderRadius: "50%",
+                        border: "8px solid #edf4ff",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "#2866b3",
+                        fontWeight: "700",
+                        fontSize: "17px",
+                      }}
+                    >
+                      {overallAttendance}%
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      marginTop: "24px",
+                      height: "10px",
+                      background: "#edf1f6",
+                      borderRadius: "10px",
+                      overflow: "hidden",
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: `${Math.min(overallAttendance, 100)}%`,
+                        height: "100%",
+                        background: "#2866b3",
+                        borderRadius: "10px",
+                        transition: "width 0.3s ease",
+                      }}
+                    />
+                  </div>
+
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      marginTop: "10px",
+                      fontSize: "13px",
+                      color: "#71829a",
+                    }}
+                  >
+                    <span>Minimum required: 75%</span>
+
+                    <span
+                      style={{
+                        fontWeight: "600",
+                        color:
+                          overallAttendance >= 75
+                            ? "#238b4d"
+                            : "#d13b3b",
+                      }}
+                    >
+                      {overallAttendance >= 75
+                        ? "Attendance is safe"
+                        : "Needs improvement"}
+                    </span>
+                  </div>
+
+                  <Link
+                    to="/attendance"
+                    className="dashboard-view-link"
+                    style={{
+                      display: "inline-flex",
+                      marginTop: "20px",
+                    }}
+                  >
+                    View detailed attendance
+                    <ArrowRight size={15} />
+                  </Link>
+
+                </div>
+              </div>
+
+
+              {/* TODAY'S CLASS SCHEDULE */}
+
+              <div className="panel">
+                <div className="panel-header">
+                  <div>
+                    <h3>Today's Class Schedule</h3>
+                    <p>
+                      {todayDay} • {todayClasses.length}{" "}
+                      {todayClasses.length === 1
+                        ? "class"
+                        : "classes"}
+                    </p>
+                  </div>
+
+                  <CalendarDays size={20} />
+                </div>
+
+                {todayClasses.length === 0 ? (
+                  <div
+                    className="student-empty-state"
+                    style={{ minHeight: "220px" }}
+                  >
+                    <CalendarDays size={30} />
+                    <strong>No classes scheduled</strong>
+                    <p>
+                      There are no classes scheduled for
+                      today.
+                    </p>
+                  </div>
+                ) : (
+                  <div
+                    style={{
+                      padding: "4px 0 8px",
+                      maxHeight: "330px",
+                      overflowY: "auto",
+                    }}
+                  >
+                    {todayClasses.map((item) => (
+                      <div
+                        key={item.id}
+                        style={{
+                          padding: "15px 4px",
+                          borderBottom:
+                            "1px solid #edf0f5",
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "flex-start",
+                            gap: "14px",
+                          }}
+                        >
+                          <div style={{ minWidth: 0 }}>
+                            <div
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "7px",
+                                color: "#2866b3",
+                                fontSize: "13px",
+                                fontWeight: "600",
+                              }}
+                            >
+                              <Clock3 size={14} />
+                              {item.time}
+                            </div>
+
+                            <strong
+                              style={{
+                                display: "block",
+                                marginTop: "7px",
+                                color: "#102d52",
+                                fontSize: "15px",
+                              }}
+                            >
+                              {item.subject}
+                            </strong>
+
+                            <div
+                              style={{
+                                display: "flex",
+                                flexWrap: "wrap",
+                                gap: "12px",
+                                marginTop: "7px",
+                                color: "#71829a",
+                                fontSize: "12px",
+                              }}
+                            >
+                              <span>
+                                <UserRound
+                                  size={12}
+                                  style={{
+                                    verticalAlign:
+                                      "middle",
+                                    marginRight: "4px",
+                                  }}
+                                />
+                                {item.faculty}
+                              </span>
+
+                              <span>
+                                <MapPin
+                                  size={12}
+                                  style={{
+                                    verticalAlign:
+                                      "middle",
+                                    marginRight: "4px",
+                                  }}
+                                />
+                                {item.room}
+                              </span>
+                            </div>
+                          </div>
+
+                          <span
+                            style={{
+                              flexShrink: 0,
+                              padding: "5px 9px",
+                              borderRadius: "20px",
+                              background:
+                                item.status ===
+                                "Cancelled"
+                                  ? "#fff0f0"
+                                  : item.status ===
+                                    "Suspended"
+                                  ? "#fff5e8"
+                                  : "#eaf8ef",
+                              color:
+                                item.status ===
+                                "Cancelled"
+                                  ? "#d13b3b"
+                                  : item.status ===
+                                    "Suspended"
+                                  ? "#c56b12"
+                                  : "#238b4d",
+                              fontSize: "11px",
+                              fontWeight: "600",
+                            }}
+                          >
+                            {item.status}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <Link
+                  to="/timetable"
+                  className="dashboard-view-link"
+                  style={{
+                    display: "inline-flex",
+                    marginTop: "10px",
+                  }}
+                >
+                  View full timetable
+                  <ArrowRight size={15} />
+                </Link>
+
+              </div>
+
+            </div>
           </section>
 
 
@@ -456,26 +970,28 @@ export default function StudentDashboard() {
               </Link>
 
 
-              <Link
-                to="/gatepass"
-                className="quick-action-card"
-              >
-                <div className="quick-action-icon gatepass">
-                  <DoorOpen size={21} />
-                </div>
+              {isHosteller && (
+                <Link
+                  to="/gatepass"
+                  className="quick-action-card"
+                >
+                  <div className="quick-action-icon gatepass">
+                    <DoorOpen size={21} />
+                  </div>
 
-                <div>
-                  <strong>
-                    Gate Pass
-                  </strong>
+                  <div>
+                    <strong>
+                      Gate Pass
+                    </strong>
 
-                  <span>
-                    Apply for a gate pass
-                  </span>
-                </div>
+                    <span>
+                      Apply for a gate pass
+                    </span>
+                  </div>
 
-                <ArrowRight size={16} />
-              </Link>
+                  <ArrowRight size={16} />
+                </Link>
+              )}
 
 
               <Link

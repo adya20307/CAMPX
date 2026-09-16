@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import {
   ClipboardList,
@@ -52,8 +53,12 @@ function getSlaInfo(complaint, now = Date.now()) {
   const created = new Date(complaint.createdAt).getTime();
   const hours = getSlaHours(complaint.priority);
   const deadline = created + hours * 60 * 60 * 1000;
-  const ageHours = Math.max(0, (now - created) / (60 * 60 * 1000));
-  const remainingHours = (deadline - now) / (60 * 60 * 1000);
+  const ageHours = Math.max(
+    0,
+    (now - created) / (60 * 60 * 1000)
+  );
+  const remainingHours =
+    (deadline - now) / (60 * 60 * 1000);
 
   if (complaint.status === "Resolved") {
     return {
@@ -75,7 +80,12 @@ function getSlaInfo(complaint, now = Date.now()) {
     };
   }
 
-  if (remainingHours <= Math.min(2, hours * 0.25)) {
+  if (
+    remainingHours <= Math.min(
+      2,
+      hours * 0.25
+    )
+  ) {
     return {
       hours,
       deadline,
@@ -96,32 +106,73 @@ function getSlaInfo(complaint, now = Date.now()) {
 
 function formatDuration(hours) {
   if (hours < 1) {
-    return `${Math.max(1, Math.round(hours * 60))}m`;
+    return `${Math.max(
+      1,
+      Math.round(hours * 60)
+    )}m`;
   }
 
   if (hours < 24) {
-    return `${Math.floor(hours)}h ${Math.round((hours % 1) * 60)}m`;
+    return `${Math.floor(hours)}h ${Math.round(
+      (hours % 1) * 60
+    )}m`;
   }
 
   const days = Math.floor(hours / 24);
   const remainingHours = Math.floor(hours % 24);
+
   return `${days}d ${remainingHours}h`;
 }
 
 function formatSlaDeadline(deadline) {
   if (!deadline) return "Not available";
-  return new Date(deadline).toLocaleString([], {
-    day: "2-digit",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+
+  return new Date(deadline).toLocaleString(
+    [],
+    {
+      day: "2-digit",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+    }
+  );
 }
 
 
+/* =========================================
+   ADMIN DASHBOARD
+   ========================================= */
+
 export default function AdminDashboard() {
+  const navigate = useNavigate();
+
   const [complaints, setComplaints] = useState([]);
   const [now, setNow] = useState(Date.now());
+
+  // Read the currently logged-in faculty account.
+  // Super Admin and normal Admin use the same dashboard UI,
+  // but Super Admin gets the extra Add Faculty option.
+  const storedUser = localStorage.getItem("campx_user");
+
+  let adminUser = {};
+
+  try {
+    adminUser = storedUser ? JSON.parse(storedUser) : {};
+  } catch (error) {
+    console.error("Invalid CAMPX user data:", error);
+  }
+
+ const isSuperAdmin =
+  adminUser?.role === "SUPER_ADMIN";
+
+const adminSection =
+  adminUser?.adminSection ||
+  adminUser?.admin_section ||
+  "Administration";
+
+const adminName =
+  adminUser?.name ||
+  "Admin";
 
   /* =========================
      LOAD COMPLAINTS
@@ -129,7 +180,10 @@ export default function AdminDashboard() {
 
   const loadComplaints = () => {
     try {
-      const saved = localStorage.getItem(COMPLAINTS_KEY);
+      const saved =
+        localStorage.getItem(
+          COMPLAINTS_KEY
+        );
 
       if (!saved) {
         setComplaints([]);
@@ -139,7 +193,9 @@ export default function AdminDashboard() {
       const parsed = JSON.parse(saved);
 
       setComplaints(
-        Array.isArray(parsed) ? parsed : []
+        Array.isArray(parsed)
+          ? parsed
+          : []
       );
     } catch (error) {
       console.error(
@@ -182,15 +238,20 @@ export default function AdminDashboard() {
   }, []);
 
   /* =========================
-     SMART SLA CLOCK + AUTO ESCALATION
+     SMART SLA CLOCK
+     + AUTO ESCALATION
   ========================= */
 
   useEffect(() => {
-    const timer = window.setInterval(() => {
-      setNow(Date.now());
-    }, 30000);
+    const timer = window.setInterval(
+      () => {
+        setNow(Date.now());
+      },
+      30000
+    );
 
-    return () => window.clearInterval(timer);
+    return () =>
+      window.clearInterval(timer);
   }, []);
 
   useEffect(() => {
@@ -199,57 +260,100 @@ export default function AdminDashboard() {
     const escalations = [];
     let changed = false;
 
-    const updated = complaints.map((complaint) => {
-      if (complaint.status === "Resolved") return complaint;
+    const updated = complaints.map(
+      (complaint) => {
+        if (
+          complaint.status ===
+          "Resolved"
+        ) {
+          return complaint;
+        }
 
-      const sla = getSlaInfo(complaint, now);
+        const sla = getSlaInfo(
+          complaint,
+          now
+        );
 
-      if (
-        sla.status === "Breached" &&
-        !complaint.slaBreached &&
-        !complaint.slaEscalatedAt
-      ) {
-        changed = true;
+        if (
+          sla.status === "Breached" &&
+          !complaint.slaBreached &&
+          !complaint.slaEscalatedAt
+        ) {
+          changed = true;
 
-        escalations.push(complaint);
+          escalations.push(
+            complaint
+          );
 
-        return {
-          ...complaint,
-          slaBreached: true,
-          slaStatus: "Breached",
-          slaEscalatedAt: new Date(now).toISOString(),
-          escalationLevel: "Admin Escalation",
-          updatedAt: new Date(now).toISOString(),
-        };
+          return {
+            ...complaint,
+
+            slaBreached: true,
+
+            slaStatus: "Breached",
+
+            slaEscalatedAt:
+              new Date(
+                now
+              ).toISOString(),
+
+            escalationLevel:
+              "Admin Escalation",
+
+            updatedAt:
+              new Date(
+                now
+              ).toISOString(),
+          };
+        }
+
+        if (
+          complaint.slaBreached &&
+          complaint.slaStatus !==
+            "Breached"
+        ) {
+          changed = true;
+
+          return {
+            ...complaint,
+            slaStatus: "Breached",
+          };
+        }
+
+        return complaint;
       }
-
-      if (complaint.slaBreached && complaint.slaStatus !== "Breached") {
-        changed = true;
-        return {
-          ...complaint,
-          slaStatus: "Breached",
-        };
-      }
-
-      return complaint;
-    });
+    );
 
     if (changed) {
       setComplaints(updated);
-      localStorage.setItem(COMPLAINTS_KEY, JSON.stringify(updated));
-      window.dispatchEvent(new Event("campx-complaint-updated"));
 
-      escalations.forEach((complaint) => {
-        addNotification({
-          audience: "student",
-          studentId: complaint.studentId,
-          type: "complaint",
-          title: "Complaint SLA Breached",
-          message: `Your complaint ${complaint.id} has crossed its SLA deadline and has been escalated to the administration.`,
-          relatedId: complaint.id,
-          status: "Escalated",
-        });
-      });
+      localStorage.setItem(
+        COMPLAINTS_KEY,
+        JSON.stringify(updated)
+      );
+
+      window.dispatchEvent(
+        new Event(
+          "campx-complaint-updated"
+        )
+      );
+
+      escalations.forEach(
+        (complaint) => {
+          addNotification({
+            audience: "student",
+            studentId:
+              complaint.studentId,
+            type: "complaint",
+            title:
+              "Complaint SLA Breached",
+            message: `Your complaint ${complaint.id} has crossed its SLA deadline and has been escalated to the administration.`,
+            relatedId:
+              complaint.id,
+            status: "Escalated",
+          });
+        }
+      );
     }
   }, [complaints, now]);
 
@@ -257,22 +361,29 @@ export default function AdminDashboard() {
      UPDATE COMPLAINT STATUS
   ========================= */
 
-  const updateStatus = (id, newStatus) => {
-    const complaint = complaints.find(
-      (item) => item.id === id
-    );
+  const updateStatus = (
+    id,
+    newStatus
+  ) => {
+    const complaint =
+      complaints.find(
+        (item) =>
+          item.id === id
+      );
 
-    const updated = complaints.map(
-      (complaint) =>
-        complaint.id === id
-          ? {
-              ...complaint,
-              status: newStatus,
-              updatedAt:
-                new Date().toISOString(),
-            }
-          : complaint
-    );
+    const updated =
+      complaints.map(
+        (complaint) =>
+          complaint.id === id
+            ? {
+                ...complaint,
+                status:
+                  newStatus,
+                updatedAt:
+                  new Date().toISOString(),
+              }
+            : complaint
+      );
 
     setComplaints(updated);
 
@@ -281,24 +392,24 @@ export default function AdminDashboard() {
       JSON.stringify(updated)
     );
 
-    /* Send notification to student */
-
     if (complaint) {
       addNotification({
         audience: "student",
-        studentId: complaint.studentId,
+        studentId:
+          complaint.studentId,
         type: "complaint",
         title: `Complaint ${newStatus}`,
         message: `Your complaint ${complaint.id} is now ${newStatus}.`,
-        relatedId: complaint.id,
+        relatedId:
+          complaint.id,
         status: newStatus,
       });
     }
 
-    /* Tell other components to refresh */
-
     window.dispatchEvent(
-      new Event("campx-complaint-updated")
+      new Event(
+        "campx-complaint-updated"
+      )
     );
   };
 
@@ -306,87 +417,111 @@ export default function AdminDashboard() {
      BASIC STATISTICS
   ========================= */
 
-  const total = complaints.length;
+  const total =
+    complaints.length;
 
-  const submitted = complaints.filter(
-    (c) => c.status === "Submitted"
-  ).length;
+  const submitted =
+    complaints.filter(
+      (c) =>
+        c.status === "Submitted"
+    ).length;
 
-  const inProgress = complaints.filter(
-    (c) => c.status === "In Progress"
-  ).length;
+  const inProgress =
+    complaints.filter(
+      (c) =>
+        c.status ===
+        "In Progress"
+    ).length;
 
-  const resolved = complaints.filter(
-    (c) => c.status === "Resolved"
-  ).length;
+  const resolved =
+    complaints.filter(
+      (c) =>
+        c.status === "Resolved"
+    ).length;
 
-  const highPriority = complaints.filter(
-    (c) =>
-      c.priority === "High" ||
-      c.priority === "Critical"
-  ).length;
+  const highPriority =
+    complaints.filter(
+      (c) =>
+        c.priority === "High" ||
+        c.priority === "Critical"
+    ).length;
 
   /* =========================
      RECURRING ISSUE DETECTION
   ========================= */
 
-  const recurringIssues = useMemo(() => {
-    const groups = {};
+  const recurringIssues =
+    useMemo(() => {
+      const groups = {};
 
-    complaints.forEach((complaint) => {
-      const key = `${complaint.issue}|${complaint.location}`;
+      complaints.forEach(
+        (complaint) => {
+          const key = `${complaint.issue}|${complaint.location}`;
 
-      if (!groups[key]) {
-        groups[key] = {
-          issue: complaint.issue,
-          location: complaint.location,
-          department: complaint.department,
-          count: 0,
-          complaints: [],
-        };
-      }
+          if (!groups[key]) {
+            groups[key] = {
+              issue:
+                complaint.issue,
+              location:
+                complaint.location,
+              department:
+                complaint.department,
+              count: 0,
+              complaints: [],
+            };
+          }
 
-      groups[key].count += 1;
+          groups[key].count += 1;
 
-      groups[key].complaints.push(
-        complaint
+          groups[key].complaints.push(
+            complaint
+          );
+        }
       );
-    });
 
-    return Object.values(groups)
-      .filter(
-        (group) => group.count >= 2
+      return Object.values(
+        groups
       )
-      .sort(
-        (a, b) => b.count - a.count
-      );
-  }, [complaints]);
+        .filter(
+          (group) =>
+            group.count >= 2
+        )
+        .sort(
+          (a, b) =>
+            b.count - a.count
+        );
+    }, [complaints]);
 
   /* =========================
      CAMPUS HEATMAP
   ========================= */
 
-  const heatmapData = useMemo(() => {
-    const locations = [
-      "Hostel A",
-      "Hostel B",
-      "Academic Block",
-      "Library",
-      "Main Mess",
-    ];
+  const heatmapData =
+    useMemo(() => {
+      const locations = [
+        "Hostel A",
+        "Hostel B",
+        "Academic Block",
+        "Library",
+        "Main Mess",
+      ];
 
-    return locations.map((location) => {
-      const count = complaints.filter(
-        (complaint) =>
-          complaint.location === location
-      ).length;
+      return locations.map(
+        (location) => {
+          const count =
+            complaints.filter(
+              (complaint) =>
+                complaint.location ===
+                location
+            ).length;
 
-      return {
-        location,
-        count,
-      };
-    });
-  }, [complaints]);
+          return {
+            location,
+            count,
+          };
+        }
+      );
+    }, [complaints]);
 
   const maxHeat = Math.max(
     ...heatmapData.map(
@@ -397,10 +532,18 @@ export default function AdminDashboard() {
 
   return (
     <div className="app-layout">
+
       <Sidebar admin />
 
       <main className="main-content">
-        <Topbar title="Admin Dashboard" />
+
+        <Topbar
+          title={
+            isSuperAdmin
+              ? "Super Admin Dashboard"
+              : "Admin Dashboard"
+          }
+        />
 
         <div className="content">
 
@@ -417,25 +560,45 @@ export default function AdminDashboard() {
               </p>
 
               <h1>
-                Campus Operations
+                {isSuperAdmin
+                  ? "Super Administration"
+                  : adminSection}
               </h1>
 
               <p>
-                Monitor complaints, requests
-                and campus operations from
-                one place.
+                Welcome, {adminName}. Manage complaints,
+                requests and campus operations from one place.
               </p>
 
             </div>
 
-            <button
-              className="secondary-btn"
-              onClick={loadComplaints}
-            >
-              <RefreshCw size={16} />
-              Refresh
-            </button>
+            <div className="dashboard-actions">
 
+  <button
+    className="secondary-btn"
+    onClick={loadComplaints}
+  >
+    <RefreshCw size={16} />
+    Refresh
+  </button>
+
+  {isSuperAdmin ? (
+    <button
+      className="primary-btn"
+      onClick={() => navigate("/admin/faculty/add")}
+    >
+      + Add Faculty
+    </button>
+  ) : (
+    <button
+      className="primary-btn"
+      onClick={() => navigate("/admin/students")}
+    >
+      + Add Students
+    </button>
+  )}
+
+</div>
           </section>
 
 
@@ -447,7 +610,9 @@ export default function AdminDashboard() {
 
             <AdminStat
               icon={
-                <ClipboardList size={21} />
+                <ClipboardList
+                  size={21}
+                />
               }
               title="Total Complaints"
               value={total}
@@ -460,28 +625,42 @@ export default function AdminDashboard() {
               }
               title="Pending"
               value={
-                submitted + inProgress
+                submitted +
+                inProgress
               }
               type="orange"
             />
 
             <AdminStat
               icon={
-                <AlertTriangle size={21} />
+                <AlertTriangle
+                  size={21}
+                />
               }
               title="High Priority"
-              value={highPriority}
+              value={
+                highPriority
+              }
               type="red"
             />
 
             <AdminStat
               icon={
-                <AlertTriangle size={21} />
+                <AlertTriangle
+                  size={21}
+                />
               }
               title="SLA Breached"
-              value={complaints.filter(
-                (c) => getSlaInfo(c, now).status === "Breached"
-              ).length}
+              value={
+                complaints.filter(
+                  (c) =>
+                    getSlaInfo(
+                      c,
+                      now
+                    ).status ===
+                    "Breached"
+                ).length
+              }
               type="red"
             />
 
@@ -490,15 +669,24 @@ export default function AdminDashboard() {
                 <Clock size={21} />
               }
               title="Due Soon"
-              value={complaints.filter(
-                (c) => getSlaInfo(c, now).status === "Due Soon"
-              ).length}
+              value={
+                complaints.filter(
+                  (c) =>
+                    getSlaInfo(
+                      c,
+                      now
+                    ).status ===
+                    "Due Soon"
+                ).length
+              }
               type="orange"
             />
 
             <AdminStat
               icon={
-                <CheckCircle2 size={21} />
+                <CheckCircle2
+                  size={21}
+                />
               }
               title="Resolved"
               value={resolved}
@@ -513,46 +701,117 @@ export default function AdminDashboard() {
           ========================= */}
 
           <section className="panel smart-sla-panel">
+
             <div className="panel-header">
+
               <div>
-                <h3>Smart SLA Monitor</h3>
-                <p>Automatic deadlines and escalation for complaints</p>
+
+                <h3>
+                  Smart SLA Monitor
+                </h3>
+
+                <p>
+                  Automatic deadlines
+                  and escalation for
+                  complaints
+                </p>
+
               </div>
+
               <Clock size={20} />
+
             </div>
+
 
             <div className="sla-summary-grid">
+
               {[
-                ["Critical", "1 hour"],
-                ["High", "4 hours"],
-                ["Medium", "24 hours"],
-                ["Low", "48 hours"],
-              ].map(([priority, deadline]) => (
-                <div className="sla-rule" key={priority}>
-                  <span className={`priority-badge ${priority.toLowerCase()}`}>
-                    {priority}
-                  </span>
-                  <strong>{deadline}</strong>
-                  <small>resolution target</small>
-                </div>
-              ))}
+                [
+                  "Critical",
+                  "1 hour",
+                ],
+                [
+                  "High",
+                  "4 hours",
+                ],
+                [
+                  "Medium",
+                  "24 hours",
+                ],
+                [
+                  "Low",
+                  "48 hours",
+                ],
+              ].map(
+                ([
+                  priority,
+                  deadline,
+                ]) => (
+
+                  <div
+                    className="sla-rule"
+                    key={priority}
+                  >
+
+                    <span
+                      className={`priority-badge ${priority.toLowerCase()}`}
+                    >
+                      {priority}
+                    </span>
+
+                    <strong>
+                      {deadline}
+                    </strong>
+
+                    <small>
+                      resolution target
+                    </small>
+
+                  </div>
+
+                )
+              )}
+
             </div>
 
+
             <div className="sla-alert-banner">
-              <AlertTriangle size={18} />
+
+              <AlertTriangle
+                size={18}
+              />
+
               <div>
+
                 <strong>
-                  {complaints.filter(
-                    (c) => getSlaInfo(c, now).status === "Breached"
-                  ).length}{" "}
-                  complaint(s) currently breached
+
+                  {
+                    complaints.filter(
+                      (c) =>
+                        getSlaInfo(
+                          c,
+                          now
+                        ).status ===
+                        "Breached"
+                    ).length
+                  }{" "}
+                  complaint(s)
+                  currently breached
+
                 </strong>
+
                 <p>
-                  CampX automatically flags overdue complaints and escalates
-                  them to administration.
+                  CampX automatically
+                  flags overdue
+                  complaints and
+                  escalates them to
+                  administration.
                 </p>
+
               </div>
+
             </div>
+
           </section>
 
 
@@ -573,13 +832,15 @@ export default function AdminDashboard() {
                   </h3>
 
                   <p>
-                    Current campus support
-                    workload
+                    Current campus
+                    support workload
                   </p>
 
                 </div>
 
-                <ClipboardList size={20} />
+                <ClipboardList
+                  size={20}
+                />
 
               </div>
 
@@ -587,6 +848,7 @@ export default function AdminDashboard() {
               <div className="admin-overview">
 
                 <div className="overview-row">
+
                   <span>
                     Submitted
                   </span>
@@ -594,10 +856,12 @@ export default function AdminDashboard() {
                   <strong>
                     {submitted}
                   </strong>
+
                 </div>
 
 
                 <div className="overview-row">
+
                   <span>
                     In Progress
                   </span>
@@ -605,10 +869,12 @@ export default function AdminDashboard() {
                   <strong>
                     {inProgress}
                   </strong>
+
                 </div>
 
 
                 <div className="overview-row">
+
                   <span>
                     Resolved
                   </span>
@@ -616,6 +882,7 @@ export default function AdminDashboard() {
                   <strong>
                     {resolved}
                   </strong>
+
                 </div>
 
               </div>
@@ -634,7 +901,8 @@ export default function AdminDashboard() {
                   </h3>
 
                   <p>
-                    AI-generated operational
+                    AI-generated
+                    operational
                     insight
                   </p>
 
@@ -658,13 +926,16 @@ export default function AdminDashboard() {
                   </strong>
 
                   <p>
+
                     {highPriority > 0
                       ? `${highPriority} high-priority issue${
-                          highPriority > 1
+                          highPriority >
+                          1
                             ? "s"
                             : ""
                         } require attention.`
                       : "No high-priority complaints currently require attention."}
+
                   </p>
 
                 </div>
@@ -705,9 +976,11 @@ export default function AdminDashboard() {
               <div className="intelligence-heading">
 
                 <div className="intelligence-icon">
+
                   <BrainCircuit
                     size={20}
                   />
+
                 </div>
 
                 <div>
@@ -742,7 +1015,9 @@ export default function AdminDashboard() {
 
               <div className="no-recurring">
 
-                <CheckCircle2 size={25} />
+                <CheckCircle2
+                  size={25}
+                />
 
                 <div>
 
@@ -752,10 +1027,12 @@ export default function AdminDashboard() {
                   </strong>
 
                   <p>
-                    CampX will automatically
+                    CampX will
+                    automatically
                     identify repeated
-                    problems as complaints
-                    are submitted.
+                    problems as
+                    complaints are
+                    submitted.
                   </p>
 
                 </div>
@@ -767,7 +1044,10 @@ export default function AdminDashboard() {
               <div className="recurring-list">
 
                 {recurringIssues.map(
-                  (issue, index) => (
+                  (
+                    issue,
+                    index
+                  ) => (
 
                     <div
                       className="recurring-card"
@@ -892,7 +1172,8 @@ export default function AdminDashboard() {
               <div>
 
                 <h3>
-                  Campus Problem Heatmap
+                  Campus Problem
+                  Heatmap
                 </h3>
 
                 <p>
@@ -945,13 +1226,15 @@ export default function AdminDashboard() {
 
                           <div
                             className={`heat-fill ${
-                              item.count === 0
+                              item.count ===
+                              0
                                 ? "empty"
                                 : item.count ===
                                   maxHeat
                                 ? "hot"
                                 : "warm"
                             }`}
+
                             style={{
                               width:
                                 item.count ===
@@ -973,6 +1256,7 @@ export default function AdminDashboard() {
                     </div>
 
                   );
+
                 }
               )}
 
@@ -1016,8 +1300,8 @@ export default function AdminDashboard() {
                 </h3>
 
                 <p>
-                  Complaints submitted by
-                  students
+                  Complaints submitted
+                  by students
                 </p>
 
               </div>
@@ -1027,7 +1311,8 @@ export default function AdminDashboard() {
             </div>
 
 
-            {complaints.length === 0 ? (
+            {complaints.length ===
+            0 ? (
 
               <div className="empty-state">
 
@@ -1040,8 +1325,9 @@ export default function AdminDashboard() {
                 </h3>
 
                 <p>
-                  Student complaints will
-                  appear here automatically.
+                  Student complaints
+                  will appear here
+                  automatically.
                 </p>
 
               </div>
@@ -1055,7 +1341,9 @@ export default function AdminDashboard() {
 
                     <div
                       className="admin-complaint"
-                      key={complaint.id}
+                      key={
+                        complaint.id
+                      }
                     >
 
                       <div className="complaint-main">
@@ -1072,19 +1360,25 @@ export default function AdminDashboard() {
                         <div className="complaint-info">
 
                           <strong>
+
                             {complaint.issue ||
                               complaint.category ||
                               "Student Complaint"}
+
                           </strong>
 
 
                           <span>
 
-                            {complaint.studentName}
+                            {
+                              complaint.studentName
+                            }
 
                             {" • "}
 
-                            {complaint.location}
+                            {
+                              complaint.location
+                            }
 
                             {complaint.room &&
                             complaint.room !==
@@ -1096,20 +1390,47 @@ export default function AdminDashboard() {
 
 
                           <small>
+
                             ID:{" "}
-                            {complaint.id}
+
+                            {
+                              complaint.id
+                            }
+
                           </small>
 
+
                           {(() => {
-                            const sla = getSlaInfo(complaint, now);
+
+                            const sla =
+                              getSlaInfo(
+                                complaint,
+                                now
+                              );
 
                             return (
+
                               <small className="sla-detail">
-                                Age: {formatDuration(sla.ageHours)} • Target:{" "}
-                                {sla.hours}h • Deadline:{" "}
-                                {formatSlaDeadline(sla.deadline)}
+
+                                Age:{" "}
+                                {formatDuration(
+                                  sla.ageHours
+                                )}
+
+                                {" • Target: "}
+
+                                {sla.hours}h
+
+                                {" • Deadline: "}
+
+                                {formatSlaDeadline(
+                                  sla.deadline
+                                )}
+
                               </small>
+
                             );
+
                           })()}
 
                         </div>
@@ -1120,38 +1441,75 @@ export default function AdminDashboard() {
                       <div className="admin-meta">
 
                         {(() => {
-                          const sla = getSlaInfo(complaint, now);
+
+                          const sla =
+                            getSlaInfo(
+                              complaint,
+                              now
+                            );
 
                           return (
+
                             <div
                               className={`sla-badge ${sla.status
                                 .toLowerCase()
-                                .replace(" ", "-")}`}
+                                .replace(
+                                  " ",
+                                  "-"
+                                )}`}
+
                               title={
-                                sla.status === "Breached"
+                                sla.status ===
+                                "Breached"
                                   ? `SLA deadline: ${formatSlaDeadline(
                                       sla.deadline
                                     )}`
                                   : `SLA: ${sla.hours} hour(s)`
                               }
                             >
-                              <Clock size={13} />
-                              {sla.status === "Breached"
+
+                              <Clock
+                                size={13}
+                              />
+
+                              {sla.status ===
+                              "Breached"
                                 ? `Breached • ${formatDuration(
-                                    Math.max(0, sla.ageHours - sla.hours)
+                                    Math.max(
+                                      0,
+                                      sla.ageHours -
+                                        sla.hours
+                                    )
                                   )} overdue`
-                                : sla.status === "Due Soon"
+
+                                : sla.status ===
+                                  "Due Soon"
+
                                 ? `Due soon • ${formatDuration(
-                                    Math.max(0, sla.remainingHours)
+                                    Math.max(
+                                      0,
+                                      sla.remainingHours
+                                    )
                                   )}`
-                                : sla.status === "Resolved"
+
+                                : sla.status ===
+                                  "Resolved"
+
                                 ? "SLA complete"
+
                                 : `On track • ${formatDuration(
-                                    Math.max(0, sla.remainingHours)
+                                    Math.max(
+                                      0,
+                                      sla.remainingHours
+                                    )
                                   )}`}
+
                             </div>
+
                           );
+
                         })()}
+
 
                         <span
                           className={`priority-badge ${
@@ -1164,14 +1522,18 @@ export default function AdminDashboard() {
                               : "medium"
                           }`}
                         >
+
                           {complaint.priority ||
                             "Low"}
+
                         </span>
 
 
                         <span className="department-badge">
+
                           {complaint.department ||
                             "General"}
+
                         </span>
 
 
@@ -1180,6 +1542,7 @@ export default function AdminDashboard() {
                             complaint.status ||
                             "Submitted"
                           }
+
                           onChange={(e) =>
                             updateStatus(
                               complaint.id,
@@ -1235,6 +1598,7 @@ function AdminStat({
   type,
 }) {
   return (
+
     <div className="stat-card">
 
       <div className="stat-card-top">
@@ -1262,6 +1626,7 @@ function AdminStat({
       </div>
 
     </div>
+
   );
 }
 
@@ -1270,32 +1635,49 @@ function AdminStat({
    LOCATION ICON
 ========================================= */
 
-function LocationIcon({ location }) {
+function LocationIcon({
+  location,
+}) {
 
   if (
     location === "Hostel A" ||
     location === "Hostel B"
   ) {
-    return <Wrench size={17} />;
+    return (
+      <Wrench size={17} />
+    );
   }
 
+
   if (
-    location === "Academic Block"
+    location ===
+    "Academic Block"
   ) {
-    return <Zap size={17} />;
+    return (
+      <Zap size={17} />
+    );
   }
+
 
   if (
     location === "Library"
   ) {
-    return <Wifi size={17} />;
+    return (
+      <Wifi size={17} />
+    );
   }
+
 
   if (
     location === "Main Mess"
   ) {
-    return <Utensils size={17} />;
+    return (
+      <Utensils size={17} />
+    );
   }
 
-  return <MapPin size={17} />;
+
+  return (
+    <MapPin size={17} />
+  );
 }
