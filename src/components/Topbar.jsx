@@ -8,32 +8,73 @@ import {
   useNavigate,
 } from "react-router-dom";
 
-export default function Topbar({ title }) {
+import { useLanguage } from "../context/LanguageContext";
 
+export default function Topbar({ title }) {
   const navigate = useNavigate();
   const location = useLocation();
+
+  // ============================================
+  // LANGUAGE
+  // ============================================
+
+  const {
+    language,
+    changeLanguage,
+    t,
+  } = useLanguage();
+
+  // ============================================
+  // DETERMINE PORTAL
+  // ============================================
 
   const isAdmin =
     location.pathname.startsWith("/admin");
 
-  const handleNotificationClick = () => {
+  // ============================================
+  // NOTIFICATION
+  // ============================================
 
+  const handleNotificationClick = () => {
     if (isAdmin) {
       navigate("/admin/notifications");
     } else {
       navigate("/notifications");
     }
-
   };
+
+  // ============================================
+  // LANGUAGE CHANGE
+  // ============================================
+
+  const handleLanguageChange = (event) => {
+    changeLanguage(event.target.value);
+  };
+
+  // ============================================
+  // TOPBAR
+  // ============================================
 
   return (
     <header className="topbar">
+
+      {/* ========================================
+          PAGE TITLE
+      ======================================== */}
 
       <div>
         <h2>{title}</h2>
       </div>
 
+      {/* ========================================
+          TOPBAR ACTIONS
+      ======================================== */}
+
       <div className="topbar-actions">
+
+        {/* ======================================
+            SEARCH
+        ====================================== */}
 
         <div className="search-box">
 
@@ -41,18 +82,67 @@ export default function Topbar({ title }) {
 
           <input
             type="text"
-            placeholder="Search CampX..."
+            placeholder={t("search")}
           />
 
         </div>
 
+        {/* ======================================
+            LANGUAGE SELECTOR
+        ====================================== */}
 
-        {/* NOTIFICATION BUTTON */}
+        <div
+          className="language-selector"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            marginLeft: "10px",
+          }}
+        >
+
+          <select
+            value={language}
+            onChange={handleLanguageChange}
+            title={t("language")}
+            aria-label={t("language")}
+            style={{
+              padding: "8px 12px",
+              borderRadius: "8px",
+              border: "1px solid #d1d5db",
+              background: "#ffffff",
+              color: "#1f2937",
+              fontSize: "14px",
+              fontWeight: "500",
+              cursor: "pointer",
+              outline: "none",
+            }}
+          >
+
+            <option value="en">
+              English
+            </option>
+
+            <option value="hi">
+              हिंदी
+            </option>
+
+            <option value="or">
+              ଓଡ଼ିଆ
+            </option>
+
+          </select>
+
+        </div>
+
+        {/* ======================================
+            NOTIFICATION BUTTON
+        ====================================== */}
 
         <button
           className="notification-btn"
           onClick={handleNotificationClick}
-          title="Notifications"
+          title={t("notifications")}
+          aria-label={t("notifications")}
         >
 
           <Bell size={20} />
@@ -61,6 +151,9 @@ export default function Topbar({ title }) {
 
         </button>
 
+        {/* ======================================
+            AVATAR
+        ====================================== */}
 
         <div className="avatar">
           AD

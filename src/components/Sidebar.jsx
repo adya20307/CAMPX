@@ -29,7 +29,6 @@ import {
   useNavigate,
 } from "react-router-dom";
 
-
 // =====================================================
 // DEPARTMENT LINKS
 // =====================================================
@@ -41,7 +40,6 @@ const DEPARTMENT_LINKS = {
   // ===================================================
 
   DOCUMENTATION: [
-
     {
       name: "Requests",
       path: "/admin/requests",
@@ -59,31 +57,25 @@ const DEPARTMENT_LINKS = {
       path: "/admin/complaints",
       icon: ClipboardList,
     },
-
   ],
-
 
   // ===================================================
   // ACCOUNTS
   // ===================================================
 
   ACCOUNTS: [
-
     {
       name: "Accounts",
       path: "/admin/accounts",
       icon: CreditCard,
     },
-
   ],
-
 
   // ===================================================
   // ACADEMIC / CLASS
   // ===================================================
 
   ACADEMIC: [
-
     {
       name: "Attendance",
       path: "/admin/attendance",
@@ -95,46 +87,37 @@ const DEPARTMENT_LINKS = {
       path: "/admin/timetable",
       icon: CalendarDays,
     },
-
   ],
-
 
   // ===================================================
   // EXAMINATION
   // ===================================================
 
   EXAMINATION: [
-
     {
       name: "Applications",
       path: "/admin/applications",
       icon: FileText,
     },
-
   ],
-
 
   // ===================================================
   // NOTICE & COMMUNICATION
   // ===================================================
 
   NOTICE_COMMUNICATION: [
-
     {
       name: "Notifications",
       path: "/admin/notifications",
       icon: Bell,
     },
-
   ],
-
 
   // ===================================================
   // HOSTEL
   // ===================================================
 
   HOSTEL: [
-
     {
       name: "Hostel",
       path: "/admin/hostel",
@@ -146,31 +129,25 @@ const DEPARTMENT_LINKS = {
       path: "/admin/gatepass",
       icon: DoorOpen,
     },
-
   ],
-
 
   // ===================================================
   // STUDENT AFFAIRS
   // ===================================================
 
   STUDENT_AFFAIRS: [
-
     {
       name: "Students",
       path: "/admin/students",
       icon: Users,
     },
-
   ],
-
 
   // ===================================================
   // ADMINISTRATION
   // ===================================================
 
   ADMINISTRATION: [
-
     {
       name: "Students",
       path: "/admin/students",
@@ -188,138 +165,110 @@ const DEPARTMENT_LINKS = {
       path: "/admin/gatepass",
       icon: DoorOpen,
     },
-
   ],
-
 
   // ===================================================
   // LIBRARY
   // ===================================================
 
   LIBRARY: [
-
     {
       name: "Library",
       path: "/admin/library",
       icon: BookOpen,
     },
-
   ],
-
 
   // ===================================================
   // TRANSPORT
   // ===================================================
 
   TRANSPORT: [
-
     {
       name: "Transport",
       path: "/admin/transport",
       icon: Bus,
     },
-
   ],
-
 
   // ===================================================
   // IT SERVICES
   // ===================================================
 
   IT: [
-
     {
       name: "Settings",
       path: "/admin/settings",
       icon: Settings,
     },
-
   ],
-
 
   // ===================================================
   // PLACEMENT
   // ===================================================
 
   PLACEMENT: [
-
     {
       name: "Placement",
       path: "/admin/placement",
       icon: Briefcase,
     },
-
   ],
-
 
   // ===================================================
   // DISCIPLINE
   // ===================================================
 
   DISCIPLINE: [
-
     {
       name: "Discipline",
       path: "/admin/discipline",
       icon: ShieldCheck,
     },
-
   ],
-
 
   // ===================================================
   // HEALTH & EMERGENCY
   // ===================================================
 
   HEALTH_EMERGENCY: [
-
     {
       name: "Health & Emergency",
       path: "/admin/health",
       icon: HeartPulse,
     },
-
   ],
-
 
   // ===================================================
   // INFRASTRUCTURE & MAINTENANCE
   // ===================================================
 
   INFRASTRUCTURE_MAINTENANCE: [
-
     {
       name: "Infrastructure",
       path: "/admin/infrastructure",
       icon: Wrench,
     },
-
   ],
-
 
   // ===================================================
   // MESS / FOOD
   // ===================================================
 
   MESS_FOOD: [
-
     {
       name: "Canteen",
       path: "/admin/canteen",
       icon: Utensils,
     },
-
   ],
-
 };
-
 
 // =====================================================
 // SUPER ADMIN LINKS
 // =====================================================
 
 const SUPER_ADMIN_LINKS = [
-
   {
     name: "Overview",
     path: "/admin/dashboard",
@@ -331,11 +280,12 @@ const SUPER_ADMIN_LINKS = [
     path: "/admin/faculty/add",
     icon: UserPlus,
   },
+
   {
-  name: "Admins",
-  path: "/admin/faculty",
-  icon: Users,
-},
+    name: "Admins",
+    path: "/admin/faculty",
+    icon: Users,
+  },
 
   {
     name: "Students",
@@ -426,9 +376,7 @@ const SUPER_ADMIN_LINKS = [
     path: "/admin/canteen",
     icon: Utensils,
   },
-
 ];
-
 
 // =====================================================
 // COMPONENT
@@ -437,64 +385,43 @@ const SUPER_ADMIN_LINKS = [
 export default function Sidebar({
   admin = false,
 }) {
-
-  const location =
-    useLocation();
-
-  const navigate =
-    useNavigate();
-
+  const location = useLocation();
+  const navigate = useNavigate();
 
   // ===================================================
-  // DETERMINE ADMIN
+  // DETERMINE PORTAL
   // ===================================================
 
   const isAdmin =
     admin ||
-    location.pathname.startsWith(
-      "/admin"
-    );
-
+    location.pathname.startsWith("/admin");
 
   // ===================================================
   // CURRENT USER
   // ===================================================
 
   const storedUser =
-    localStorage.getItem(
-      "campx_user"
-    );
-
+    localStorage.getItem("campx_user");
 
   let currentUser = {};
 
   try {
-
-    currentUser =
-      storedUser
-        ? JSON.parse(
-            storedUser
-          )
-        : {};
-
+    currentUser = storedUser
+      ? JSON.parse(storedUser)
+      : {};
   } catch (error) {
-
     console.error(
       "Invalid CAMPX user data:",
       error
     );
-
   }
-
 
   // ===================================================
   // ROLE
   // ===================================================
 
   const isSuperAdmin =
-    currentUser?.role ===
-    "SUPER_ADMIN";
-
+    currentUser?.role === "SUPER_ADMIN";
 
   // ===================================================
   // DEPARTMENT
@@ -505,32 +432,24 @@ export default function Sidebar({
     currentUser?.admin_section ||
     "";
 
-
   const normalizedDepartment =
-    String(
-      adminDepartment
-    )
+    String(adminDepartment)
       .trim()
       .toUpperCase();
-
 
   // ===================================================
   // HOSTELLER CHECK
   // ===================================================
 
   const isHosteller =
-    currentUser?.hostelStatus ===
-      "HOSTELLER" ||
-    currentUser?.hostel_status ===
-      "HOSTELLER";
-
+    currentUser?.hostelStatus === "HOSTELLER" ||
+    currentUser?.hostel_status === "HOSTELLER";
 
   // ===================================================
   // STUDENT LINKS
   // ===================================================
 
   const studentLinks = [
-
     {
       name: "Dashboard",
       path: "/student",
@@ -561,14 +480,12 @@ export default function Sidebar({
       icon: FileText,
     },
 
-
     // =================================================
     // HOSTELLER ONLY
     // =================================================
 
     ...(isHosteller
       ? [
-
           {
             name: "Gate Pass",
             path: "/gatepass",
@@ -580,10 +497,8 @@ export default function Sidebar({
             path: "/canteen",
             icon: Utensils,
           },
-
         ]
       : []),
-
 
     {
       name: "Applications",
@@ -602,9 +517,7 @@ export default function Sidebar({
       path: "/notifications",
       icon: Bell,
     },
-
   ];
-
 
   // ===================================================
   // ADMIN LINKS
@@ -612,18 +525,13 @@ export default function Sidebar({
 
   let adminLinks = [];
 
-
   if (isSuperAdmin) {
-
     // -------------------------------------------------
     // SUPER ADMIN
     // -------------------------------------------------
 
-    adminLinks =
-      SUPER_ADMIN_LINKS;
-
+    adminLinks = SUPER_ADMIN_LINKS;
   } else {
-
     // -------------------------------------------------
     // NORMAL ADMIN
     // -------------------------------------------------
@@ -633,9 +541,7 @@ export default function Sidebar({
         normalizedDepartment
       ] || [];
 
-
     adminLinks = [
-
       // -----------------------------------------------
       // COMMON ADMIN
       // -----------------------------------------------
@@ -645,7 +551,6 @@ export default function Sidebar({
         path: "/admin/dashboard",
         icon: LayoutDashboard,
       },
-
 
       // -----------------------------------------------
       // EVERY ADMIN CAN ADD STUDENTS
@@ -657,7 +562,6 @@ export default function Sidebar({
         icon: UserPlus,
       },
 
-
       // -----------------------------------------------
       // EVERY ADMIN CAN VIEW STUDENTS
       // -----------------------------------------------
@@ -668,43 +572,34 @@ export default function Sidebar({
         icon: Users,
       },
 
-
       // -----------------------------------------------
       // DEPARTMENT-SPECIFIC LINKS
       // -----------------------------------------------
 
       ...departmentLinks,
-
     ];
-
   }
-
 
   // ===================================================
   // REMOVE DUPLICATE LINKS
   // ===================================================
 
-  adminLinks =
-    adminLinks.filter(
-      (link, index, array) =>
-        index ===
-        array.findIndex(
-          (item) =>
-            item.path ===
-            link.path
-        )
-    );
-
+  adminLinks = adminLinks.filter(
+    (link, index, array) =>
+      index ===
+      array.findIndex(
+        (item) =>
+          item.path === link.path
+      )
+  );
 
   // ===================================================
   // FINAL LINKS
   // ===================================================
 
-  const links =
-    isAdmin
-      ? adminLinks
-      : studentLinks;
-
+  const links = isAdmin
+    ? adminLinks
+    : studentLinks;
 
   // ===================================================
   // LOGOUT
@@ -712,53 +607,54 @@ export default function Sidebar({
 
   const handleLogout = () => {
 
+    // IMPORTANT:
+    // Determine portal BEFORE clearing user data.
+
+    const userRole =
+      currentUser?.role || "";
+
     const wasAdmin =
-      window.location.pathname.startsWith(
-        "/admin"
-      );
+      isAdmin ||
+      location.pathname.startsWith("/admin") ||
+      userRole === "ADMIN" ||
+      userRole === "SUPER_ADMIN";
 
-
+    // Clear authentication
     localStorage.removeItem(
       "campx_token"
     );
-
 
     localStorage.removeItem(
       "campx_user"
     );
 
+    // -------------------------------------------------
+    // ADMIN / SUPER ADMIN
+    // -------------------------------------------------
 
     if (wasAdmin) {
+      navigate("/admin", {
+        replace: true,
+      });
 
-      navigate(
-        "/admin",
-        {
-          replace: true,
-        }
-      );
-
-    } else {
-
-      navigate(
-        "/login",
-        {
-          replace: true,
-        }
-      );
-
+      return;
     }
 
-  };
+    // -------------------------------------------------
+    // STUDENT
+    // -------------------------------------------------
 
+    navigate("/login", {
+      replace: true,
+    });
+  };
 
   // ===================================================
   // SIDEBAR
   // ===================================================
 
   return (
-
     <aside className="sidebar">
-
 
       {/* =================================================
           LOGO
@@ -770,29 +666,21 @@ export default function Sidebar({
           CX
         </div>
 
-
         <div>
-
           <strong>
             CampX
           </strong>
 
           <span>
-
             {isAdmin
-
               ? isSuperAdmin
                 ? "Super Admin Portal"
                 : "Admin Portal"
-
               : "Student Portal"}
-
           </span>
-
         </div>
 
       </div>
-
 
       {/* =================================================
           NAVIGATION
@@ -800,57 +688,37 @@ export default function Sidebar({
 
       <nav className="sidebar-nav">
 
-        {links.map(
-          (link) => {
+        {links.map((link) => {
 
-            const Icon =
-              link.icon;
+          const Icon = link.icon;
 
+          return (
+            <NavLink
+              key={link.path}
+              to={link.path}
+              className={({ isActive }) =>
+                isActive
+                  ? "nav-link active"
+                  : "nav-link"
+              }
+            >
+              <Icon size={19} />
 
-            return (
+              <span>
+                {link.name}
+              </span>
+            </NavLink>
+          );
 
-              <NavLink
-                key={
-                  link.path
-                }
-
-                to={
-                  link.path
-                }
-
-                className={({
-                  isActive,
-                }) =>
-                  isActive
-                    ? "nav-link active"
-                    : "nav-link"
-                }
-              >
-
-                <Icon
-                  size={19}
-                />
-
-                <span>
-                  {link.name}
-                </span>
-
-              </NavLink>
-
-            );
-
-          }
-        )}
+        })}
 
       </nav>
-
 
       {/* =================================================
           BOTTOM
       ================================================= */}
 
       <div className="sidebar-bottom">
-
 
         {/* =================================================
             PROFILE
@@ -862,26 +730,18 @@ export default function Sidebar({
               ? "/admin/profile"
               : "/student/profile"
           }
-
-          className={({
-            isActive,
-          }) =>
+          className={({ isActive }) =>
             isActive
               ? "nav-link active"
               : "nav-link"
           }
         >
-
-          <User
-            size={19}
-          />
+          <User size={19} />
 
           <span>
             Profile
           </span>
-
         </NavLink>
-
 
         {/* =================================================
             SETTINGS
@@ -893,26 +753,18 @@ export default function Sidebar({
               ? "/admin/settings"
               : "/student/settings"
           }
-
-          className={({
-            isActive,
-          }) =>
+          className={({ isActive }) =>
             isActive
               ? "nav-link active"
               : "nav-link"
           }
         >
-
-          <Settings
-            size={19}
-          />
+          <Settings size={19} />
 
           <span>
             Settings
           </span>
-
         </NavLink>
-
 
         {/* =================================================
             LOGOUT
@@ -921,26 +773,17 @@ export default function Sidebar({
         <button
           type="button"
           className="nav-link logout"
-          onClick={
-            handleLogout
-          }
+          onClick={handleLogout}
         >
-
-          <LogOut
-            size={19}
-          />
+          <LogOut size={19} />
 
           <span>
             Logout
           </span>
-
         </button>
-
 
       </div>
 
     </aside>
-
   );
-
 }

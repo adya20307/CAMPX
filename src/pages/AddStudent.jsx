@@ -1,206 +1,293 @@
+import { useState } from "react";
 import {
-  Users,
+  ArrowLeft,
+  Eye,
+  EyeOff,
+  Save,
   UserPlus,
-  Search,
-  RefreshCw,
-  Trash2,
 } from "lucide-react";
-
-import {
-  useEffect,
-  useState,
-} from "react";
-
-import {
-  useNavigate,
-} from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 
-const API_URL =
-  import.meta.env.VITE_API_URL || "/api";
+const API_URL = import.meta.env.VITE_API_URL || "/api";
 
-export default function AdminStudents() {
+const initialForm = {
+  registrationNumber: "",
+  name: "",
+  email: "",
+  branch: "",
+  semester: "",
+  section: "",
+  batchYear: "2026",
+  hostelStatus: "NON_HOSTELLER",
+  hostel: "NA",
+  room: "NA",
+  phone: "",
+  password: "",
+  confirmPassword: "",
+};
 
+export default function AddStudent() {
   const navigate = useNavigate();
 
-  // ==========================================
-  // STATE
-  // ==========================================
+  const [form, setForm] = useState(initialForm);
 
-  const [students, setStudents] = useState([]);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] =
+    useState(false);
 
-  const [loading, setLoading] =
-    useState(true);
-
-  const [search, setSearch] =
-    useState("");
-
-  const [error, setError] =
-    useState("");
-
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
 
   // ==========================================
-  // LOAD STUDENTS
+  // HANDLE INPUT
   // ==========================================
 
-  const loadStudents = async () => {
+  const handleChange = (event) => {
+    const { name, value } = event.target;
 
-    try {
+    setForm((previous) => ({
+      ...previous,
+      [name]: value,
+    }));
 
-      setLoading(true);
-      setError("");
+    setError("");
+    setMessage("");
 
-      const token =
-        localStorage.getItem(
-          "campx_token"
-        );
+    // If student is non-hosteller, automatically clear
+    // hostel and room information.
+    if (name === "hostelStatus" && value === "NON_HOSTELLER") {
+      setForm((previous) => ({
+        ...previous,
+        hostelStatus: value,
+        hostel: "NA",
+        room: "NA",
+      }));
+    }
+  };
 
-      const response =
-        await fetch(
-          `${API_URL}/students`,
-          {
-            headers: {
-              Authorization:
-                `Bearer ${token}`,
-            },
-          }
-        );
+  // ==========================================
+  // VALIDATION
+  // ==========================================
 
-      const data =
-        await response.json();
+  const validateForm = () => {
+    if (!form.registrationNumber.trim()) {
+      return "Registration number is required.";
+    }
 
-      if (!response.ok) {
+    if (!form.name.trim()) {
+      return "Student name is required.";
+    }
 
-        throw new Error(
-          data.message ||
-          "Failed to load students"
-        );
+    if (!form.email.trim()) {
+      return "Email address is required.";
+    }
 
-      }
+    if (!form.branch.trim()) {
+      return "Branch is required.";
+    }
 
-      setStudents(
-        Array.isArray(data.students)
-          ? data.students
-          : Array.isArray(data.data)
-          ? data.data
-          : []
+    if (!form.semester.trim()) {
+      return "Semester is required.";
+    }
+
+    if (!form.section.trim()) {
+      return "Section is required.";
+    }
+
+    if (!form.batchYear) {
+      return "Batch year is required.";
+    }
+
+    if (!form.password) {
+      return "Password is required.";
+    }
+
+    if (form.password.length < 6) {
+      return "Password must contain at least 6 characters.";
+    }
+
+    if (form.password !== form.confirmPassword) {
+      return "Passwords do not match.";
+    }
+
+    if (
+      form.hostelStatus === "HOSTELLER" &&
+      (!form.hostel.trim() || !form.room.trim())
+    ) {
+      return "Hostel and room number are required for hostellers.";
+    }
+
+    return "";
+  };
+
+  // ==========================================
+  // SUBMIT
+  // ==========================================
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    setError("");
+    setMessage("");
+
+    const validationError = validateForm();
+
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
+    // ========================================
+    // GET LOGIN TOKEN
+    // ========================================
+
+    const token = localStorage.getItem("campx_token");
+
+    if (!token) {
+      setError(
+        "Your session has expired. Please login again."
       );
 
-    } catch (err) {
+      setTimeout(() => {
+        navigate("/admin", { replace: true });
+      }, 1500);
 
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      // ======================================
+      // DATA SENT TO BACKEND
+      // ======================================
+
+      const studentData = {
+        registrationNumber:
+          form.registrationNumber.trim(),
+
+        name: form.name.trim(),
+
+        email: form.email.trim(),
+
+        branch: form.branch.trim(),
+
+        semester: form.semester.trim(),
+
+        section: form.section.trim(),
+
+        batchYear: Number(form.batchYear),
+
+        hostelStatus: form.hostelStatus,
+
+        hostel:
+          form.hostelStatus === "HOSTELLER"
+            ? form.hostel.trim()
+            : "NA",
+
+        room:
+          form.hostelStatus === "HOSTELLER"
+            ? form.room.trim()
+            : "NA",
+
+        phone: form.phone.trim(),
+
+        password: form.password,
+      };
+
+      console.log(
+        "Registering student:",
+        studentData
+      );
+
+      // ======================================
+      // API REQUEST
+      // ======================================
+
+      const response = await fetch(
+        `${API_URL}/students`,
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type": "application/json",
+
+            // IMPORTANT:
+            // Backend requires this JWT.
+            Authorization: `Bearer ${token}`,
+          },
+
+          body: JSON.stringify(studentData),
+        }
+      );
+
+      // ======================================
+      // READ RESPONSE
+      // ======================================
+
+      let data = {};
+
+      try {
+        data = await response.json();
+      } catch {
+        data = {};
+      }
+
+      console.log(
+        "Add student response:",
+        data
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          data.message ||
+            data.error ||
+            "Failed to register student."
+        );
+      }
+
+      // ======================================
+      // SUCCESS
+      // ======================================
+
+      setMessage(
+        data.message ||
+          "Student registered successfully!"
+      );
+
+      // Clear form
+      setForm(initialForm);
+
+      // Go back to student list after success
+      setTimeout(() => {
+        navigate("/admin/students");
+      }, 1200);
+    } catch (err) {
       console.error(
-        "Load students error:",
+        "Add student error:",
         err
       );
 
       setError(
         err.message ||
-        "Unable to load students"
+          "Unable to register student."
       );
-
     } finally {
-
       setLoading(false);
-
-    }
-
-  };
-
-
-  // ==========================================
-  // INITIAL LOAD
-  // ==========================================
-
-  useEffect(() => {
-
-    loadStudents();
-
-  }, []);
-
-
-  // ==========================================
-  // SEARCH
-  // ==========================================
-
-  const filteredStudents =
-    students.filter((student) => {
-
-      const text = `
-        ${student.name || ""}
-        ${student.student_id || ""}
-        ${student.studentId || ""}
-        ${student.email || ""}
-        ${student.branch || ""}
-        ${student.batch_year || ""}
-        ${student.batchYear || ""}
-      `.toLowerCase();
-
-      return text.includes(
-        search.toLowerCase()
-      );
-
-    });
-
-
-  // ==========================================
-  // DELETE STUDENT
-  // ==========================================
-
-  const handleDeleteStudent = async (student) => {
-    const studentId = student.student_id || student.studentId;
-    const studentName = student.name || "this student";
-
-    const confirmed = window.confirm(
-      `Are you sure you want to delete ${studentName} (${studentId})?\n\nThis action cannot be undone.`
-    );
-
-    if (!confirmed) return;
-
-    try {
-      setError("");
-
-      const token = localStorage.getItem("campx_token");
-
-      if (!token) {
-        throw new Error(
-          "Your session has expired. Please login again."
-        );
-      }
-
-      const response = await fetch(
-        `${API_URL}/students/${encodeURIComponent(studentId)}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          data.message || "Failed to delete student."
-        );
-      }
-
-      setStudents((previous) =>
-        previous.filter(
-          (item) =>
-            (item.student_id || item.studentId) !== studentId
-        )
-      );
-    } catch (error) {
-      console.error("Delete student error:", error);
-      setError(
-        error.message || "Unable to delete student."
-      );
     }
   };
 
+  // ==========================================
+  // CANCEL
+  // ==========================================
+
+  const handleCancel = () => {
+    navigate("/admin/students");
+  };
 
   // ==========================================
   // PAGE
@@ -215,17 +302,13 @@ export default function AdminStudents() {
 
       <Sidebar admin />
 
-
       {/* ======================================
-          MAIN
+          MAIN CONTENT
       ======================================= */}
 
       <main className="main-content">
 
-        <Topbar
-          title="Students"
-        />
-
+        <Topbar title="Add Student" />
 
         <div className="dashboard-content">
 
@@ -237,8 +320,7 @@ export default function AdminStudents() {
             className="dashboard-header"
             style={{
               display: "flex",
-              justifyContent:
-                "space-between",
+              justifyContent: "space-between",
               alignItems: "center",
               gap: "20px",
               marginBottom: "25px",
@@ -247,129 +329,84 @@ export default function AdminStudents() {
 
             <div>
 
-              <h1>
-                Student Management
-              </h1>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  marginBottom: "8px",
+                }}
+              >
 
-              <p>
-                View and manage registered
-                CAMPX students.
+                <button
+                  type="button"
+                  onClick={handleCancel}
+                  style={{
+                    width: "38px",
+                    height: "38px",
+                    borderRadius: "8px",
+                    border:
+                      "1px solid #dbe3ef",
+                    background: "#ffffff",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer",
+                  }}
+                  title="Back"
+                >
+                  <ArrowLeft size={19} />
+                </button>
+
+                <h1
+                  style={{
+                    margin: 0,
+                  }}
+                >
+                  Add Student
+                </h1>
+
+              </div>
+
+              <p
+                style={{
+                  margin: 0,
+                  color: "#64748b",
+                }}
+              >
+                Register a new student in CAMPX.
               </p>
 
             </div>
 
-
-            {/* ==================================
-                ACTIONS
-            ================================== */}
-
-            <div
-              style={{
-                display: "flex",
-                gap: "12px",
-              }}
-            >
-
-              <button
-                className="secondary-btn"
-                onClick={loadStudents}
-              >
-
-                <RefreshCw
-                  size={17}
-                />
-
-                Refresh
-
-              </button>
-
-
-              <button
-                className="primary-btn"
-                onClick={() =>
-                  navigate(
-                    "/admin/students/add"
-                  )
-                }
-              >
-
-                <UserPlus
-                  size={17}
-                />
-
-                Add Student
-
-              </button>
-
-            </div>
-
           </div>
 
-
           {/* ==================================
-              SEARCH
+              SUCCESS MESSAGE
           ================================== */}
 
-          <div
-            className="dashboard-card"
-            style={{
-              padding: "18px",
-              marginBottom: "20px",
-            }}
-          >
-
+          {message && (
             <div
               style={{
-                position: "relative",
-                maxWidth: "500px",
+                background: "#f0fdf4",
+                border:
+                  "1px solid #bbf7d0",
+                color: "#166534",
+                padding: "14px 18px",
+                borderRadius: "8px",
+                marginBottom: "20px",
+                fontWeight: "600",
               }}
             >
-
-              <Search
-                size={18}
-                style={{
-                  position: "absolute",
-                  left: "14px",
-                  top: "50%",
-                  transform:
-                    "translateY(-50%)",
-                  color: "#64748b",
-                }}
-              />
-
-              <input
-                type="text"
-                value={search}
-                onChange={(event) =>
-                  setSearch(
-                    event.target.value
-                  )
-                }
-                placeholder="Search by name, registration number, branch..."
-                style={{
-                  width: "100%",
-                  padding:
-                    "12px 15px 12px 42px",
-                  border:
-                    "1px solid #dbe3ef",
-                  borderRadius: "8px",
-                  outline: "none",
-                  boxSizing:
-                    "border-box",
-                }}
-              />
-
+              {message}
             </div>
-
-          </div>
-
+          )}
 
           {/* ==================================
-              ERROR
+              ERROR MESSAGE
           ================================== */}
 
           {error && (
-
             <div
               style={{
                 background: "#fff1f2",
@@ -379,417 +416,803 @@ export default function AdminStudents() {
                 padding: "14px 18px",
                 borderRadius: "8px",
                 marginBottom: "20px",
+                fontWeight: "500",
               }}
             >
-
               {error}
-
             </div>
-
           )}
 
-
           {/* ==================================
-              STUDENT TABLE
+              FORM
           ================================== */}
 
-          <div
-            className="dashboard-card"
-            style={{
-              padding: 0,
-              overflow: "hidden",
-            }}
-          >
+          <form onSubmit={handleSubmit}>
+
+            {/* ==================================
+                BASIC INFORMATION
+            ================================== */}
 
             <div
+              className="dashboard-card"
               style={{
-                padding: "22px",
-                borderBottom:
-                  "1px solid #e5e7eb",
-                display: "flex",
-                alignItems: "center",
-                gap: "12px",
+                marginBottom: "20px",
               }}
             >
 
-              <Users size={22} />
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  marginBottom: "25px",
+                }}
+              >
 
-              <div>
-
-                <h2
+                <div
                   style={{
-                    margin: 0,
+                    width: "42px",
+                    height: "42px",
+                    borderRadius: "10px",
+                    background: "#eff6ff",
+                    color: "#2563eb",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                   }}
                 >
-                  Registered Students
-                </h2>
+                  <UserPlus size={21} />
+                </div>
 
-                <p
-                  style={{
-                    margin:
-                      "4px 0 0",
-                    color: "#64748b",
-                  }}
-                >
-                  {filteredStudents.length}
-                  {" "}student
-                  {filteredStudents.length !== 1
-                    ? "s"
-                    : ""}
-                </p>
+                <div>
+
+                  <h2
+                    style={{
+                      margin: 0,
+                      fontSize: "20px",
+                    }}
+                  >
+                    Student Information
+                  </h2>
+
+                  <p
+                    style={{
+                      margin:
+                        "4px 0 0",
+                      color: "#64748b",
+                      fontSize: "14px",
+                    }}
+                  >
+                    Enter the student's academic
+                    and personal details.
+                  </p>
+
+                </div>
+
+              </div>
+
+              <div className="form-grid">
+
+                {/* Registration Number */}
+
+                <div className="form-group">
+
+                  <label>
+                    Registration Number
+                    <span className="required">
+                      *
+                    </span>
+                  </label>
+
+                  <input
+                    type="text"
+                    name="registrationNumber"
+                    value={
+                      form.registrationNumber
+                    }
+                    onChange={handleChange}
+                    placeholder="e.g. 2401289031"
+                    required
+                  />
+
+                </div>
+
+                {/* Name */}
+
+                <div className="form-group">
+
+                  <label>
+                    Full Name
+                    <span className="required">
+                      *
+                    </span>
+                  </label>
+
+                  <input
+                    type="text"
+                    name="name"
+                    value={form.name}
+                    onChange={handleChange}
+                    placeholder="Enter student's full name"
+                    required
+                  />
+
+                </div>
+
+                {/* Email */}
+
+                <div className="form-group">
+
+                  <label>
+                    College Email
+                    <span className="required">
+                      *
+                    </span>
+                  </label>
+
+                  <input
+                    type="email"
+                    name="email"
+                    value={form.email}
+                    onChange={handleChange}
+                    placeholder="student@campx.edu"
+                    required
+                  />
+
+                </div>
+
+                {/* Phone */}
+
+                <div className="form-group">
+
+                  <label>
+                    Phone Number
+                  </label>
+
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={form.phone}
+                    onChange={handleChange}
+                    placeholder="Enter phone number"
+                  />
+
+                </div>
 
               </div>
 
             </div>
 
+            {/* ==================================
+                ACADEMIC INFORMATION
+            ================================== */}
 
-            {loading ? (
+            <div
+              className="dashboard-card"
+              style={{
+                marginBottom: "20px",
+              }}
+            >
 
-              <div
+              <h2
                 style={{
-                  padding: "50px",
-                  textAlign: "center",
-                  color: "#64748b",
+                  marginTop: 0,
+                  marginBottom: "25px",
+                  fontSize: "20px",
                 }}
               >
-                Loading students...
+                Academic Information
+              </h2>
+
+              <div className="form-grid">
+
+                {/* Branch */}
+
+                <div className="form-group">
+
+                  <label>
+                    Branch
+                    <span className="required">
+                      *
+                    </span>
+                  </label>
+
+                  <select
+                    name="branch"
+                    value={form.branch}
+                    onChange={handleChange}
+                    required
+                  >
+
+                    <option value="">
+                      Select Branch
+                    </option>
+
+                    <option value="CSE">
+                      Computer Science Engineering
+                    </option>
+
+                    <option value="ECE">
+                      Electronics & Communication
+                    </option>
+
+                    <option value="EEE">
+                      Electrical & Electronics
+                    </option>
+
+                    <option value="ME">
+                      Mechanical Engineering
+                    </option>
+
+                    <option value="CE">
+                      Civil Engineering
+                    </option>
+
+                    <option value="IT">
+                      Information Technology
+                    </option>
+
+                    <option value="AI">
+                      Artificial Intelligence
+                    </option>
+
+                    <option value="AIML">
+                      AI & Machine Learning
+                    </option>
+
+                  </select>
+
+                </div>
+
+                {/* Semester */}
+
+                <div className="form-group">
+
+                  <label>
+                    Semester
+                    <span className="required">
+                      *
+                    </span>
+                  </label>
+
+                  <select
+                    name="semester"
+                    value={form.semester}
+                    onChange={handleChange}
+                    required
+                  >
+
+                    <option value="">
+                      Select Semester
+                    </option>
+
+                    <option value="1st Semester">
+                      1st Semester
+                    </option>
+
+                    <option value="2nd Semester">
+                      2nd Semester
+                    </option>
+
+                    <option value="3rd Semester">
+                      3rd Semester
+                    </option>
+
+                    <option value="4th Semester">
+                      4th Semester
+                    </option>
+
+                    <option value="5th Semester">
+                      5th Semester
+                    </option>
+
+                    <option value="6th Semester">
+                      6th Semester
+                    </option>
+
+                    <option value="7th Semester">
+                      7th Semester
+                    </option>
+
+                    <option value="8th Semester">
+                      8th Semester
+                    </option>
+
+                  </select>
+
+                </div>
+
+                {/* Section */}
+
+                <div className="form-group">
+
+                  <label>
+                    Section
+                    <span className="required">
+                      *
+                    </span>
+                  </label>
+
+                  <select
+                    name="section"
+                    value={form.section}
+                    onChange={handleChange}
+                    required
+                  >
+
+                    <option value="">
+                      Select Section
+                    </option>
+
+                    <option value="A">
+                      A
+                    </option>
+
+                    <option value="B">
+                      B
+                    </option>
+
+                    <option value="C">
+                      C
+                    </option>
+
+                    <option value="D">
+                      D
+                    </option>
+
+                  </select>
+
+                </div>
+
+                {/* Batch */}
+
+                <div className="form-group">
+
+                  <label>
+                    Batch Year
+                    <span className="required">
+                      *
+                    </span>
+                  </label>
+
+                  <select
+                    name="batchYear"
+                    value={form.batchYear}
+                    onChange={handleChange}
+                    required
+                  >
+
+                    <option value="2022">
+                      2022
+                    </option>
+
+                    <option value="2024">
+                      2024
+                    </option>
+
+                    <option value="2025">
+                      2025
+                    </option>
+
+                    <option value="2026">
+                      2026
+                    </option>
+
+                  </select>
+
+                </div>
+
               </div>
 
-            ) : filteredStudents.length === 0 ? (
+            </div>
 
-              <div
+            {/* ==================================
+                HOSTEL INFORMATION
+            ================================== */}
+
+            <div
+              className="dashboard-card"
+              style={{
+                marginBottom: "20px",
+              }}
+            >
+
+              <h2
                 style={{
-                  padding: "60px",
-                  textAlign: "center",
+                  marginTop: 0,
+                  marginBottom: "25px",
+                  fontSize: "20px",
                 }}
               >
+                Hostel Information
+              </h2>
 
-                <Users
-                  size={45}
-                  style={{
-                    color: "#94a3b8",
-                    marginBottom:
-                      "12px",
-                  }}
-                />
+              <div className="form-grid">
 
-                <h3>
-                  No students found
-                </h3>
+                {/* Hostel Status */}
 
-                <p
-                  style={{
-                    color: "#64748b",
-                  }}
-                >
-                  {search
-                    ? "Try a different search."
-                    : "No students have been registered yet."}
-                </p>
+                <div className="form-group">
 
-                {!search && (
+                  <label>
+                    Hostel Status
+                    <span className="required">
+                      *
+                    </span>
+                  </label>
 
-                  <button
-                    className="primary-btn"
-                    onClick={() =>
-                      navigate(
-                        "/admin/students/add"
-                      )
-                    }
+                  <select
+                    name="hostelStatus"
+                    value={form.hostelStatus}
+                    onChange={handleChange}
+                    required
                   >
-                    <UserPlus
-                      size={17}
+
+                    <option value="NON_HOSTELLER">
+                      Non-Hosteller
+                    </option>
+
+                    <option value="HOSTELLER">
+                      Hosteller
+                    </option>
+
+                  </select>
+
+                </div>
+
+                {/* Hostel */}
+
+                {form.hostelStatus ===
+                  "HOSTELLER" && (
+                  <div className="form-group">
+
+                    <label>
+                      Hostel
+                      <span className="required">
+                        *
+                      </span>
+                    </label>
+
+                    <input
+                      type="text"
+                      name="hostel"
+                      value={form.hostel}
+                      onChange={handleChange}
+                      placeholder="e.g. Hostel A"
+                      required
                     />
 
-                    Add First Student
-                  </button>
+                  </div>
+                )}
 
+                {/* Room */}
+
+                {form.hostelStatus ===
+                  "HOSTELLER" && (
+                  <div className="form-group">
+
+                    <label>
+                      Room Number
+                      <span className="required">
+                        *
+                      </span>
+                    </label>
+
+                    <input
+                      type="text"
+                      name="room"
+                      value={form.room}
+                      onChange={handleChange}
+                      placeholder="e.g. A-204"
+                      required
+                    />
+
+                  </div>
                 )}
 
               </div>
 
-            ) : (
+            </div>
 
-              <div
+            {/* ==================================
+                LOGIN INFORMATION
+            ================================== */}
+
+            <div
+              className="dashboard-card"
+              style={{
+                marginBottom: "25px",
+              }}
+            >
+
+              <h2
                 style={{
-                  overflowX: "auto",
+                  marginTop: 0,
+                  marginBottom: "8px",
+                  fontSize: "20px",
                 }}
               >
+                Student Login
+              </h2>
 
-                <table
-                  style={{
-                    width: "100%",
-                    borderCollapse:
-                      "collapse",
-                  }}
-                >
+              <p
+                style={{
+                  color: "#64748b",
+                  fontSize: "14px",
+                  marginBottom: "25px",
+                }}
+              >
+                Create the password the student
+                will use to log in to CAMPX.
+              </p>
 
-                  <thead>
+              <div className="form-grid">
 
-                    <tr
+                {/* Password */}
+
+                <div className="form-group">
+
+                  <label>
+                    Password
+                    <span className="required">
+                      *
+                    </span>
+                  </label>
+
+                  <div
+                    style={{
+                      position: "relative",
+                    }}
+                  >
+
+                    <input
+                      type={
+                        showPassword
+                          ? "text"
+                          : "password"
+                      }
+                      name="password"
+                      value={form.password}
+                      onChange={handleChange}
+                      placeholder="Minimum 6 characters"
+                      required
                       style={{
+                        paddingRight:
+                          "45px",
+                      }}
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setShowPassword(
+                          (value) => !value
+                        )
+                      }
+                      style={{
+                        position:
+                          "absolute",
+                        right: "10px",
+                        top: "50%",
+                        transform:
+                          "translateY(-50%)",
+                        border: "none",
                         background:
-                          "#f8fafc",
+                          "transparent",
+                        cursor: "pointer",
+                        color: "#64748b",
                       }}
                     >
+                      {showPassword ? (
+                        <EyeOff size={18} />
+                      ) : (
+                        <Eye size={18} />
+                      )}
+                    </button>
 
-                      <th
-                        style={thStyle}
-                      >
-                        Student
-                      </th>
+                  </div>
 
-                      <th
-                        style={thStyle}
-                      >
-                        Registration No.
-                      </th>
+                </div>
 
-                      <th
-                        style={thStyle}
-                      >
-                        Branch
-                      </th>
+                {/* Confirm Password */}
 
-                      <th
-                        style={thStyle}
-                      >
-                        Batch
-                      </th>
+                <div className="form-group">
 
-                      <th
-                        style={thStyle}
-                      >
-                        Semester
-                      </th>
+                  <label>
+                    Confirm Password
+                    <span className="required">
+                      *
+                    </span>
+                  </label>
 
-                      <th
-                        style={thStyle}
-                      >
-                        Hostel
-                      </th>
+                  <div
+                    style={{
+                      position: "relative",
+                    }}
+                  >
 
-                      <th
-                        style={{
-                          ...thStyle,
-                          textAlign: "center",
-                        }}
-                      >
-                        Action
-                      </th>
+                    <input
+                      type={
+                        showConfirmPassword
+                          ? "text"
+                          : "password"
+                      }
+                      name="confirmPassword"
+                      value={
+                        form.confirmPassword
+                      }
+                      onChange={handleChange}
+                      placeholder="Re-enter password"
+                      required
+                      style={{
+                        paddingRight:
+                          "45px",
+                      }}
+                    />
 
-                    </tr>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setShowConfirmPassword(
+                          (value) => !value
+                        )
+                      }
+                      style={{
+                        position:
+                          "absolute",
+                        right: "10px",
+                        top: "50%",
+                        transform:
+                          "translateY(-50%)",
+                        border: "none",
+                        background:
+                          "transparent",
+                        cursor: "pointer",
+                        color: "#64748b",
+                      }}
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff size={18} />
+                      ) : (
+                        <Eye size={18} />
+                      )}
+                    </button>
 
-                  </thead>
+                  </div>
 
-
-                  <tbody>
-
-                    {filteredStudents.map(
-                      (student) => (
-
-                        <tr
-                          key={
-                            student.id ||
-                            student.student_id
-                          }
-                        >
-
-                          <td
-                            style={tdStyle}
-                          >
-
-                            <strong>
-                              {
-                                student.name ||
-                                "—"
-                              }
-                            </strong>
-
-                            <div
-                              style={{
-                                fontSize:
-                                  "13px",
-                                color:
-                                  "#64748b",
-                                marginTop:
-                                  "3px",
-                              }}
-                            >
-                              {
-                                student.email ||
-                                "—"
-                              }
-                            </div>
-
-                          </td>
-
-
-                          <td
-                            style={tdStyle}
-                          >
-                            {
-                              student.student_id ||
-                              student.studentId ||
-                              "—"
-                            }
-                          </td>
-
-
-                          <td
-                            style={tdStyle}
-                          >
-                            {
-                              student.branch ||
-                              "—"
-                            }
-                          </td>
-
-
-                          <td
-                            style={tdStyle}
-                          >
-                            {
-                              student.batch_year ||
-                              student.batchYear ||
-                              "—"
-                            }
-                          </td>
-
-
-                          <td
-                            style={tdStyle}
-                          >
-                            {
-                              student.semester ||
-                              "—"
-                            }
-                          </td>
-
-
-                          <td
-                            style={tdStyle}
-                          >
-
-                            {(
-                              student.hostel_status ||
-                              student.hostelStatus
-                            ) ===
-                            "HOSTELLER" ? (
-                              <span
-                                style={{
-                                  padding:
-                                    "5px 10px",
-                                  borderRadius:
-                                    "20px",
-                                  background:
-                                    "#dcfce7",
-                                  color:
-                                    "#166534",
-                                  fontSize:
-                                    "12px",
-                                  fontWeight:
-                                    "600",
-                                }}
-                              >
-                                Hosteller
-                              </span>
-                            ) : (
-                              <span
-                                style={{
-                                  padding:
-                                    "5px 10px",
-                                  borderRadius:
-                                    "20px",
-                                  background:
-                                    "#f1f5f9",
-                                  color:
-                                    "#475569",
-                                  fontSize:
-                                    "12px",
-                                  fontWeight:
-                                    "600",
-                                }}
-                              >
-                                Non-Hosteller
-                              </span>
-                            )}
-
-                          </td>
-
-                          <td
-                            style={{
-                              ...tdStyle,
-                              textAlign: "center",
-                            }}
-                          >
-                            <button
-                              type="button"
-                              onClick={() =>
-                                handleDeleteStudent(student)
-                              }
-                              style={{
-                                display: "inline-flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                gap: "7px",
-                                padding: "8px 12px",
-                                border: "1px solid #fecaca",
-                                borderRadius: "8px",
-                                background: "#fff5f5",
-                                color: "#dc2626",
-                                cursor: "pointer",
-                                fontWeight: "600",
-                              }}
-                              title="Delete Student"
-                            >
-                              <Trash2 size={16} />
-                              Delete
-                            </button>
-                          </td>
-
-                        </tr>
-
-                      )
-                    )}
-
-                  </tbody>
-
-                </table>
+                </div>
 
               </div>
 
-            )}
+            </div>
 
-          </div>
+            {/* ==================================
+                ACTION BUTTONS
+            ================================== */}
+
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: "12px",
+                marginBottom: "30px",
+              }}
+            >
+
+              <button
+                type="button"
+                className="secondary-btn"
+                onClick={handleCancel}
+                disabled={loading}
+                style={{
+                  padding:
+                    "11px 22px",
+                }}
+              >
+                Cancel
+              </button>
+
+              <button
+                type="submit"
+                className="primary-btn"
+                disabled={loading}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
+                  minWidth: "160px",
+                  padding:
+                    "11px 22px",
+                  opacity: loading
+                    ? 0.7
+                    : 1,
+                }}
+              >
+
+                <Save size={17} />
+
+                {loading
+                  ? "Registering..."
+                  : "Register Student"}
+
+              </button>
+
+            </div>
+
+          </form>
 
         </div>
 
       </main>
 
+      {/* ======================================
+          FORM STYLES
+      ======================================= */}
+
+      <style>
+        {`
+          .form-grid {
+            display: grid;
+            grid-template-columns:
+              repeat(2, minmax(0, 1fr));
+            gap: 20px;
+          }
+
+          .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+          }
+
+          .form-group label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #334155;
+          }
+
+          .required {
+            color: #dc2626;
+            margin-left: 4px;
+          }
+
+          .form-group input,
+          .form-group select {
+            width: 100%;
+            min-height: 44px;
+            padding: 10px 13px;
+            border:
+              1px solid #dbe3ef;
+            border-radius: 8px;
+            background: #ffffff;
+            color: #1e293b;
+            font-size: 14px;
+            outline: none;
+            box-sizing: border-box;
+            transition:
+              border-color 0.2s,
+              box-shadow 0.2s;
+          }
+
+          .form-group input:focus,
+          .form-group select:focus {
+            border-color: #2563eb;
+            box-shadow:
+              0 0 0 3px
+              rgba(37, 99, 235, 0.1);
+          }
+
+          .form-group input::placeholder {
+            color: #94a3b8;
+          }
+
+          @media (max-width: 768px) {
+            .form-grid {
+              grid-template-columns: 1fr;
+            }
+          }
+        `}
+      </style>
+
     </div>
   );
 }
-
-
-// ==========================================
-// TABLE STYLES
-// ==========================================
-
-const thStyle = {
-  textAlign: "left",
-  padding: "15px 18px",
-  fontSize: "13px",
-  fontWeight: "600",
-  color: "#475569",
-  borderBottom:
-    "1px solid #e2e8f0",
-};
-
-const tdStyle = {
-  padding: "16px 18px",
-  borderBottom:
-    "1px solid #eef2f7",
-  color: "#334155",
-  fontSize: "14px",
-};

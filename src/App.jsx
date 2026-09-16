@@ -6,6 +6,12 @@ import {
 } from "react-router-dom";
 
 // ============================================
+// LANGUAGE
+// ============================================
+
+import { LanguageProvider } from "./context/LanguageContext";
+
+// ============================================
 // LOGIN
 // ============================================
 
@@ -25,7 +31,6 @@ import Applications from "./pages/Applications";
 import Attendance from "./pages/Attendance";
 import Notifications from "./Notifications";
 import Canteen from "./pages/Canteen";
-import AdminList from "./pages/AdminList";
 
 // ============================================
 // ADMIN PAGES
@@ -47,6 +52,7 @@ import AdminStudents from "./pages/AdminStudents";
 
 import AddAdmin from "./pages/AddAdmin";
 import AddStudent from "./pages/AddStudent";
+import AdminList from "./pages/AdminList";
 
 // ============================================
 // COMMON PAGES
@@ -56,28 +62,58 @@ import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 
 // ============================================
+// GET CURRENT USER
+// ============================================
+
+function getCurrentUser() {
+  const storedUser =
+    localStorage.getItem("campx_user");
+
+  if (!storedUser) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(storedUser);
+  } catch (error) {
+    console.error(
+      "Invalid CAMPX user:",
+      error
+    );
+
+    localStorage.removeItem("campx_user");
+    localStorage.removeItem("campx_token");
+
+    return null;
+  }
+}
+
+// ============================================
+// NORMALIZE ROLE
+// ============================================
+
+function getUserRole(user) {
+  return String(
+    user?.role ||
+      user?.userRole ||
+      user?.user_role ||
+      ""
+  )
+    .trim()
+    .toUpperCase();
+}
+
+// ============================================
 // HOSTELLER ROUTE PROTECTION
 // ============================================
 
 function HostellerRoute({ children }) {
-  const storedUser =
-    localStorage.getItem("campx_user");
+  const token =
+    localStorage.getItem("campx_token");
 
-  let user = {};
+  const user = getCurrentUser();
 
-  try {
-    user = storedUser
-      ? JSON.parse(storedUser)
-      : {};
-  } catch (error) {
-    console.error(
-      "Invalid CAMPX user data:",
-      error
-    );
-  }
-
-  // If no user is logged in
-  if (!storedUser) {
+  if (!token || !user) {
     return (
       <Navigate
         to="/login"
@@ -86,13 +122,26 @@ function HostellerRoute({ children }) {
     );
   }
 
-  // Check both possible property names
+  const role = getUserRole(user);
+
+  // Admin users should never enter student
+  // hosteller routes.
+  if (
+    role === "ADMIN" ||
+    role === "SUPER_ADMIN"
+  ) {
+    return (
+      <Navigate
+        to="/admin/dashboard"
+        replace
+      />
+    );
+  }
+
   const isHosteller =
     user?.hostelStatus === "HOSTELLER" ||
     user?.hostel_status === "HOSTELLER";
 
-  // Non-hostellers cannot access
-  // Gate Pass or Canteen
   if (!isHosteller) {
     return (
       <Navigate
@@ -113,10 +162,9 @@ function StudentRoute({ children }) {
   const token =
     localStorage.getItem("campx_token");
 
-  const storedUser =
-    localStorage.getItem("campx_user");
+  const user = getCurrentUser();
 
-  if (!token || !storedUser) {
+  if (!token || !user) {
     return (
       <Navigate
         to="/login"
@@ -125,31 +173,15 @@ function StudentRoute({ children }) {
     );
   }
 
-  let user = {};
+  const role = getUserRole(user);
 
-  try {
-    user = JSON.parse(storedUser);
-  } catch (error) {
-    console.error(
-      "Invalid CAMPX user:",
-      error
-    );
+  // ==========================================
+  // ADMIN USERS CANNOT ENTER STUDENT PORTAL
+  // ==========================================
 
-    localStorage.removeItem("campx_token");
-    localStorage.removeItem("campx_user");
-
-    return (
-      <Navigate
-        to="/login"
-        replace
-      />
-    );
-  }
-
-  // Do not allow admin users into student portal
   if (
-    user?.role === "ADMIN" ||
-    user?.role === "SUPER_ADMIN"
+    role === "ADMIN" ||
+    role === "SUPER_ADMIN"
   ) {
     return (
       <Navigate
@@ -170,10 +202,13 @@ function AdminRoute({ children }) {
   const token =
     localStorage.getItem("campx_token");
 
-  const storedUser =
-    localStorage.getItem("campx_user");
+  const user = getCurrentUser();
 
-  if (!token || !storedUser) {
+  // ==========================================
+  // NO LOGIN
+  // ==========================================
+
+  if (!token || !user) {
     return (
       <Navigate
         to="/admin"
@@ -182,36 +217,23 @@ function AdminRoute({ children }) {
     );
   }
 
-  let user = {};
+  const role = getUserRole(user);
 
-  try {
-    user = JSON.parse(storedUser);
-  } catch (error) {
-    console.error(
-      "Invalid CAMPX user:",
-      error
-    );
+  // ==========================================
+  // ADMIN / SUPER ADMIN ONLY
+  // ==========================================
 
-    localStorage.removeItem("campx_token");
-    localStorage.removeItem("campx_user");
-
-    return (
-      <Navigate
-        to="/admin"
-        replace
-      />
-    );
-  }
-
-  // Only ADMIN and SUPER_ADMIN
-  // can access admin portal
   if (
-    user?.role !== "ADMIN" &&
-    user?.role !== "SUPER_ADMIN"
+    role !== "ADMIN" &&
+    role !== "SUPER_ADMIN"
   ) {
+    // IMPORTANT:
+    // An invalid/non-admin user attempting
+    // an admin page goes to ADMIN LOGIN,
+    // NOT STUDENT LOGIN.
     return (
       <Navigate
-        to="/login"
+        to="/admin"
         replace
       />
     );
@@ -228,10 +250,9 @@ function SuperAdminRoute({ children }) {
   const token =
     localStorage.getItem("campx_token");
 
-  const storedUser =
-    localStorage.getItem("campx_user");
+  const user = getCurrentUser();
 
-  if (!token || !storedUser) {
+  if (!token || !user) {
     return (
       <Navigate
         to="/admin"
@@ -240,29 +261,9 @@ function SuperAdminRoute({ children }) {
     );
   }
 
-  let user = {};
+  const role = getUserRole(user);
 
-  try {
-    user = JSON.parse(storedUser);
-  } catch (error) {
-    console.error(
-      "Invalid CAMPX user:",
-      error
-    );
-
-    localStorage.removeItem("campx_token");
-    localStorage.removeItem("campx_user");
-
-    return (
-      <Navigate
-        to="/admin"
-        replace
-      />
-    );
-  }
-
-  // Only Super Admin
-  if (user?.role !== "SUPER_ADMIN") {
+  if (role !== "SUPER_ADMIN") {
     return (
       <Navigate
         to="/admin/dashboard"
@@ -280,408 +281,415 @@ function SuperAdminRoute({ children }) {
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <LanguageProvider>
+      <BrowserRouter>
 
-      <Routes>
+        <Routes>
 
-        {/* =====================================
-            ROOT
-        ===================================== */}
+          {/* =====================================
+              ROOT
+          ===================================== */}
 
-        <Route
-          path="/"
-          element={
-            <Navigate
-              to="/login"
-              replace
-            />
-          }
-        />
+          <Route
+            path="/"
+            element={
+              <Navigate
+                to="/login"
+                replace
+              />
+            }
+          />
 
-        {/* =====================================
-            LOGIN
-        ===================================== */}
+          {/* =====================================
+              STUDENT LOGIN
+          ===================================== */}
 
-        <Route
-          path="/login"
-          element={<Login />}
-        />
+          <Route
+            path="/login"
+            element={<Login />}
+          />
 
-        {/* =====================================
-            ADMIN / SUPER ADMIN LOGIN
-        ===================================== */}
+          {/* =====================================
+              ADMIN / SUPER ADMIN LOGIN
+          ===================================== */}
 
-        <Route
-          path="/admin"
-          element={<Login />}
-        />
+          <Route
+            path="/admin"
+            element={<Login />}
+          />
 
-        {/* =====================================
-            STUDENT DASHBOARD
-        ===================================== */}
+          {/* =====================================
+              STUDENT DASHBOARD
+          ===================================== */}
 
-        <Route
-          path="/student"
-          element={
-            <StudentRoute>
-              <StudentDashboard />
-            </StudentRoute>
-          }
-        />
+          <Route
+            path="/student"
+            element={
+              <StudentRoute>
+                <StudentDashboard />
+              </StudentRoute>
+            }
+          />
 
-        {/* =====================================
-            STUDENT PROFILE
-        ===================================== */}
+          {/* =====================================
+              STUDENT PROFILE
+          ===================================== */}
 
-        <Route
-          path="/student/profile"
-          element={
-            <StudentRoute>
-              <Profile />
-            </StudentRoute>
-          }
-        />
+          <Route
+            path="/student/profile"
+            element={
+              <StudentRoute>
+                <Profile />
+              </StudentRoute>
+            }
+          />
 
-        {/* =====================================
-            STUDENT SETTINGS
-        ===================================== */}
+          {/* =====================================
+              STUDENT SETTINGS
+          ===================================== */}
 
-        <Route
-          path="/student/settings"
-          element={
-            <StudentRoute>
-              <Settings />
-            </StudentRoute>
-          }
-        />
+          <Route
+            path="/student/settings"
+            element={
+              <StudentRoute>
+                <Settings />
+              </StudentRoute>
+            }
+          />
 
-        {/* =====================================
-            STUDENT COMPLAINTS
-        ===================================== */}
+          {/* =====================================
+              STUDENT COMPLAINTS
+          ===================================== */}
 
-        <Route
-          path="/complaints"
-          element={
-            <StudentRoute>
-              <Complaints />
-            </StudentRoute>
-          }
-        />
+          <Route
+            path="/complaints"
+            element={
+              <StudentRoute>
+                <Complaints />
+              </StudentRoute>
+            }
+          />
 
-        {/* =====================================
-            AI COMPLAINT ASSISTANT
-        ===================================== */}
+          {/* =====================================
+              AI COMPLAINT ASSISTANT
+          ===================================== */}
 
-        <Route
-          path="/ai-complaint"
-          element={
-            <StudentRoute>
-              <AIComplaint />
-            </StudentRoute>
-          }
-        />
+          <Route
+            path="/ai-complaint"
+            element={
+              <StudentRoute>
+                <AIComplaint />
+              </StudentRoute>
+            }
+          />
 
-        {/* =====================================
-            TIMETABLE
-        ===================================== */}
+          {/* =====================================
+              STUDENT TIMETABLE
+          ===================================== */}
 
-        <Route
-          path="/timetable"
-          element={
-            <StudentRoute>
-              <Timetable />
-            </StudentRoute>
-          }
-        />
+          <Route
+            path="/timetable"
+            element={
+              <StudentRoute>
+                <Timetable />
+              </StudentRoute>
+            }
+          />
 
-        {/* =====================================
-            REQUESTS
-        ===================================== */}
+          {/* =====================================
+              STUDENT REQUESTS
+          ===================================== */}
 
-        <Route
-          path="/requests"
-          element={
-            <StudentRoute>
-              <Requests />
-            </StudentRoute>
-          }
-        />
+          <Route
+            path="/requests"
+            element={
+              <StudentRoute>
+                <Requests />
+              </StudentRoute>
+            }
+          />
 
-        {/* =====================================
-            APPLICATIONS
-        ===================================== */}
+          {/* =====================================
+              STUDENT APPLICATIONS
+          ===================================== */}
 
-        <Route
-          path="/applications"
-          element={
-            <StudentRoute>
-              <Applications />
-            </StudentRoute>
-          }
-        />
+          <Route
+            path="/applications"
+            element={
+              <StudentRoute>
+                <Applications />
+              </StudentRoute>
+            }
+          />
 
-        {/* =====================================
-            ATTENDANCE
-        ===================================== */}
+          {/* =====================================
+              STUDENT ATTENDANCE
+          ===================================== */}
 
-        <Route
-          path="/attendance"
-          element={
-            <StudentRoute>
-              <Attendance />
-            </StudentRoute>
-          }
-        />
+          <Route
+            path="/attendance"
+            element={
+              <StudentRoute>
+                <Attendance />
+              </StudentRoute>
+            }
+          />
 
-        {/* =====================================
-            NOTIFICATIONS
-        ===================================== */}
+          {/* =====================================
+              STUDENT NOTIFICATIONS
+          ===================================== */}
 
-        <Route
-          path="/notifications"
-          element={
-            <StudentRoute>
-              <Notifications />
-            </StudentRoute>
-          }
-        />
+          <Route
+            path="/notifications"
+            element={
+              <StudentRoute>
+                <Notifications />
+              </StudentRoute>
+            }
+          />
 
-        {/* =====================================
-            HOSTELLER ONLY - GATE PASS
-        ===================================== */}
+          {/* =====================================
+              HOSTELLER - GATE PASS
+          ===================================== */}
 
-        <Route
-          path="/gatepass"
-          element={
-            <StudentRoute>
-              <HostellerRoute>
-                <GatePass />
-              </HostellerRoute>
-            </StudentRoute>
-          }
-        />
+          <Route
+            path="/gatepass"
+            element={
+              <StudentRoute>
+                <HostellerRoute>
+                  <GatePass />
+                </HostellerRoute>
+              </StudentRoute>
+            }
+          />
 
-        {/* =====================================
-            HOSTELLER ONLY - CANTEEN
-        ===================================== */}
+          {/* =====================================
+              HOSTELLER - CANTEEN
+          ===================================== */}
 
-        <Route
-          path="/canteen"
-          element={
-            <StudentRoute>
-              <HostellerRoute>
-                <Canteen />
-              </HostellerRoute>
-            </StudentRoute>
-          }
-        />
+          <Route
+            path="/canteen"
+            element={
+              <StudentRoute>
+                <HostellerRoute>
+                  <Canteen />
+                </HostellerRoute>
+              </StudentRoute>
+            }
+          />
 
-        {/* =====================================
-            ADMIN DASHBOARD
-        ===================================== */}
+          {/* =====================================
+              ADMIN DASHBOARD
+          ===================================== */}
 
-        <Route
-          path="/admin/dashboard"
-          element={
-            <AdminRoute>
-              <AdminDashboard />
-            </AdminRoute>
-          }
-        />
+          <Route
+            path="/admin/dashboard"
+            element={
+              <AdminRoute>
+                <AdminDashboard />
+              </AdminRoute>
+            }
+          />
 
-        {/* =====================================
-            ADMIN PROFILE
-        ===================================== */}
+          {/* =====================================
+              ADMIN PROFILE
+          ===================================== */}
 
-        <Route
-          path="/admin/profile"
-          element={
-            <AdminRoute>
-              <Profile />
-            </AdminRoute>
-          }
-        />
+          <Route
+            path="/admin/profile"
+            element={
+              <AdminRoute>
+                <Profile />
+              </AdminRoute>
+            }
+          />
 
-        {/* =====================================
-            ADMIN SETTINGS
-        ===================================== */}
+          {/* =====================================
+              ADMIN SETTINGS
+          ===================================== */}
 
-        <Route
-          path="/admin/settings"
-          element={
-            <AdminRoute>
-              <Settings />
-            </AdminRoute>
-          }
-        />
+          <Route
+            path="/admin/settings"
+            element={
+              <AdminRoute>
+                <Settings />
+              </AdminRoute>
+            }
+          />
 
-        {/* =====================================
-            ADMIN STUDENTS
-        ===================================== */}
+          {/* =====================================
+              ADMIN STUDENTS
+          ===================================== */}
 
-        <Route
-          path="/admin/students"
-          element={
-            <AdminRoute>
-              <AdminStudents />
-            </AdminRoute>
-          }
-        />
+          <Route
+            path="/admin/students"
+            element={
+              <AdminRoute>
+                <AdminStudents />
+              </AdminRoute>
+            }
+          />
 
-        {/* =====================================
-            ADD STUDENT
-        ===================================== */}
+          {/* =====================================
+              ADD STUDENT
+          ===================================== */}
 
-        <Route
-          path="/admin/students/add"
-          element={
-            <AdminRoute>
-              <AddStudent />
-            </AdminRoute>
-          }
-        />
+          <Route
+            path="/admin/students/add"
+            element={
+              <AdminRoute>
+                <AddStudent />
+              </AdminRoute>
+            }
+          />
 
-        {/* =====================================
-            ADD STUDENT ALIAS
-        ===================================== */}
+          {/* =====================================
+              ADD STUDENT ALIAS
+          ===================================== */}
 
-        <Route
-          path="/add-student"
-          element={
-            <AdminRoute>
-              <AddStudent />
-            </AdminRoute>
-          }
-        />
+          <Route
+            path="/add-student"
+            element={
+              <AdminRoute>
+                <AddStudent />
+              </AdminRoute>
+            }
+          />
 
-        {/* =====================================
-            SUPER ADMIN - ADD ADMIN
-        ===================================== */}
+          {/* =====================================
+              SUPER ADMIN - ADD ADMIN
+          ===================================== */}
 
-        <Route
-          path="/admin/faculty/add"
-          element={
-            <SuperAdminRoute>
-              <AddAdmin />
-            </SuperAdminRoute>
-          }
-        />
-        <Route
-  path="/admin/faculty"
-  element={
-    <SuperAdminRoute>
-      <AdminList />
-    </SuperAdminRoute>
-  }
-/>
+          <Route
+            path="/admin/faculty/add"
+            element={
+              <SuperAdminRoute>
+                <AddAdmin />
+              </SuperAdminRoute>
+            }
+          />
 
-        {/* =====================================
-            ADMIN COMPLAINTS
-        ===================================== */}
+          {/* =====================================
+              SUPER ADMIN - ADMIN LIST
+          ===================================== */}
 
-        <Route
-          path="/admin/complaints"
-          element={
-            <AdminRoute>
-              <AdminComplaints />
-            </AdminRoute>
-          }
-        />
+          <Route
+            path="/admin/faculty"
+            element={
+              <SuperAdminRoute>
+                <AdminList />
+              </SuperAdminRoute>
+            }
+          />
 
-        {/* =====================================
-            ADMIN GATE PASS
-        ===================================== */}
+          {/* =====================================
+              ADMIN COMPLAINTS
+          ===================================== */}
 
-        <Route
-          path="/admin/gatepass"
-          element={
-            <AdminRoute>
-              <GatePassRequests />
-            </AdminRoute>
-          }
-        />
+          <Route
+            path="/admin/complaints"
+            element={
+              <AdminRoute>
+                <AdminComplaints />
+              </AdminRoute>
+            }
+          />
 
-        {/* =====================================
-            ADMIN REQUESTS
-        ===================================== */}
+          {/* =====================================
+              ADMIN GATE PASS
+          ===================================== */}
 
-        <Route
-          path="/admin/requests"
-          element={
-            <AdminRoute>
-              <AdminRequests />
-            </AdminRoute>
-          }
-        />
+          <Route
+            path="/admin/gatepass"
+            element={
+              <AdminRoute>
+                <GatePassRequests />
+              </AdminRoute>
+            }
+          />
 
-        {/* =====================================
-            ADMIN APPLICATIONS
-        ===================================== */}
+          {/* =====================================
+              ADMIN REQUESTS
+          ===================================== */}
 
-        <Route
-          path="/admin/applications"
-          element={
-            <AdminRoute>
-              <AdminApplications />
-            </AdminRoute>
-          }
-        />
+          <Route
+            path="/admin/requests"
+            element={
+              <AdminRoute>
+                <AdminRequests />
+              </AdminRoute>
+            }
+          />
 
-        {/* =====================================
-            ADMIN ATTENDANCE
-        ===================================== */}
+          {/* =====================================
+              ADMIN APPLICATIONS
+          ===================================== */}
 
-        <Route
-          path="/admin/attendance"
-          element={
-            <AdminRoute>
-              <AdminAttendance />
-            </AdminRoute>
-          }
-        />
+          <Route
+            path="/admin/applications"
+            element={
+              <AdminRoute>
+                <AdminApplications />
+              </AdminRoute>
+            }
+          />
 
-        {/* =====================================
-            ADMIN TIMETABLE
-        ===================================== */}
+          {/* =====================================
+              ADMIN ATTENDANCE
+          ===================================== */}
 
-        <Route
-          path="/admin/timetable"
-          element={
-            <AdminRoute>
-              <AdminTimetable />
-            </AdminRoute>
-          }
-        />
+          <Route
+            path="/admin/attendance"
+            element={
+              <AdminRoute>
+                <AdminAttendance />
+              </AdminRoute>
+            }
+          />
 
-        {/* =====================================
-            ADMIN NOTIFICATIONS
-        ===================================== */}
+          {/* =====================================
+              ADMIN TIMETABLE
+          ===================================== */}
 
-        <Route
-          path="/admin/notifications"
-          element={
-            <AdminRoute>
-              <AdminNotifications />
-            </AdminRoute>
-          }
-        />
+          <Route
+            path="/admin/timetable"
+            element={
+              <AdminRoute>
+                <AdminTimetable />
+              </AdminRoute>
+            }
+          />
 
-        {/* =====================================
-            FALLBACK
-        ===================================== */}
+          {/* =====================================
+              ADMIN NOTIFICATIONS
+          ===================================== */}
 
-        <Route
-          path="*"
-          element={
-            <Navigate
-              to="/login"
-              replace
-            />
-          }
-        />
+          <Route
+            path="/admin/notifications"
+            element={
+              <AdminRoute>
+                <AdminNotifications />
+              </AdminRoute>
+            }
+          />
 
-      </Routes>
+          {/* =====================================
+              FALLBACK
+          ===================================== */}
 
-    </BrowserRouter>
+          <Route
+            path="*"
+            element={
+              <Navigate
+                to="/login"
+                replace
+              />
+            }
+          />
+
+        </Routes>
+
+      </BrowserRouter>
+    </LanguageProvider>
   );
 }

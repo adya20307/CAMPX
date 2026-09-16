@@ -8,7 +8,19 @@ import {
   Save,
 } from "lucide-react";
 
+import { useLanguage } from "../context/LanguageContext";
+
 export default function Settings() {
+
+  // =====================================================
+  // LANGUAGE CONTEXT
+  // =====================================================
+
+  const {
+    language,
+    changeLanguage,
+    t,
+  } = useLanguage();
 
   // =====================================================
   // CURRENT USER
@@ -39,15 +51,8 @@ export default function Settings() {
     user?.role === "SUPER_ADMIN";
 
   // =====================================================
-  // SETTINGS
+  // NOTIFICATIONS
   // =====================================================
-
-  const [language, setLanguage] =
-    useState(
-      localStorage.getItem(
-        "campx_language"
-      ) || "English"
-    );
 
   const [notifications, setNotifications] =
     useState(
@@ -56,8 +61,23 @@ export default function Settings() {
       ) !== "false"
     );
 
+  // =====================================================
+  // SAVE STATUS
+  // =====================================================
+
   const [saved, setSaved] =
     useState(false);
+
+  // =====================================================
+  // LANGUAGE CHANGE
+  // =====================================================
+
+  const handleLanguageChange = (event) => {
+    const newLanguage =
+      event.target.value;
+
+    changeLanguage(newLanguage);
+  };
 
   // =====================================================
   // SAVE
@@ -88,10 +108,28 @@ export default function Settings() {
 
   const accountType =
     user?.role === "SUPER_ADMIN"
-      ? "Super Admin"
+      ? (
+        language === "hi"
+          ? "सुपर एडमिन"
+          : language === "or"
+          ? "ସୁପର ଆଡମିନ୍"
+          : "Super Admin"
+      )
       : user?.role === "ADMIN"
-      ? "Admin"
-      : "Student";
+      ? (
+        language === "hi"
+          ? "एडमिन"
+          : language === "or"
+          ? "ଆଡମିନ୍"
+          : "Admin"
+      )
+      : (
+        language === "hi"
+          ? "छात्र"
+          : language === "or"
+          ? "ଛାତ୍ର"
+          : "Student"
+      );
 
   // =====================================================
   // PAGE
@@ -107,19 +145,37 @@ export default function Settings() {
       <div className="admin-page-header">
 
         <div className="eyebrow">
-          CAMPX {isAdmin ? "ADMIN" : "STUDENT"} PORTAL
+          CAMPX{" "}
+          {isAdmin
+            ? language === "hi"
+              ? "एडमिन पोर्टल"
+              : language === "or"
+              ? "ଆଡମିନ୍ ପୋର୍ଟାଲ୍"
+              : "ADMIN PORTAL"
+            : language === "hi"
+            ? "छात्र पोर्टल"
+            : language === "or"
+            ? "ଛାତ୍ର ପୋର୍ଟାଲ୍"
+            : "STUDENT PORTAL"}
         </div>
 
         <h1>
-          Settings
+          {language === "hi"
+            ? "सेटिंग्स"
+            : language === "or"
+            ? "ସେଟିଂସ୍"
+            : "Settings"}
         </h1>
 
         <p>
-          Manage your CampX preferences and account settings.
+          {language === "hi"
+            ? "अपनी CampX प्राथमिकताओं और अकाउंट सेटिंग्स को प्रबंधित करें।"
+            : language === "or"
+            ? "ଆପଣଙ୍କର CampX ପସନ୍ଦ ଏବଂ ଆକାଉଣ୍ଟ ସେଟିଂସ୍ ପରିଚାଳନା କରନ୍ତୁ।"
+            : "Manage your CampX preferences and account settings."}
         </p>
 
       </div>
-
 
       <div className="settings-container">
 
@@ -138,17 +194,24 @@ export default function Settings() {
             <div>
 
               <h2>
-                General Settings
+                {language === "hi"
+                  ? "सामान्य सेटिंग्स"
+                  : language === "or"
+                  ? "ସାଧାରଣ ସେଟିଂସ୍"
+                  : "General Settings"}
               </h2>
 
               <p>
-                Customize your CampX experience.
+                {language === "hi"
+                  ? "अपने CampX अनुभव को अनुकूलित करें।"
+                  : language === "or"
+                  ? "ଆପଣଙ୍କର CampX ଅନୁଭୂତିକୁ ଅନୁକୂଳ କରନ୍ତୁ।"
+                  : "Customize your CampX experience."}
               </p>
 
             </div>
 
           </div>
-
 
           {/* =================================================
               LANGUAGE
@@ -165,42 +228,42 @@ export default function Settings() {
               <div>
 
                 <h3>
-                  Language
+                  {t("language")}
                 </h3>
 
                 <p>
-                  Choose your preferred language.
+                  {language === "hi"
+                    ? "अपनी पसंदीदा भाषा चुनें।"
+                    : language === "or"
+                    ? "ଆପଣଙ୍କର ପସନ୍ଦର ଭାଷା ବାଛନ୍ତୁ।"
+                    : "Choose your preferred language."}
                 </p>
 
               </div>
 
             </div>
 
-
             <select
               value={language}
-              onChange={(e) =>
-                setLanguage(e.target.value)
-              }
+              onChange={handleLanguageChange}
               className="settings-select"
             >
 
-              <option value="English">
-                English
+              <option value="en">
+                {t("english")}
               </option>
 
-              <option value="Hindi">
-                Hindi
+              <option value="hi">
+                {t("hindi")}
               </option>
 
-              <option value="Oriya">
-                Oriya
+              <option value="or">
+                {t("odia")}
               </option>
 
             </select>
 
           </div>
-
 
           {/* =================================================
               NOTIFICATIONS
@@ -217,17 +280,20 @@ export default function Settings() {
               <div>
 
                 <h3>
-                  Notifications
+                  {t("notifications")}
                 </h3>
 
                 <p>
-                  Receive important CampX notifications.
+                  {language === "hi"
+                    ? "महत्वपूर्ण CampX सूचनाएँ प्राप्त करें।"
+                    : language === "or"
+                    ? "ଗୁରୁତ୍ୱପୂର୍ଣ୍ଣ CampX ବିଜ୍ଞପ୍ତି ପାଆନ୍ତୁ।"
+                    : "Receive important CampX notifications."}
                 </p>
 
               </div>
 
             </div>
-
 
             <label className="toggle-switch">
 
@@ -249,7 +315,6 @@ export default function Settings() {
 
         </div>
 
-
         {/* =================================================
             ACCOUNT
         ================================================= */}
@@ -265,24 +330,37 @@ export default function Settings() {
             <div>
 
               <h2>
-                Account
+                {language === "hi"
+                  ? "अकाउंट"
+                  : language === "or"
+                  ? "ଆକାଉଣ୍ଟ"
+                  : "Account"}
               </h2>
 
               <p>
-                Information about your current account.
+                {language === "hi"
+                  ? "आपके वर्तमान अकाउंट की जानकारी।"
+                  : language === "or"
+                  ? "ଆପଣଙ୍କର ବର୍ତ୍ତମାନ ଆକାଉଣ୍ଟ ବିଷୟରେ ସୂଚନା।"
+                  : "Information about your current account."}
               </p>
 
             </div>
 
           </div>
 
-
           <div className="account-settings-grid">
+
+            {/* NAME */}
 
             <div className="account-setting">
 
               <span>
-                Name
+                {language === "hi"
+                  ? "नाम"
+                  : language === "or"
+                  ? "ନାମ"
+                  : "Name"}
               </span>
 
               <strong>
@@ -291,11 +369,16 @@ export default function Settings() {
 
             </div>
 
+            {/* EMAIL */}
 
             <div className="account-setting">
 
               <span>
-                Email
+                {language === "hi"
+                  ? "ईमेल"
+                  : language === "or"
+                  ? "ଇମେଲ୍"
+                  : "Email"}
               </span>
 
               <strong>
@@ -304,11 +387,16 @@ export default function Settings() {
 
             </div>
 
+            {/* ACCOUNT TYPE */}
 
             <div className="account-setting">
 
               <span>
-                Account Type
+                {language === "hi"
+                  ? "अकाउंट प्रकार"
+                  : language === "or"
+                  ? "ଆକାଉଣ୍ଟ ପ୍ରକାର"
+                  : "Account Type"}
               </span>
 
               <strong>
@@ -317,15 +405,26 @@ export default function Settings() {
 
             </div>
 
+            {/* ACCOUNT STATUS */}
 
             <div className="account-setting">
 
               <span>
-                Account Status
+                {language === "hi"
+                  ? "अकाउंट स्थिति"
+                  : language === "or"
+                  ? "ଆକାଉଣ୍ଟ ସ୍ଥିତି"
+                  : "Account Status"}
               </span>
 
               <strong className="account-active">
-                ● Active
+
+                {language === "hi"
+                  ? "● सक्रिय"
+                  : language === "or"
+                  ? "● ସକ୍ରିୟ"
+                  : "● Active"}
+
               </strong>
 
             </div>
@@ -333,7 +432,6 @@ export default function Settings() {
           </div>
 
         </div>
-
 
         {/* =================================================
             SAVE
@@ -343,7 +441,13 @@ export default function Settings() {
 
           {saved && (
             <div className="settings-success">
-              Settings saved successfully.
+
+              {language === "hi"
+                ? "सेटिंग्स सफलतापूर्वक सहेजी गईं।"
+                : language === "or"
+                ? "ସେଟିଂସ୍ ସଫଳତାର ସହିତ ସେଭ୍ ହୋଇଛି।"
+                : "Settings saved successfully."}
+
             </div>
           )}
 
@@ -355,7 +459,11 @@ export default function Settings() {
 
             <Save size={18} />
 
-            Save Settings
+            {language === "hi"
+              ? "सेटिंग्स सहेजें"
+              : language === "or"
+              ? "ସେଟିଂସ୍ ସେଭ୍ କରନ୍ତୁ"
+              : "Save Settings"}
 
           </button>
 
