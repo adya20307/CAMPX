@@ -4,6 +4,23 @@ const router = express.Router();
 const db = require("../db");
 
 // =====================================================
+// HELPER
+// =====================================================
+
+const formatMenuRow = (row) => ({
+  id: row.id,
+  meal_type: row.meal_type,
+  item_name: row.menu_items,
+  menu_items: row.menu_items,
+  description: null,
+  menu_date: row.menu_date,
+  is_available: true,
+  created_by: row.created_by,
+  created_at: row.created_at,
+  updated_at: row.updated_at,
+});
+
+// =====================================================
 // GET TODAY'S MENU
 // =====================================================
 
@@ -13,14 +30,14 @@ router.get("/today", async (req, res) => {
       `
       SELECT
         id,
-        meal_type,
-        item_name,
-        description,
         menu_date,
-        is_available
+        meal_type,
+        menu_items,
+        created_by,
+        created_at,
+        updated_at
       FROM canteen_menu
       WHERE menu_date = CURDATE()
-        AND is_available = TRUE
       ORDER BY
         CASE meal_type
           WHEN 'BREAKFAST' THEN 1
@@ -34,16 +51,11 @@ router.get("/today", async (req, res) => {
 
     res.json({
       success: true,
-      date: new Date()
-        .toISOString()
-        .split("T")[0],
-      menu: rows,
+      date: new Date().toISOString().split("T")[0],
+      menu: rows.map(formatMenuRow),
     });
   } catch (error) {
-    console.error(
-      "Error fetching today's canteen menu:",
-      error
-    );
+    console.error("Error fetching today's canteen menu:", error);
 
     res.status(500).json({
       success: false,
@@ -64,11 +76,12 @@ router.get("/date/:date", async (req, res) => {
       `
       SELECT
         id,
-        meal_type,
-        item_name,
-        description,
         menu_date,
-        is_available
+        meal_type,
+        menu_items,
+        created_by,
+        created_at,
+        updated_at
       FROM canteen_menu
       WHERE menu_date = ?
       ORDER BY
@@ -86,13 +99,10 @@ router.get("/date/:date", async (req, res) => {
     res.json({
       success: true,
       date,
-      menu: rows,
+      menu: rows.map(formatMenuRow),
     });
   } catch (error) {
-    console.error(
-      "Error fetching canteen menu:",
-      error
-    );
+    console.error("Error fetching canteen menu:", error);
 
     res.status(500).json({
       success: false,
@@ -112,11 +122,10 @@ router.get("/", async (req, res) => {
       `
       SELECT
         id,
-        meal_type,
-        item_name,
-        description,
         menu_date,
-        is_available,
+        meal_type,
+        menu_items,
+        created_by,
         created_at,
         updated_at
       FROM canteen_menu
@@ -134,13 +143,10 @@ router.get("/", async (req, res) => {
 
     res.json({
       success: true,
-      menu: rows,
+      menu: rows.map(formatMenuRow),
     });
   } catch (error) {
-    console.error(
-      "Error fetching canteen menu:",
-      error
-    );
+    console.error("Error fetching canteen menu:", error);
 
     res.status(500).json({
       success: false,
@@ -162,15 +168,7 @@ router.post("/", async (req, res) => {
       menuDate,
     } = req.body;
 
-    // -----------------------------------------------
-    // VALIDATION
-    // -----------------------------------------------
-
-    if (
-      !mealType ||
-      !itemName ||
-      !menuDate
-    ) {
+    if (!mealType || !itemName || !menuDate) {
       return res.status(400).json({
         success: false,
         message:
@@ -192,39 +190,50 @@ router.post("/", async (req, res) => {
       });
     }
 
-    // -----------------------------------------------
-    // INSERT
-    // -----------------------------------------------
+    /*
+      Your existing database has only one text field:
+      menu_items
+
+      Therefore we store the item name there.
+
+      If a description is supplied, we append it to the
+      same text field so no database structure change
+      is required.
+    */
+
+    let menuText = itemName.trim();
+
+    if (description && description.trim()) {
+      menuText += ` - ${description.trim()}`;
+    }
 
     const [result] = await db.query(
       `
       INSERT INTO canteen_menu
       (
-        meal_type,
-        item_name,
-        description,
         menu_date,
-        is_available
+        meal_type,
+        menu_items
       )
-      VALUES (?, ?, ?, ?, TRUE)
+      VALUES (?, ?, ?)
       `,
       [
-        mealType,
-        itemName.trim(),
-        description
-          ? description.trim()
-          : null,
         menuDate,
+        mealType,
+        menuText,
       ]
     );
 
-    // -----------------------------------------------
-    // RETURN CREATED ITEM
-    // -----------------------------------------------
-
     const [rows] = await db.query(
       `
-      SELECT *
+      SELECT
+        id,
+        menu_date,
+        meal_type,
+        menu_items,
+        created_by,
+        created_at,
+        updated_at
       FROM canteen_menu
       WHERE id = ?
       `,
@@ -233,20 +242,15 @@ router.post("/", async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message:
-        "Canteen menu item added successfully",
-      menuItem: rows[0],
+      message: "Canteen menu item added successfully",
+      menuItem: formatMenuRow(rows[0]),
     });
   } catch (error) {
-    console.error(
-      "Error adding canteen menu item:",
-      error
-    );
+    console.error("Error adding canteen menu item:", error);
 
     res.status(500).json({
       success: false,
-      message:
-        "Failed to add canteen menu item",
+      message: "Failed to add canteen menu item",
     });
   }
 });
@@ -264,18 +268,9 @@ router.put("/:id", async (req, res) => {
       itemName,
       description,
       menuDate,
-      isAvailable,
     } = req.body;
 
-    // -----------------------------------------------
-    // VALIDATION
-    // -----------------------------------------------
-
-    if (
-      !mealType ||
-      !itemName ||
-      !menuDate
-    ) {
+    if (!mealType || !itemName || !menuDate) {
       return res.status(400).json({
         success: false,
         message:
@@ -297,31 +292,25 @@ router.put("/:id", async (req, res) => {
       });
     }
 
-    // -----------------------------------------------
-    // UPDATE
-    // -----------------------------------------------
+    let menuText = itemName.trim();
+
+    if (description && description.trim()) {
+      menuText += ` - ${description.trim()}`;
+    }
 
     const [result] = await db.query(
       `
       UPDATE canteen_menu
       SET
         meal_type = ?,
-        item_name = ?,
-        description = ?,
-        menu_date = ?,
-        is_available = ?
+        menu_items = ?,
+        menu_date = ?
       WHERE id = ?
       `,
       [
         mealType,
-        itemName.trim(),
-        description
-          ? description.trim()
-          : null,
+        menuText,
         menuDate,
-        isAvailable !== undefined
-          ? Boolean(isAvailable)
-          : true,
         id,
       ]
     );
@@ -329,18 +318,20 @@ router.put("/:id", async (req, res) => {
     if (result.affectedRows === 0) {
       return res.status(404).json({
         success: false,
-        message:
-          "Canteen menu item not found",
+        message: "Canteen menu item not found",
       });
     }
 
-    // -----------------------------------------------
-    // RETURN UPDATED ITEM
-    // -----------------------------------------------
-
     const [rows] = await db.query(
       `
-      SELECT *
+      SELECT
+        id,
+        menu_date,
+        meal_type,
+        menu_items,
+        created_by,
+        created_at,
+        updated_at
       FROM canteen_menu
       WHERE id = ?
       `,
@@ -349,20 +340,15 @@ router.put("/:id", async (req, res) => {
 
     res.json({
       success: true,
-      message:
-        "Canteen menu item updated successfully",
-      menuItem: rows[0],
+      message: "Canteen menu item updated successfully",
+      menuItem: formatMenuRow(rows[0]),
     });
   } catch (error) {
-    console.error(
-      "Error updating canteen menu item:",
-      error
-    );
+    console.error("Error updating canteen menu item:", error);
 
     res.status(500).json({
       success: false,
-      message:
-        "Failed to update canteen menu item",
+      message: "Failed to update canteen menu item",
     });
   }
 });
@@ -371,63 +357,24 @@ router.put("/:id", async (req, res) => {
 // TOGGLE MENU ITEM AVAILABILITY
 // =====================================================
 
-router.patch(
-  "/:id/toggle",
-  async (req, res) => {
-    try {
-      const { id } = req.params;
+router.patch("/:id/toggle", async (req, res) => {
+  /*
+    The current canteen_menu table does not contain an
+    is_available column.
 
-      const [result] = await db.query(
-        `
-        UPDATE canteen_menu
-        SET is_available =
-          CASE
-            WHEN is_available = TRUE
-            THEN FALSE
-            ELSE TRUE
-          END
-        WHERE id = ?
-        `,
-        [id]
-      );
+    Therefore availability cannot actually be toggled
+    without changing the database structure.
 
-      if (result.affectedRows === 0) {
-        return res.status(404).json({
-          success: false,
-          message:
-            "Canteen menu item not found",
-        });
-      }
+    We return a clear response instead of generating a
+    database error.
+  */
 
-      const [rows] = await db.query(
-        `
-        SELECT *
-        FROM canteen_menu
-        WHERE id = ?
-        `,
-        [id]
-      );
-
-      res.json({
-        success: true,
-        message:
-          "Menu item availability updated",
-        menuItem: rows[0],
-      });
-    } catch (error) {
-      console.error(
-        "Error toggling menu availability:",
-        error
-      );
-
-      res.status(500).json({
-        success: false,
-        message:
-          "Failed to update availability",
-      });
-    }
-  }
-);
+  res.status(400).json({
+    success: false,
+    message:
+      "Availability toggle is not available because the canteen_menu table does not have an is_available column.",
+  });
+});
 
 // =====================================================
 // DELETE MENU ITEM
@@ -448,28 +395,26 @@ router.delete("/:id", async (req, res) => {
     if (result.affectedRows === 0) {
       return res.status(404).json({
         success: false,
-        message:
-          "Canteen menu item not found",
+        message: "Canteen menu item not found",
       });
     }
 
     res.json({
       success: true,
-      message:
-        "Canteen menu item deleted successfully",
+      message: "Canteen menu item deleted successfully",
     });
   } catch (error) {
-    console.error(
-      "Error deleting canteen menu item:",
-      error
-    );
+    console.error("Error deleting canteen menu item:", error);
 
     res.status(500).json({
       success: false,
-      message:
-        "Failed to delete canteen menu item",
+      message: "Failed to delete canteen menu item",
     });
   }
 });
+
+// =====================================================
+// EXPORT
+// =====================================================
 
 module.exports = router;

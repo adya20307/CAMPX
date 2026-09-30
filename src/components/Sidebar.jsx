@@ -433,6 +433,12 @@ export default function Sidebar({
       icon: Utensils,
     },
 
+    {
+      nameKey: "accounts",
+      path: "/admin/accounts",
+      icon: CreditCard,
+    },
+
   ];
 
 

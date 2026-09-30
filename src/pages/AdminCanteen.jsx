@@ -14,6 +14,10 @@ import {
   User,
   CalendarDays,
   Trash2,
+  Plus,
+  Pencil,
+  Power,
+  X,
 } from "lucide-react";
 
 import Sidebar from "../components/Sidebar";
@@ -52,6 +56,24 @@ const ADMIN_CANTEEN_TRANSLATIONS = {
     status: "Status",
     quantity: "Quantity",
     noQuantity: "Not specified",
+    addItem: "Add Menu Item",
+    editItem: "Edit Menu Item",
+    mealType: "Meal Type",
+    itemName: "Item Name",
+    description: "Description",
+    menuDate: "Menu Date",
+    save: "Save",
+    update: "Update",
+    cancel: "Cancel",
+    edit: "Edit",
+    delete: "Delete",
+    toggle: "Toggle",
+    confirmDeleteMenu: "Are you sure you want to delete this menu item?",
+    saveSuccess: "Menu item saved successfully.",
+    updateSuccess: "Menu item updated successfully.",
+    deleteSuccess: "Menu item deleted successfully.",
+    actionFailed: "Action failed. Please try again.",
+    requiredFields: "Meal type, item name and menu date are required.",
 
     feedbackTitle: "Student Canteen Feedback",
     feedbackSubtitle:
@@ -103,6 +125,24 @@ const ADMIN_CANTEEN_TRANSLATIONS = {
     status: "स्थिति",
     quantity: "मात्रा",
     noQuantity: "निर्दिष्ट नहीं",
+    addItem: "मेनू आइटम जोड़ें",
+    editItem: "मेनू आइटम संपादित करें",
+    mealType: "भोजन प्रकार",
+    itemName: "आइटम का नाम",
+    description: "विवरण",
+    menuDate: "मेनू तारीख",
+    save: "सेव करें",
+    update: "अपडेट करें",
+    cancel: "रद्द करें",
+    edit: "संपादित करें",
+    delete: "हटाएं",
+    toggle: "उपलब्धता बदलें",
+    confirmDeleteMenu: "क्या आप इस मेनू आइटम को हटाना चाहते हैं?",
+    saveSuccess: "मेनू आइटम सफलतापूर्वक सेव किया गया।",
+    updateSuccess: "मेनू आइटम सफलतापूर्वक अपडेट किया गया।",
+    deleteSuccess: "मेनू आइटम सफलतापूर्वक हटाया गया।",
+    actionFailed: "कार्रवाई विफल हुई। कृपया पुनः प्रयास करें।",
+    requiredFields: "भोजन प्रकार, आइटम का नाम और मेनू तारीख आवश्यक हैं।",
 
     feedbackTitle: "छात्र कैंटीन फीडबैक",
     feedbackSubtitle:
@@ -154,6 +194,24 @@ const ADMIN_CANTEEN_TRANSLATIONS = {
     status: "ସ୍ଥିତି",
     quantity: "ପରିମାଣ",
     noQuantity: "ଉଲ୍ଲେଖ ନାହିଁ",
+    addItem: "ମେନୁ ଆଇଟମ୍ ଯୋଡନ୍ତୁ",
+    editItem: "ମେନୁ ଆଇଟମ୍ ସମ୍ପାଦନ କରନ୍ତୁ",
+    mealType: "ଭୋଜନ ପ୍ରକାର",
+    itemName: "ଆଇଟମ୍ ନାମ",
+    description: "ବିବରଣୀ",
+    menuDate: "ମେନୁ ତାରିଖ",
+    save: "ସେଭ୍",
+    update: "ଅପଡେଟ୍",
+    cancel: "ବାତିଲ୍",
+    edit: "ସମ୍ପାଦନ",
+    delete: "ଡିଲିଟ୍",
+    toggle: "ଉପଲବ୍ଧତା ବଦଳାନ୍ତୁ",
+    confirmDeleteMenu: "ଆପଣ ଏହି ମେନୁ ଆଇଟମ୍ ଡିଲିଟ୍ କରିବାକୁ ଚାହୁଁଛନ୍ତି କି?",
+    saveSuccess: "ମେନୁ ଆଇଟମ୍ ସଫଳତାର ସହ ସେଭ୍ ହୋଇଛି।",
+    updateSuccess: "ମେନୁ ଆଇଟମ୍ ସଫଳତାର ସହ ଅପଡେଟ୍ ହୋଇଛି।",
+    deleteSuccess: "ମେନୁ ଆଇଟମ୍ ସଫଳତାର ସହ ଡିଲିଟ୍ ହୋଇଛି।",
+    actionFailed: "କାର୍ଯ୍ୟ ବିଫଳ ହେଲା। ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ।",
+    requiredFields: "ଭୋଜନ ପ୍ରକାର, ଆଇଟମ୍ ନାମ ଏବଂ ମେନୁ ତାରିଖ ଆବଶ୍ୟକ।",
 
     feedbackTitle: "ଛାତ୍ର କ୍ୟାଣ୍ଟିନ୍ ଫିଡବ୍ୟାକ୍",
     feedbackSubtitle:
@@ -223,6 +281,173 @@ export default function AdminCanteen() {
   const [menu, setMenu] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  // ===================================================
+  // MENU MANAGEMENT STATE
+  // ===================================================
+
+  const [showMenuForm, setShowMenuForm] = useState(false);
+  const [editingMenuItem, setEditingMenuItem] = useState(null);
+  const [savingMenu, setSavingMenu] = useState(false);
+  const [menuActionError, setMenuActionError] = useState("");
+  const [menuForm, setMenuForm] = useState({
+    mealType: "BREAKFAST",
+    itemName: "",
+    description: "",
+    menuDate: new Date().toISOString().split("T")[0],
+    isAvailable: true,
+  });
+
+  // ===================================================
+  // MENU MANAGEMENT ACTIONS
+  // ===================================================
+
+  const openAddMenuForm = () => {
+    setEditingMenuItem(null);
+    setMenuActionError("");
+    setMenuForm({
+      mealType: "BREAKFAST",
+      itemName: "",
+      description: "",
+      menuDate: new Date().toISOString().split("T")[0],
+      isAvailable: true,
+    });
+    setShowMenuForm(true);
+  };
+
+  const openEditMenuForm = (item) => {
+    setEditingMenuItem(item);
+    setMenuActionError("");
+    setMenuForm({
+      mealType: item?.meal_type || item?.mealType || "BREAKFAST",
+      itemName: item?.item_name || item?.itemName || "",
+      description: item?.description || "",
+      menuDate: String(item?.menu_date || item?.menuDate || "").slice(0, 10),
+      isAvailable: isAvailable(item),
+    });
+    setShowMenuForm(true);
+  };
+
+  const closeMenuForm = () => {
+    if (savingMenu) return;
+    setShowMenuForm(false);
+    setEditingMenuItem(null);
+    setMenuActionError("");
+  };
+
+  const handleMenuFormChange = (field, value) => {
+    setMenuForm((previous) => ({
+      ...previous,
+      [field]: value,
+    }));
+  };
+
+  const saveMenuItem = async (event) => {
+    event.preventDefault();
+
+    if (
+      !menuForm.mealType ||
+      !menuForm.itemName.trim() ||
+      !menuForm.menuDate
+    ) {
+      setMenuActionError(t.requiredFields);
+      return;
+    }
+
+    try {
+      setSavingMenu(true);
+      setMenuActionError("");
+
+      const endpoint = editingMenuItem
+        ? `${API_URL}/canteen/${editingMenuItem.id}`
+        : `${API_URL}/canteen`;
+
+      const response = await fetch(endpoint, {
+        method: editingMenuItem ? "PUT" : "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          mealType: menuForm.mealType,
+          itemName: menuForm.itemName.trim(),
+          description: menuForm.description.trim(),
+          menuDate: menuForm.menuDate,
+          isAvailable: menuForm.isAvailable,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || t.actionFailed);
+      }
+
+      setShowMenuForm(false);
+      setEditingMenuItem(null);
+      await fetchMenu();
+      window.alert(
+        editingMenuItem ? t.updateSuccess : t.saveSuccess
+      );
+    } catch (err) {
+      console.error("Canteen menu save error:", err);
+      setMenuActionError(err.message || t.actionFailed);
+    } finally {
+      setSavingMenu(false);
+    }
+  };
+
+  const deleteMenuItem = async (item) => {
+    const confirmed = window.confirm(t.confirmDeleteMenu);
+
+    if (!confirmed) return;
+
+    try {
+      setMenuActionError("");
+
+      const response = await fetch(
+        `${API_URL}/canteen/${item.id}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || t.actionFailed);
+      }
+
+      await fetchMenu();
+      window.alert(t.deleteSuccess);
+    } catch (err) {
+      console.error("Canteen menu delete error:", err);
+      setMenuActionError(err.message || t.actionFailed);
+    }
+  };
+
+  const toggleMenuItem = async (item) => {
+    try {
+      setMenuActionError("");
+
+      const response = await fetch(
+        `${API_URL}/canteen/${item.id}/toggle`,
+        {
+          method: "PATCH",
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || t.actionFailed);
+      }
+
+      await fetchMenu();
+    } catch (err) {
+      console.error("Canteen menu toggle error:", err);
+      setMenuActionError(err.message || t.actionFailed);
+    }
+  };
 
   // ===================================================
   // FEEDBACK STATE
@@ -582,23 +807,40 @@ export default function AdminCanteen() {
               </p>
             </div>
 
-            <button
-              type="button"
-              className="secondary-button"
-              onClick={fetchMenu}
-              disabled={loading}
+            <div
+              style={{
+                display: "flex",
+                gap: "10px",
+                flexWrap: "wrap",
+                justifyContent: "flex-end",
+              }}
             >
-              <RefreshCw
-                size={17}
-                className={
-                  loading
-                    ? "campx-spin"
-                    : ""
-                }
-              />
+              <button
+                type="button"
+                className="primary-button"
+                onClick={openAddMenuForm}
+              >
+                <Plus size={17} />
+                {t.addItem}
+              </button>
 
-              {t.refresh}
-            </button>
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={fetchMenu}
+                disabled={loading}
+              >
+                <RefreshCw
+                  size={17}
+                  className={
+                    loading
+                      ? "campx-spin"
+                      : ""
+                  }
+                />
+                {t.refresh}
+              </button>
+            </div>
           </div>
 
           {/* =========================================
@@ -773,11 +1015,21 @@ export default function AdminCanteen() {
             <div
               className="error-message"
               style={{
-                marginBottom:
-                  "20px",
+                marginBottom: "20px",
               }}
             >
               {error}
+            </div>
+          )}
+
+          {menuActionError && !showMenuForm && (
+            <div
+              className="error-message"
+              style={{
+                marginBottom: "20px",
+              }}
+            >
+              {menuActionError}
             </div>
           )}
 
@@ -1033,6 +1285,74 @@ export default function AdminCanteen() {
                                         ? t.available
                                         : t.unavailable}
                                     </span>
+
+                                    <div
+                                      style={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: "5px",
+                                        marginLeft: "auto",
+                                      }}
+                                    >
+                                      <button
+                                        type="button"
+                                        title={t.edit}
+                                        onClick={() =>
+                                          openEditMenuForm(item)
+                                        }
+                                        style={{
+                                          border: "1px solid #e2e8f0",
+                                          background: "#ffffff",
+                                          borderRadius: "7px",
+                                          padding: "6px",
+                                          cursor: "pointer",
+                                          color: "#475467",
+                                          display: "flex",
+                                        }}
+                                      >
+                                        <Pencil size={14} />
+                                      </button>
+
+                                      <button
+                                        type="button"
+                                        title={t.toggle}
+                                        onClick={() =>
+                                          toggleMenuItem(item)
+                                        }
+                                        style={{
+                                          border: "1px solid #e2e8f0",
+                                          background: "#ffffff",
+                                          borderRadius: "7px",
+                                          padding: "6px",
+                                          cursor: "pointer",
+                                          color: available
+                                            ? "#d97706"
+                                            : "#16a34a",
+                                          display: "flex",
+                                        }}
+                                      >
+                                        <Power size={14} />
+                                      </button>
+
+                                      <button
+                                        type="button"
+                                        title={t.delete}
+                                        onClick={() =>
+                                          deleteMenuItem(item)
+                                        }
+                                        style={{
+                                          border: "1px solid #fecaca",
+                                          background: "#fff7f7",
+                                          borderRadius: "7px",
+                                          padding: "6px",
+                                          cursor: "pointer",
+                                          color: "#dc2626",
+                                          display: "flex",
+                                        }}
+                                      >
+                                        <Trash2 size={14} />
+                                      </button>
+                                    </div>
                                   </div>
                                 );
                               }
@@ -1046,6 +1366,297 @@ export default function AdminCanteen() {
               </div>
             )}
           </div>
+
+          {/* =========================================
+              ADD / EDIT MENU MODAL
+          ========================================= */}
+
+          {showMenuForm && (
+            <div
+              style={{
+                position: "fixed",
+                inset: 0,
+                background: "rgba(15, 23, 42, 0.45)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "20px",
+                zIndex: 1000,
+              }}
+            >
+              <div
+                className="card"
+                style={{
+                  width: "100%",
+                  maxWidth: "560px",
+                  maxHeight: "90vh",
+                  overflowY: "auto",
+                  background: "#ffffff",
+                  borderRadius: "16px",
+                  padding: "24px",
+                  boxShadow: "0 20px 50px rgba(15, 23, 42, 0.18)",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: "15px",
+                    marginBottom: "20px",
+                  }}
+                >
+                  <div>
+                    <div
+                      className="eyebrow"
+                      style={{ marginBottom: "5px" }}
+                    >
+                      CAMPX
+                    </div>
+                    <h2 style={{ margin: 0 }}>
+                      {editingMenuItem
+                        ? t.editItem
+                        : t.addItem}
+                    </h2>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={closeMenuForm}
+                    disabled={savingMenu}
+                    style={{
+                      border: "none",
+                      background: "#f1f5f9",
+                      borderRadius: "8px",
+                      padding: "8px",
+                      cursor: "pointer",
+                      display: "flex",
+                    }}
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+
+                {menuActionError && (
+                  <div
+                    className="error-message"
+                    style={{ marginBottom: "15px" }}
+                  >
+                    {menuActionError}
+                  </div>
+                )}
+
+                <form onSubmit={saveMenuItem}>
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns:
+                        "repeat(auto-fit, minmax(220px, 1fr))",
+                      gap: "16px",
+                    }}
+                  >
+                    <label style={{ display: "block" }}>
+                      <span
+                        style={{
+                          display: "block",
+                          marginBottom: "7px",
+                          fontWeight: 600,
+                          color: "#344054",
+                        }}
+                      >
+                        {t.mealType}
+                      </span>
+
+                      <select
+                        value={menuForm.mealType}
+                        onChange={(e) =>
+                          handleMenuFormChange(
+                            "mealType",
+                            e.target.value
+                          )
+                        }
+                        className="feedback-select"
+                        style={{ width: "100%" }}
+                      >
+                        <option value="BREAKFAST">
+                          {t.breakfast}
+                        </option>
+                        <option value="LUNCH">
+                          {t.lunch}
+                        </option>
+                        <option value="SNACKS">
+                          {t.snacks}
+                        </option>
+                        <option value="DINNER">
+                          {t.dinner}
+                        </option>
+                      </select>
+                    </label>
+
+                    <label style={{ display: "block" }}>
+                      <span
+                        style={{
+                          display: "block",
+                          marginBottom: "7px",
+                          fontWeight: 600,
+                          color: "#344054",
+                        }}
+                      >
+                        {t.menuDate}
+                      </span>
+
+                      <input
+                        type="date"
+                        value={menuForm.menuDate}
+                        onChange={(e) =>
+                          handleMenuFormChange(
+                            "menuDate",
+                            e.target.value
+                          )
+                        }
+                        required
+                        className="feedback-select"
+                        style={{ width: "100%" }}
+                      />
+                    </label>
+
+                    <label
+                      style={{
+                        display: "block",
+                        gridColumn: "1 / -1",
+                      }}
+                    >
+                      <span
+                        style={{
+                          display: "block",
+                          marginBottom: "7px",
+                          fontWeight: 600,
+                          color: "#344054",
+                        }}
+                      >
+                        {t.itemName}
+                      </span>
+
+                      <input
+                        type="text"
+                        value={menuForm.itemName}
+                        onChange={(e) =>
+                          handleMenuFormChange(
+                            "itemName",
+                            e.target.value
+                          )
+                        }
+                        placeholder={t.itemName}
+                        required
+                        className="feedback-select"
+                        style={{
+                          width: "100%",
+                          boxSizing: "border-box",
+                        }}
+                      />
+                    </label>
+
+                    <label
+                      style={{
+                        display: "block",
+                        gridColumn: "1 / -1",
+                      }}
+                    >
+                      <span
+                        style={{
+                          display: "block",
+                          marginBottom: "7px",
+                          fontWeight: 600,
+                          color: "#344054",
+                        }}
+                      >
+                        {t.description}
+                      </span>
+
+                      <textarea
+                        value={menuForm.description}
+                        onChange={(e) =>
+                          handleMenuFormChange(
+                            "description",
+                            e.target.value
+                          )
+                        }
+                        rows={3}
+                        placeholder={t.description}
+                        className="feedback-select"
+                        style={{
+                          width: "100%",
+                          boxSizing: "border-box",
+                          resize: "vertical",
+                        }}
+                      />
+                    </label>
+
+                    <label
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "9px",
+                        gridColumn: "1 / -1",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={menuForm.isAvailable}
+                        onChange={(e) =>
+                          handleMenuFormChange(
+                            "isAvailable",
+                            e.target.checked
+                          )
+                        }
+                      />
+                      <span style={{ fontWeight: 600 }}>
+                        {t.available}
+                      </span>
+                    </label>
+                  </div>
+
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "flex-end",
+                      gap: "10px",
+                      marginTop: "22px",
+                    }}
+                  >
+                    <button
+                      type="button"
+                      className="secondary-button"
+                      onClick={closeMenuForm}
+                      disabled={savingMenu}
+                    >
+                      {t.cancel}
+                    </button>
+
+                    <button
+                      type="submit"
+                      className="primary-button"
+                      disabled={savingMenu}
+                    >
+                      {savingMenu ? (
+                        <RefreshCw
+                          size={16}
+                          className="campx-spin"
+                        />
+                      ) : (
+                        <CheckCircle2 size={16} />
+                      )}
+
+                      {editingMenuItem
+                        ? t.update
+                        : t.save}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
 
           {/* =========================================
               STUDENT FEEDBACK SECTION
