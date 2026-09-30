@@ -12,15 +12,40 @@ import {
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import { addNotification } from "../notificationStorage";
+import { useLanguage } from "../context/LanguageContext";
 
 const APPLICATIONS_KEY = "campx_applications";
 
-const CURRENT_STUDENT = {
-  name: "Adya Dash",
-  id: "CX2026001",
-  department: "Computer Science & Engineering",
-  semester: "6th Semester",
-};
+function getCurrentStudent() {
+  try {
+    const savedUser = localStorage.getItem("campx_user");
+    const user = savedUser ? JSON.parse(savedUser) : {};
+
+    return {
+      name: user?.name || user?.studentName || "Student",
+      id:
+        user?.studentId ||
+        user?.student_id ||
+        user?.registrationNumber ||
+        user?.registration_number ||
+        "",
+      department:
+        user?.department ||
+        user?.branch ||
+        "Computer Science & Engineering",
+      semester: user?.semester || "Semester",
+    };
+  } catch (error) {
+    console.error("Error reading logged-in student:", error);
+
+    return {
+      name: "Student",
+      id: "",
+      department: "Computer Science & Engineering",
+      semester: "Semester",
+    };
+  }
+}
 
 const applicationTypes = [
   "Leave Application",
@@ -36,8 +61,7 @@ const applicationTypes = [
 
 function loadApplications() {
   try {
-    const saved =
-      localStorage.getItem(APPLICATIONS_KEY);
+    const saved = localStorage.getItem(APPLICATIONS_KEY);
 
     if (!saved) return [];
 
@@ -45,11 +69,7 @@ function loadApplications() {
 
     return Array.isArray(parsed) ? parsed : [];
   } catch (error) {
-    console.error(
-      "Error loading applications:",
-      error
-    );
-
+    console.error("Error loading applications:", error);
     return [];
   }
 }
@@ -66,38 +86,368 @@ function saveApplications(applications) {
 }
 
 export default function Applications() {
-  const [applications, setApplications] =
-    useState([]);
+  const { language } = useLanguage();
+  const CURRENT_STUDENT = getCurrentStudent();
+
+  const [applications, setApplications] = useState([]);
 
   const [applicationType, setApplicationType] =
     useState("Leave Application");
 
-  const [subject, setSubject] =
-    useState("");
-
-  const [reason, setReason] =
-    useState("");
-
+  const [subject, setSubject] = useState("");
+  const [reason, setReason] = useState("");
   const [applicationDate, setApplicationDate] =
     useState("");
-
   const [additionalDetails, setAdditionalDetails] =
     useState("");
 
   const [selectedApplication, setSelectedApplication] =
     useState(null);
 
+  const translations = {
+    en: {
+      studentServices: "STUDENT SERVICES",
+      digitalApplications: "Digital Applications",
+      submitTrack:
+        "Submit applications and track their approval status.",
+
+      createApplication: "Create Application",
+      fillDetails: "Fill in the details below.",
+
+      applicationType: "Application Type",
+      applicationDate: "Application Date",
+      subject: "Subject",
+      reasonContent: "Reason / Application Content",
+      additionalDetails: "Additional Details",
+
+      subjectPlaceholder: "e.g. Request for leave",
+      reasonPlaceholder:
+        "Write your application reason...",
+      additionalPlaceholder:
+        "Any additional information...",
+
+      applicantInformation: "Applicant Information",
+      name: "Name",
+      studentId: "Student ID",
+      department: "Department",
+      semester: "Semester",
+
+      standardFormat: "Standard Application Format",
+      to: "To,",
+      concernedAuthority: "The Concerned Authority",
+      applicationSubject: "Application Subject",
+      respected: "Respected Sir/Madam,",
+      requestConsider:
+        "request you to kindly consider my application.",
+
+      submitApplication: "Submit Application",
+
+      myApplications: "My Applications",
+      trackApplications:
+        "Track your submitted applications and print approved applications.",
+
+      noApplications: "No applications yet",
+      submittedAppear:
+        "Your submitted applications will appear here.",
+
+      view: "View",
+      print: "Print",
+
+      approvedApplication: "APPROVED APPLICATION",
+      applicationDetails: "APPLICATION DETAILS",
+
+      digitalStudentApplication:
+        "Digital Student Application",
+
+      date: "Date:",
+      applicationId: "Application ID:",
+      reason: "Reason:",
+      additional: "Additional Details:",
+
+      applicant: "Applicant",
+      approvedBy: "Approved By",
+
+      pendingVerification:
+        "This application is still awaiting administrative verification.",
+
+      close: "Close",
+      printApproved: "Print Approved Application",
+
+      alertSubjectReason:
+        "Please enter the subject and reason.",
+      alertSuccess:
+        "Application submitted successfully.",
+      alertApplicationId: "Application ID:",
+
+      newApplicationNotification:
+        "New Application Submitted",
+      submittedNotification:
+        "submitted a",
+      applicationWord: "application.",
+
+      leave: "Leave Application",
+      hostel: "Hostel Application",
+      fee: "Fee Related Application",
+      academic: "Academic Application",
+      bonafide: "Bonafide / Certificate Application",
+      permission: "Permission Application",
+      internship: "Internship / Training Application",
+      event: "Event / Activity Permission",
+      other: "Other",
+
+      submitted: "Submitted",
+      approved: "Approved",
+      rejected: "Rejected",
+      pending: "Pending",
+
+      requestConsiderFull:
+        "I, {name} ({id}), request you to kindly consider my application.",
+    },
+
+    hi: {
+      studentServices: "छात्र सेवाएँ",
+      digitalApplications: "डिजिटल आवेदन",
+      submitTrack:
+        "आवेदन जमा करें और उनकी स्वीकृति स्थिति देखें।",
+
+      createApplication: "आवेदन बनाएँ",
+      fillDetails: "नीचे दिए गए विवरण भरें।",
+
+      applicationType: "आवेदन का प्रकार",
+      applicationDate: "आवेदन की तारीख",
+      subject: "विषय",
+      reasonContent: "कारण / आवेदन की सामग्री",
+      additionalDetails: "अतिरिक्त विवरण",
+
+      subjectPlaceholder:
+        "जैसे: छुट्टी के लिए अनुरोध",
+      reasonPlaceholder:
+        "अपने आवेदन का कारण लिखें...",
+      additionalPlaceholder:
+        "कोई अतिरिक्त जानकारी...",
+
+      applicantInformation: "आवेदक की जानकारी",
+      name: "नाम",
+      studentId: "छात्र आईडी",
+      department: "विभाग",
+      semester: "सेमेस्टर",
+
+      standardFormat: "मानक आवेदन प्रारूप",
+      to: "सेवा में,",
+      concernedAuthority: "संबंधित प्राधिकारी",
+      applicationSubject: "आवेदन का विषय",
+      respected: "आदरणीय सर/मैडम,",
+      requestConsider:
+        "कृपया मेरे आवेदन पर विचार करने का अनुरोध है।",
+
+      submitApplication: "आवेदन जमा करें",
+
+      myApplications: "मेरे आवेदन",
+      trackApplications:
+        "अपने जमा किए गए आवेदनों को देखें और स्वीकृत आवेदन प्रिंट करें।",
+
+      noApplications: "अभी कोई आवेदन नहीं है",
+      submittedAppear:
+        "आपके जमा किए गए आवेदन यहाँ दिखाई देंगे।",
+
+      view: "देखें",
+      print: "प्रिंट",
+
+      approvedApplication: "स्वीकृत आवेदन",
+      applicationDetails: "आवेदन का विवरण",
+
+      digitalStudentApplication:
+        "डिजिटल छात्र आवेदन",
+
+      date: "तारीख:",
+      applicationId: "आवेदन आईडी:",
+      reason: "कारण:",
+      additional: "अतिरिक्त विवरण:",
+
+      applicant: "आवेदक",
+      approvedBy: "द्वारा स्वीकृत",
+
+      pendingVerification:
+        "यह आवेदन अभी प्रशासनिक सत्यापन की प्रतीक्षा कर रहा है।",
+
+      close: "बंद करें",
+      printApproved: "स्वीकृत आवेदन प्रिंट करें",
+
+      alertSubjectReason:
+        "कृपया विषय और कारण दर्ज करें।",
+      alertSuccess:
+        "आवेदन सफलतापूर्वक जमा किया गया।",
+      alertApplicationId: "आवेदन आईडी:",
+
+      newApplicationNotification:
+        "नया आवेदन जमा हुआ",
+      submittedNotification:
+        "ने एक",
+      applicationWord: "आवेदन जमा किया है।",
+
+      leave: "छुट्टी का आवेदन",
+      hostel: "हॉस्टल आवेदन",
+      fee: "शुल्क संबंधी आवेदन",
+      academic: "शैक्षणिक आवेदन",
+      bonafide: "बोनाफाइड / प्रमाणपत्र आवेदन",
+      permission: "अनुमति आवेदन",
+      internship: "इंटर्नशिप / प्रशिक्षण आवेदन",
+      event: "कार्यक्रम / गतिविधि अनुमति",
+      other: "अन्य",
+
+      submitted: "जमा किया गया",
+      approved: "स्वीकृत",
+      rejected: "अस्वीकृत",
+      pending: "लंबित",
+
+      requestConsiderFull:
+        "मैं, {name} ({id}), आपसे मेरे आवेदन पर विचार करने का अनुरोध करता/करती हूँ।",
+    },
+
+    or: {
+      studentServices: "ଛାତ୍ର ସେବା",
+      digitalApplications: "ଡିଜିଟାଲ ଆବେଦନ",
+      submitTrack:
+        "ଆବେଦନ ଦାଖଲ କରନ୍ତୁ ଏବଂ ଏହାର ଅନୁମୋଦନ ସ୍ଥିତି ଦେଖନ୍ତୁ।",
+
+      createApplication: "ଆବେଦନ ସୃଷ୍ଟି କରନ୍ତୁ",
+      fillDetails: "ନିମ୍ନରେ ଦିଆଯାଇଥିବା ବିବରଣୀ ପୂରଣ କରନ୍ତୁ।",
+
+      applicationType: "ଆବେଦନ ପ୍ରକାର",
+      applicationDate: "ଆବେଦନ ତାରିଖ",
+      subject: "ବିଷୟ",
+      reasonContent: "କାରଣ / ଆବେଦନ ବିଷୟବସ୍ତୁ",
+      additionalDetails: "ଅତିରିକ୍ତ ବିବରଣୀ",
+
+      subjectPlaceholder:
+        "ଯଥା: ଛୁଟି ପାଇଁ ଅନୁରୋଧ",
+      reasonPlaceholder:
+        "ଆପଣଙ୍କ ଆବେଦନର କାରଣ ଲେଖନ୍ତୁ...",
+      additionalPlaceholder:
+        "ଅନ୍ୟାନ୍ୟ ଅତିରିକ୍ତ ସୂଚନା...",
+
+      applicantInformation: "ଆବେଦକଙ୍କ ସୂଚନା",
+      name: "ନାମ",
+      studentId: "ଛାତ୍ର ID",
+      department: "ବିଭାଗ",
+      semester: "ସେମିଷ୍ଟର",
+
+      standardFormat: "ମାନକ ଆବେଦନ ଫର୍ମାଟ",
+      to: "ପ୍ରତି,",
+      concernedAuthority: "ସମ୍ପୃକ୍ତ କର୍ତ୍ତୃପକ୍ଷ",
+      applicationSubject: "ଆବେଦନର ବିଷୟ",
+      respected: "ମାନ୍ୟବର ସାର୍ / ମ୍ୟାଡାମ୍,",
+      requestConsider:
+        "ଦୟାକରି ମୋର ଆବେଦନକୁ ବିଚାର କରିବାକୁ ଅନୁରୋଧ କରୁଛି।",
+
+      submitApplication: "ଆବେଦନ ଦାଖଲ କରନ୍ତୁ",
+
+      myApplications: "ମୋର ଆବେଦନଗୁଡ଼ିକ",
+      trackApplications:
+        "ଆପଣଙ୍କ ଦାଖଲ କରାଯାଇଥିବା ଆବେଦନଗୁଡ଼ିକୁ ଟ୍ରାକ୍ କରନ୍ତୁ ଏବଂ ଅନୁମୋଦିତ ଆବେଦନ ପ୍ରିଣ୍ଟ କରନ୍ତୁ।",
+
+      noApplications: "ଏପର୍ଯ୍ୟନ୍ତ କୌଣସି ଆବେଦନ ନାହିଁ",
+      submittedAppear:
+        "ଆପଣଙ୍କ ଦାଖଲ କରାଯାଇଥିବା ଆବେଦନ ଏଠାରେ ଦେଖାଯିବ।",
+
+      view: "ଦେଖନ୍ତୁ",
+      print: "ପ୍ରିଣ୍ଟ",
+
+      approvedApplication: "ଅନୁମୋଦିତ ଆବେଦନ",
+      applicationDetails: "ଆବେଦନ ବିବରଣୀ",
+
+      digitalStudentApplication:
+        "ଡିଜିଟାଲ ଛାତ୍ର ଆବେଦନ",
+
+      date: "ତାରିଖ:",
+      applicationId: "ଆବେଦନ ID:",
+      reason: "କାରଣ:",
+      additional: "ଅତିରିକ୍ତ ବିବରଣୀ:",
+
+      applicant: "ଆବେଦକ",
+      approvedBy: "ଅନୁମୋଦନକାରୀ",
+
+      pendingVerification:
+        "ଏହି ଆବେଦନ ବର୍ତ୍ତମାନ ପ୍ରଶାସନିକ ଯାଞ୍ଚ ପାଇଁ ଅପେକ୍ଷାରତ ଅଛି।",
+
+      close: "ବନ୍ଦ କରନ୍ତୁ",
+      printApproved: "ଅନୁମୋଦିତ ଆବେଦନ ପ୍ରିଣ୍ଟ କରନ୍ତୁ",
+
+      alertSubjectReason:
+        "ଦୟାକରି ବିଷୟ ଏବଂ କାରଣ ଲେଖନ୍ତୁ।",
+      alertSuccess:
+        "ଆବେଦନ ସଫଳତାର ସହିତ ଦାଖଲ ହୋଇଛି।",
+      alertApplicationId: "ଆବେଦନ ID:",
+
+      newApplicationNotification:
+        "ନୂତନ ଆବେଦନ ଦାଖଲ ହୋଇଛି",
+      submittedNotification:
+        "ଏକ",
+      applicationWord: "ଆବେଦନ ଦାଖଲ କରିଛନ୍ତି।",
+
+      leave: "ଛୁଟି ଆବେଦନ",
+      hostel: "ହଷ୍ଟେଲ ଆବେଦନ",
+      fee: "ଫି ସମ୍ବନ୍ଧୀୟ ଆବେଦନ",
+      academic: "ଶିକ୍ଷାଗତ ଆବେଦନ",
+      bonafide: "ବୋନାଫାଇଡ୍ / ପ୍ରମାଣପତ୍ର ଆବେଦନ",
+      permission: "ଅନୁମତି ଆବେଦନ",
+      internship: "ଇଣ୍ଟର୍ନସିପ୍ / ପ୍ରଶିକ୍ଷଣ ଆବେଦନ",
+      event: "କାର୍ଯ୍ୟକ୍ରମ / କାର୍ଯ୍ୟକଳାପ ଅନୁମତି",
+      other: "ଅନ୍ୟାନ୍ୟ",
+
+      submitted: "ଦାଖଲ",
+      approved: "ଅନୁମୋଦିତ",
+      rejected: "ପ୍ରତ୍ୟାଖ୍ୟାନ",
+      pending: "ବିଚାରାଧୀନ",
+
+      requestConsiderFull:
+        "ମୁଁ, {name} ({id}), ମୋର ଆବେଦନକୁ ବିଚାର କରିବା ପାଇଁ ଆପଣଙ୍କୁ ଅନୁରୋଧ କରୁଛି।",
+    },
+  };
+
+  const t = (key) => {
+    return (
+      translations[language]?.[key] ||
+      translations.en[key] ||
+      key
+    );
+  };
+
+  const getApplicationTypeLabel = (type) => {
+    const labels = {
+      "Leave Application": t("leave"),
+      "Hostel Application": t("hostel"),
+      "Fee Related Application": t("fee"),
+      "Academic Application": t("academic"),
+      "Bonafide / Certificate Application": t("bonafide"),
+      "Permission Application": t("permission"),
+      "Internship / Training Application": t("internship"),
+      "Event / Activity Permission": t("event"),
+      Other: t("other"),
+    };
+
+    return labels[type] || type;
+  };
+
+  const getStatusLabel = (status) => {
+    const labels = {
+      Submitted: t("submitted"),
+      Approved: t("approved"),
+      Rejected: t("rejected"),
+      Pending: t("pending"),
+    };
+
+    return labels[status] || status;
+  };
+
   useEffect(() => {
     const loadStudentApplications = () => {
-      const allApplications =
-        loadApplications();
+      const allApplications = loadApplications();
 
-      const studentApplications =
-        allApplications.filter(
-          (application) =>
-            application.studentId ===
-            CURRENT_STUDENT.id
-        );
+      const studentApplications = allApplications.filter(
+        (application) =>
+          application.studentId === CURRENT_STUDENT.id
+      );
 
       setApplications(studentApplications);
     };
@@ -130,104 +480,76 @@ export default function Applications() {
   const handleSubmit = (event) => {
     event.preventDefault();
 
-    if (
-      !subject.trim() ||
-      !reason.trim()
-    ) {
-      alert(
-        "Please enter the subject and reason."
-      );
-
+    if (!subject.trim() || !reason.trim()) {
+      alert(t("alertSubjectReason"));
       return;
     }
 
     const newApplication = {
       id: `APP-${Date.now()}`,
 
-      studentName:
-        CURRENT_STUDENT.name,
+      studentName: CURRENT_STUDENT.name,
 
-      studentId:
-        CURRENT_STUDENT.id,
+      studentId: CURRENT_STUDENT.id,
 
-      department:
-        CURRENT_STUDENT.department,
+      department: CURRENT_STUDENT.department,
 
-      semester:
-        CURRENT_STUDENT.semester,
+      semester: CURRENT_STUDENT.semester,
 
-      type:
-        applicationType,
+      type: applicationType,
 
-      subject:
-        subject.trim(),
+      subject: subject.trim(),
 
-      reason:
-        reason.trim(),
+      reason: reason.trim(),
 
       applicationDate,
 
       additionalDetails:
         additionalDetails.trim(),
 
-      status:
-        "Submitted",
+      status: "Submitted",
 
-      verificationStatus:
-        "Pending",
+      verificationStatus: "Pending",
 
-      approvalAuthority:
-        "",
+      approvalAuthority: "",
 
-      authorityName:
-        "",
+      authorityName: "",
 
-      authorityDesignation:
-        "",
+      authorityDesignation: "",
 
-      approvalImage:
-        "",
+      approvalImage: "",
 
-      verificationNote:
-        "",
+      verificationNote: "",
 
-      createdAt:
-        new Date().toISOString(),
+      createdAt: new Date().toISOString(),
 
-      updatedAt:
-        new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
 
-    const allApplications =
-      loadApplications();
+    const allApplications = loadApplications();
 
-    allApplications.unshift(
-      newApplication
-    );
+    allApplications.unshift(newApplication);
 
-    saveApplications(
-      allApplications
-    );
+    saveApplications(allApplications);
 
     addNotification({
       audience: "admin",
 
       type: "application",
 
-      title:
-        "New Application Submitted",
+      title: t("newApplicationNotification"),
 
-      message:
-        `${newApplication.studentName} submitted a ${newApplication.type}.`,
+      message: `${newApplication.studentName} ${t(
+        "submittedNotification"
+      )} ${getApplicationTypeLabel(
+        newApplication.type
+      )} ${t("applicationWord")}`,
 
-      studentId:
-        newApplication.studentId,
+      studentId: newApplication.studentId,
 
-      relatedId:
-        newApplication.id,
+      relatedId: newApplication.id,
 
-      status:
-        "Submitted",
+      status: "Submitted",
     });
 
     setSubject("");
@@ -236,7 +558,9 @@ export default function Applications() {
     setAdditionalDetails("");
 
     alert(
-      `Application submitted successfully.\n\nApplication ID: ${newApplication.id}`
+      `${t("alertSuccess")}\n\n${t(
+        "alertApplicationId"
+      )} ${newApplication.id}`
     );
   };
 
@@ -244,13 +568,32 @@ export default function Applications() {
     window.print();
   };
 
+  const formatDate = (dateValue) => {
+    if (!dateValue) {
+      return "";
+    }
+
+    try {
+      const locale =
+        language === "hi"
+          ? "hi-IN"
+          : language === "or"
+          ? "or-IN"
+          : "en-IN";
+
+      return new Date(dateValue).toLocaleDateString(
+        locale
+      );
+    } catch {
+      return new Date(dateValue).toLocaleDateString();
+    }
+  };
+
   return (
     <div className="app-layout">
-
       <Sidebar />
 
       <main className="main-content">
-
         <Topbar />
 
         <div className="page-content">
@@ -259,26 +602,21 @@ export default function Applications() {
 
           <div className="page-header">
             <div>
-
               <div className="page-eyebrow">
-                STUDENT SERVICES
+                {t("studentServices")}
               </div>
 
               <h1>
-                Digital Applications
+                {t("digitalApplications")}
               </h1>
 
               <p>
-                Submit applications and track
-                their approval status.
+                {t("submitTrack")}
               </p>
-
             </div>
           </div>
 
-          {/* =================================================
-              NEW APPLICATION
-              ================================================= */}
+          {/* NEW APPLICATION */}
 
           <div className="application-layout">
 
@@ -292,11 +630,11 @@ export default function Applications() {
 
                 <div>
                   <h2>
-                    Create Application
+                    {t("createApplication")}
                   </h2>
 
                   <p>
-                    Fill in the details below.
+                    {t("fillDetails")}
                   </p>
                 </div>
 
@@ -309,7 +647,7 @@ export default function Applications() {
                   <div className="form-field">
 
                     <label>
-                      Application Type
+                      {t("applicationType")}
                     </label>
 
                     <select
@@ -320,18 +658,18 @@ export default function Applications() {
                         )
                       }
                     >
-
                       {applicationTypes.map(
                         (type) => (
                           <option
                             key={type}
                             value={type}
                           >
-                            {type}
+                            {getApplicationTypeLabel(
+                              type
+                            )}
                           </option>
                         )
                       )}
-
                     </select>
 
                   </div>
@@ -339,7 +677,7 @@ export default function Applications() {
                   <div className="form-field">
 
                     <label>
-                      Application Date
+                      {t("applicationDate")}
                     </label>
 
                     <input
@@ -359,12 +697,14 @@ export default function Applications() {
                 <div className="form-field">
 
                   <label>
-                    Subject <span>*</span>
+                    {t("subject")} <span>*</span>
                   </label>
 
                   <input
                     type="text"
-                    placeholder="e.g. Request for leave"
+                    placeholder={t(
+                      "subjectPlaceholder"
+                    )}
                     value={subject}
                     onChange={(event) =>
                       setSubject(
@@ -378,13 +718,15 @@ export default function Applications() {
                 <div className="form-field">
 
                   <label>
-                    Reason / Application Content{" "}
+                    {t("reasonContent")}{" "}
                     <span>*</span>
                   </label>
 
                   <textarea
                     rows="7"
-                    placeholder="Write your application reason..."
+                    placeholder={t(
+                      "reasonPlaceholder"
+                    )}
                     value={reason}
                     onChange={(event) =>
                       setReason(
@@ -398,12 +740,14 @@ export default function Applications() {
                 <div className="form-field">
 
                   <label>
-                    Additional Details
+                    {t("additionalDetails")}
                   </label>
 
                   <textarea
                     rows="4"
-                    placeholder="Any additional information..."
+                    placeholder={t(
+                      "additionalPlaceholder"
+                    )}
                     value={additionalDetails}
                     onChange={(event) =>
                       setAdditionalDetails(
@@ -419,14 +763,14 @@ export default function Applications() {
                 <div className="application-student-info">
 
                   <h3>
-                    Applicant Information
+                    {t("applicantInformation")}
                   </h3>
 
                   <div className="student-info-grid">
 
                     <div>
                       <span>
-                        Name
+                        {t("name")}
                       </span>
 
                       <strong>
@@ -436,7 +780,7 @@ export default function Applications() {
 
                     <div>
                       <span>
-                        Student ID
+                        {t("studentId")}
                       </span>
 
                       <strong>
@@ -446,7 +790,7 @@ export default function Applications() {
 
                     <div>
                       <span>
-                        Department
+                        {t("department")}
                       </span>
 
                       <strong>
@@ -456,7 +800,7 @@ export default function Applications() {
 
                     <div>
                       <span>
-                        Semester
+                        {t("semester")}
                       </span>
 
                       <strong>
@@ -468,39 +812,41 @@ export default function Applications() {
 
                 </div>
 
+                {/* STANDARD APPLICATION FORMAT */}
+
                 <div className="application-format-note">
 
                   <strong>
-                    Standard Application Format
+                    {t("standardFormat")}
                   </strong>
 
                   <p>
-                    To,
+                    {t("to")}
                     <br />
-                    The Concerned Authority
+
+                    {t("concernedAuthority")}
                     <br />
+
                     {CURRENT_STUDENT.department}
                     <br />
                     <br />
 
                     <strong>
-                      Subject:{" "}
+                      {t("subject")}:{" "}
                       {subject ||
-                        "Application Subject"}
+                        t("applicationSubject")}
                     </strong>
 
                     <br />
                     <br />
 
-                    Respected Sir/Madam,
+                    {t("respected")}
                     <br />
                     <br />
 
-                    I,{" "}
                     {CURRENT_STUDENT.name}{" "}
-                    ({CURRENT_STUDENT.id}),
-                    request you to kindly
-                    consider my application.
+                    ({CURRENT_STUDENT.id}),{" "}
+                    {t("requestConsider")}
                   </p>
 
                 </div>
@@ -509,20 +855,16 @@ export default function Applications() {
                   type="submit"
                   className="primary-btn application-submit-btn"
                 >
-
                   <Send size={17} />
 
-                  Submit Application
-
+                  {t("submitApplication")}
                 </button>
 
               </form>
 
             </div>
 
-            {/* =================================================
-                MY APPLICATIONS
-                ================================================= */}
+            {/* MY APPLICATIONS */}
 
             <div className="application-side-card">
 
@@ -531,12 +873,11 @@ export default function Applications() {
               </div>
 
               <h2>
-                My Applications
+                {t("myApplications")}
               </h2>
 
               <p className="my-applications-subtitle">
-                Track your submitted applications
-                and print approved applications.
+                {t("trackApplications")}
               </p>
 
               {applications.length === 0 ? (
@@ -546,12 +887,11 @@ export default function Applications() {
                   <FileText size={30} />
 
                   <strong>
-                    No applications yet
+                    {t("noApplications")}
                   </strong>
 
                   <span>
-                    Your submitted applications
-                    will appear here.
+                    {t("submittedAppear")}
                   </span>
 
                 </div>
@@ -573,7 +913,9 @@ export default function Applications() {
                           <div>
 
                             <span>
-                              {application.type}
+                              {getApplicationTypeLabel(
+                                application.type
+                              )}
                             </span>
 
                             <h3>
@@ -585,32 +927,36 @@ export default function Applications() {
                           <span
                             className={
                               `my-application-status ` +
-                              application.status.toLowerCase()
+                              String(
+                                application.status || ""
+                              ).toLowerCase()
                             }
                           >
 
                             {application.status ===
-                            "Approved" && (
+                              "Approved" && (
                               <CheckCircle2
                                 size={13}
                               />
                             )}
 
                             {application.status ===
-                            "Submitted" && (
+                              "Submitted" && (
                               <Clock3
                                 size={13}
                               />
                             )}
 
                             {application.status ===
-                            "Rejected" && (
+                              "Rejected" && (
                               <XCircle
                                 size={13}
                               />
                             )}
 
-                            {application.status}
+                            {getStatusLabel(
+                              application.status
+                            )}
 
                           </span>
 
@@ -631,11 +977,9 @@ export default function Applications() {
                               )
                             }
                           >
-
                             <Eye size={15} />
 
-                            View
-
+                            {t("view")}
                           </button>
 
                           {application.status ===
@@ -650,11 +994,9 @@ export default function Applications() {
                                 )
                               }
                             >
-
                               <Printer size={15} />
 
-                              Print
-
+                              {t("print")}
                             </button>
 
                           )}
@@ -678,9 +1020,7 @@ export default function Applications() {
 
       </main>
 
-      {/* =====================================================
-          APPLICATION VIEW / PRINT MODAL
-          ===================================================== */}
+      {/* APPLICATION VIEW / PRINT MODAL */}
 
       {selectedApplication && (
 
@@ -695,8 +1035,8 @@ export default function Applications() {
                 <span>
                   {selectedApplication.status ===
                   "Approved"
-                    ? "APPROVED APPLICATION"
-                    : "APPLICATION DETAILS"}
+                    ? t("approvedApplication")
+                    : t("applicationDetails")}
                 </span>
 
                 <h2>
@@ -712,9 +1052,7 @@ export default function Applications() {
               <button
                 className="modal-close-btn"
                 onClick={() =>
-                  setSelectedApplication(
-                    null
-                  )
+                  setSelectedApplication(null)
                 }
               >
                 ×
@@ -736,17 +1074,19 @@ export default function Applications() {
                 </h1>
 
                 <p>
-                  Digital Student Application
+                  {t(
+                    "digitalStudentApplication"
+                  )}
                 </p>
 
               </div>
 
               <div className="document-to">
 
-                To,
+                {t("to")}
                 <br />
 
-                The Concerned Authority
+                {t("concernedAuthority")}
                 <br />
 
                 {selectedApplication.department}
@@ -756,48 +1096,84 @@ export default function Applications() {
               <div className="student-document-meta">
 
                 <span>
-                  Date:{" "}
-                  {selectedApplication.applicationDate ||
-                    new Date(
-                      selectedApplication.createdAt
-                    ).toLocaleDateString()}
+                  {t("date")}{" "}
+                  {selectedApplication.applicationDate
+                    ? formatDate(
+                        selectedApplication.applicationDate
+                      )
+                    : formatDate(
+                        selectedApplication.createdAt
+                      )}
                 </span>
 
                 <span>
-                  Application ID:{" "}
+                  {t("applicationId")}{" "}
                   {selectedApplication.id}
                 </span>
 
               </div>
 
               <h3>
-                Subject:{" "}
+                {t("subject")}:{" "}
                 {selectedApplication.subject}
               </h3>
 
               <p>
-                Respected Sir/Madam,
+                {t("respected")}
               </p>
 
               <p>
-                I,{" "}
-                <strong>
-                  {selectedApplication.studentName}
-                </strong>{" "}
-                (
-                {selectedApplication.studentId}
-                ), student of{" "}
-                {selectedApplication.department},
-                {` `}
-                {selectedApplication.semester},
-                request you to kindly consider
-                my application regarding the
-                above-mentioned subject.
+                {language === "hi" ? (
+                  <>
+                    मैं,{" "}
+                    <strong>
+                      {selectedApplication.studentName}
+                    </strong>{" "}
+                    (
+                    {selectedApplication.studentId}
+                    ),{" "}
+                    {selectedApplication.department},{" "}
+                    {selectedApplication.semester} का/की
+                    छात्र/छात्रा हूँ। ऊपर दिए गए विषय के
+                    संबंध में मेरे आवेदन पर विचार करने
+                    का अनुरोध है।
+                  </>
+                ) : language === "or" ? (
+                  <>
+                    ମୁଁ,{" "}
+                    <strong>
+                      {selectedApplication.studentName}
+                    </strong>{" "}
+                    (
+                    {selectedApplication.studentId}
+                    ),{" "}
+                    {selectedApplication.department},{" "}
+                    {selectedApplication.semester} ର
+                    ଛାତ୍ର/ଛାତ୍ରୀ। ଉପରୋକ୍ତ ବିଷୟ
+                    ସମ୍ବନ୍ଧରେ ମୋର ଆବେଦନକୁ ବିଚାର
+                    କରିବାକୁ ଅନୁରୋଧ କରୁଛି।
+                  </>
+                ) : (
+                  <>
+                    I,{" "}
+                    <strong>
+                      {selectedApplication.studentName}
+                    </strong>{" "}
+                    (
+                    {selectedApplication.studentId}
+                    ), student of{" "}
+                    {selectedApplication.department},{" "}
+                    {selectedApplication.semester},
+                    request you to kindly consider
+                    my application regarding the
+                    above-mentioned subject.
+                  </>
+                )}
               </p>
 
               <p>
                 <strong>
-                  Reason:
+                  {t("reason")}
                 </strong>
               </p>
 
@@ -808,8 +1184,9 @@ export default function Applications() {
               {selectedApplication.additionalDetails && (
 
                 <p>
+
                   <strong>
-                    Additional Details:
+                    {t("additional")}
                   </strong>
 
                   <br />
@@ -817,6 +1194,7 @@ export default function Applications() {
                   {
                     selectedApplication.additionalDetails
                   }
+
                 </p>
 
               )}
@@ -824,7 +1202,7 @@ export default function Applications() {
               <div className="student-document-signature">
 
                 <strong>
-                  Applicant
+                  {t("applicant")}
                 </strong>
 
                 <span>
@@ -847,7 +1225,7 @@ export default function Applications() {
                   <div className="student-approved-details">
 
                     <strong>
-                      Approved By
+                      {t("approvedBy")}
                     </strong>
 
                     <span>
@@ -888,9 +1266,7 @@ export default function Applications() {
                   <Clock3 size={17} />
 
                   <span>
-                    This application is still
-                    awaiting administrative
-                    verification.
+                    {t("pendingVerification")}
                   </span>
 
                 </div>
@@ -906,12 +1282,10 @@ export default function Applications() {
               <button
                 className="secondary-btn"
                 onClick={() =>
-                  setSelectedApplication(
-                    null
-                  )
+                  setSelectedApplication(null)
                 }
               >
-                Close
+                {t("close")}
               </button>
 
               {selectedApplication.status ===
@@ -921,11 +1295,9 @@ export default function Applications() {
                   className="primary-btn"
                   onClick={printApplication}
                 >
-
                   <Printer size={17} />
 
-                  Print Approved Application
-
+                  {t("printApproved")}
                 </button>
 
               )}

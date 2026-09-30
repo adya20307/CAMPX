@@ -8,6 +8,8 @@ const authRoutes = require("./routes/auth");
 const studentRoutes = require("./routes/students");
 const facultyRoutes = require("./routes/faculty");
 const canteenRoutes = require("./routes/canteen");
+const noticeRoutes = require("./routes/notices");
+const accountsRoutes = require("./routes/accounts");
 
 const app = express();
 
@@ -87,6 +89,18 @@ app.use("/api/faculty", facultyRoutes);
 app.use("/api/canteen", canteenRoutes);
 
 // ============================================
+// NOTICE ROUTES
+// ============================================
+
+app.use("/api/notices", noticeRoutes);
+
+// ============================================
+// ACCOUNTS ROUTES
+// ============================================
+
+app.use("/api/accounts", accountsRoutes);
+
+// ============================================
 // TEST POST
 // ============================================
 
@@ -135,9 +149,12 @@ app.listen(PORT, () => {
   console.log("================================");
   console.log(`Server: http://localhost:${PORT}`);
   console.log(`API:    http://localhost:${PORT}/api`);
-  console.log("Auth:   /api/auth");
+  console.log("Auth:     /api/auth");
   console.log("Students: /api/students");
   console.log("Faculty:  /api/faculty");
+  console.log("Canteen:  /api/canteen");
+  console.log("Notices:  /api/notices");
+  console.log("Accounts: /api/accounts");
   console.log("================================");
   console.log("");
 });

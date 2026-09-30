@@ -21,6 +21,7 @@ import {
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import { addNotification } from "../notificationStorage";
+import { useLanguage } from "../context/LanguageContext";
 
 const COMPLAINTS_KEY = "campxComplaints";
 
@@ -143,8 +144,215 @@ function formatSlaDeadline(deadline) {
    ADMIN DASHBOARD
    ========================================= */
 
+
+const ADMIN_TRANSLATIONS = {
+  en: {
+    superAdminDashboard: "Super Admin Dashboard",
+    adminDashboard: "Admin Dashboard",
+    administration: "Administration",
+    superAdministration: "Super Administration",
+    welcome: (name) => `Welcome, ${name}. Manage complaints, requests and campus operations from one place.`,
+    administrationEyebrow: "CAMPX ADMINISTRATION",
+    refresh: "Refresh",
+    addFaculty: "+ Add Faculty",
+    addStudents: "+ Add Students",
+    totalComplaints: "Total Complaints",
+    pending: "Pending",
+    highPriority: "High Priority",
+    slaBreached: "SLA Breached",
+    dueSoon: "Due Soon",
+    resolved: "Resolved",
+    liveCampusData: "Live campus data",
+    smartSla: "Smart SLA Monitor",
+    automaticDeadlines: "Automatic deadlines and escalation for complaints",
+    resolutionTarget: "resolution target",
+    complaintBreached: "complaint(s) currently breached",
+    autoFlags: "CampX automatically flags overdue complaints and escalates them to administration.",
+    complaintOverview: "Complaint Overview",
+    currentWorkload: "Current campus support workload",
+    submitted: "Submitted",
+    inProgress: "In Progress",
+    campusPulse: "Campus Pulse",
+    aiOperational: "AI-generated operational insight",
+    activeComplaints: "Active complaints",
+    highRequireAttention: (n) => `${n} high-priority issue${n > 1 ? "s" : ""} require attention.`,
+    noHigh: "No high-priority complaints currently require attention.",
+    insight: "CampX Insight:",
+    recurringDetected: (location) => `A recurring issue has been detected in ${location}.`,
+    noComplaints: "No complaints have been submitted yet.",
+    reviewPending: "Review pending complaints and assign them to the appropriate department.",
+    intelligence: "CampX Intelligence",
+    aiRecurring: "AI-powered recurring issue detection",
+    live: "LIVE",
+    noRecurring: "No recurring issues detected",
+    autoIdentify: "CampX will automatically identify repeated problems as complaints are submitted.",
+    recurringIssue: "Recurring Issue Detected",
+    reports: "reports",
+    recommendation: "CampX Recommendation",
+    recommendationText: "Repeated complaints at the same location may indicate an underlying infrastructure problem. Consider inspecting the area instead of resolving each complaint separately.",
+    heatmap: "Campus Problem Heatmap",
+    concentration: "Complaint concentration by location",
+    low: "Low",
+    moderate: "Moderate",
+    high: "High",
+    liveQueue: "Live Complaint Queue",
+    submittedByStudents: "Complaints submitted by students",
+    noComplaintsYet: "No complaints yet",
+    willAppear: "Student complaints will appear here automatically.",
+    studentComplaint: "Student Complaint",
+    room: "Room",
+    age: "Age",
+    target: "Target",
+    deadline: "Deadline",
+    breached: "Breached",
+    overdue: "overdue",
+    dueSoonShort: "Due soon",
+    slaComplete: "SLA complete",
+    onTrack: "On track",
+    general: "General",
+    notAvailable: "Not available",
+    unknown: "Unknown",
+  },
+  hi: {
+    superAdminDashboard: "सुपर एडमिन डैशबोर्ड",
+    adminDashboard: "एडमिन डैशबोर्ड",
+    administration: "प्रशासन",
+    superAdministration: "सुपर प्रशासन",
+    welcome: (name) => `स्वागत है, ${name}। शिकायतों, अनुरोधों और कैंपस संचालन को एक ही स्थान से प्रबंधित करें।`,
+    administrationEyebrow: "CAMPX प्रशासन",
+    refresh: "रिफ्रेश",
+    addFaculty: "+ फैकल्टी जोड़ें",
+    addStudents: "+ छात्र जोड़ें",
+    totalComplaints: "कुल शिकायतें",
+    pending: "लंबित",
+    highPriority: "उच्च प्राथमिकता",
+    slaBreached: "SLA उल्लंघन",
+    dueSoon: "जल्द देय",
+    resolved: "समाधान किया गया",
+    liveCampusData: "लाइव कैंपस डेटा",
+    smartSla: "स्मार्ट SLA मॉनिटर",
+    automaticDeadlines: "शिकायतों के लिए स्वचालित समय-सीमा और एस्केलेशन",
+    resolutionTarget: "समाधान लक्ष्य",
+    complaintBreached: "शिकायत(ें) वर्तमान में SLA से बाहर हैं",
+    autoFlags: "CampX समय-सीमा पार शिकायतों को चिन्हित करके प्रशासन तक एस्केलेट करता है।",
+    complaintOverview: "शिकायत अवलोकन",
+    currentWorkload: "वर्तमान कैंपस सहायता कार्यभार",
+    submitted: "जमा",
+    inProgress: "प्रगति में",
+    campusPulse: "कैंपस पल्स",
+    aiOperational: "AI-जनित संचालन अंतर्दृष्टि",
+    activeComplaints: "सक्रिय शिकायतें",
+    highRequireAttention: (n) => `${n} उच्च प्राथमिकता वाली समस्या${n > 1 ? "ओं" : ""} पर ध्यान आवश्यक है।`,
+    noHigh: "वर्तमान में कोई उच्च प्राथमिकता वाली शिकायत ध्यान की मांग नहीं कर रही है।",
+    insight: "CampX अंतर्दृष्टि:",
+    recurringDetected: (location) => `${location} में बार-बार होने वाली समस्या पाई गई है।`,
+    noComplaints: "अभी तक कोई शिकायत जमा नहीं हुई है।",
+    reviewPending: "लंबित शिकायतों की समीक्षा करें और उन्हें संबंधित विभाग को सौंपें।",
+    intelligence: "CampX इंटेलिजेंस",
+    aiRecurring: "AI आधारित दोहराई जाने वाली समस्या पहचान",
+    live: "लाइव",
+    noRecurring: "कोई दोहराई जाने वाली समस्या नहीं मिली",
+    autoIdentify: "शिकायतें जमा होने पर CampX बार-बार होने वाली समस्याओं की पहचान करेगा।",
+    recurringIssue: "दोहराई जाने वाली समस्या मिली",
+    reports: "रिपोर्ट",
+    recommendation: "CampX सुझाव",
+    recommendationText: "एक ही स्थान पर बार-बार शिकायतें किसी मूलभूत समस्या का संकेत हो सकती हैं। हर शिकायत को अलग-अलग हल करने के बजाय क्षेत्र का निरीक्षण करने पर विचार करें।",
+    heatmap: "कैंपस समस्या हीटमैप",
+    concentration: "स्थान के अनुसार शिकायतों का संकेंद्रण",
+    low: "कम",
+    moderate: "मध्यम",
+    high: "उच्च",
+    liveQueue: "लाइव शिकायत कतार",
+    submittedByStudents: "छात्रों द्वारा जमा शिकायतें",
+    noComplaintsYet: "अभी कोई शिकायत नहीं",
+    willAppear: "छात्रों की शिकायतें यहां अपने आप दिखाई देंगी।",
+    studentComplaint: "छात्र शिकायत",
+    room: "कमरा",
+    age: "आयु",
+    target: "लक्ष्य",
+    deadline: "समय-सीमा",
+    breached: "उल्लंघन",
+    overdue: "देरी",
+    dueSoonShort: "जल्द देय",
+    slaComplete: "SLA पूरा",
+    onTrack: "समय पर",
+    general: "सामान्य",
+    notAvailable: "उपलब्ध नहीं",
+    unknown: "अज्ञात",
+  },
+  or: {
+    superAdminDashboard: "ସୁପର ଆଡମିନ୍ ଡ୍ୟାସବୋର୍ଡ",
+    adminDashboard: "ଆଡମିନ୍ ଡ୍ୟାସବୋର୍ଡ",
+    administration: "ପ୍ରଶାସନ",
+    superAdministration: "ସୁପର ପ୍ରଶାସନ",
+    welcome: (name) => `ସ୍ୱାଗତ, ${name}। ଅଭିଯୋଗ, ଅନୁରୋଧ ଏବଂ କ୍ୟାମ୍ପସ୍ କାର୍ଯ୍ୟକୁ ଏକ ସ୍ଥାନରୁ ପରିଚାଳନା କରନ୍ତୁ।`,
+    administrationEyebrow: "CAMPX ପ୍ରଶାସନ",
+    refresh: "ରିଫ୍ରେଶ୍",
+    addFaculty: "+ ଫ୍ୟାକଲ୍ଟି ଯୋଡନ୍ତୁ",
+    addStudents: "+ ଛାତ୍ର ଯୋଡନ୍ତୁ",
+    totalComplaints: "ମୋଟ ଅଭିଯୋଗ",
+    pending: "ବିଚାରାଧୀନ",
+    highPriority: "ଉଚ୍ଚ ପ୍ରାଥମିକତା",
+    slaBreached: "SLA ଉଲ୍ଲଂଘନ",
+    dueSoon: "ଶୀଘ୍ର ଦେୟ",
+    resolved: "ସମାଧାନ ହୋଇଛି",
+    liveCampusData: "ଲାଇଭ୍ କ୍ୟାମ୍ପସ୍ ଡାଟା",
+    smartSla: "ସ୍ମାର୍ଟ SLA ମନିଟର୍",
+    automaticDeadlines: "ଅଭିଯୋଗ ପାଇଁ ସ୍ୱୟଂଚାଳିତ ସମୟସୀମା ଏବଂ ଏସ୍କାଲେସନ୍",
+    resolutionTarget: "ସମାଧାନ ଲକ୍ଷ୍ୟ",
+    complaintBreached: "ଅଭିଯୋଗ ବର୍ତ୍ତମାନ SLA ଅତିକ୍ରମ କରିଛି",
+    autoFlags: "CampX ସମୟସୀମା ଅତିକ୍ରମ କରିଥିବା ଅଭିଯୋଗକୁ ଚିହ୍ନଟ କରି ପ୍ରଶାସନକୁ ପଠାଏ।",
+    complaintOverview: "ଅଭିଯୋଗ ସମୀକ୍ଷା",
+    currentWorkload: "ବର୍ତ୍ତମାନ କ୍ୟାମ୍ପସ୍ ସହାୟତା କାର୍ଯ୍ୟଭାର",
+    submitted: "ଦାଖଲ",
+    inProgress: "ଚାଲୁଛି",
+    campusPulse: "କ୍ୟାମ୍ପସ୍ ପଲ୍ସ",
+    aiOperational: "AI ଦ୍ୱାରା ସୃଷ୍ଟି କାର୍ଯ୍ୟକ୍ଷମତା ସୂଚନା",
+    activeComplaints: "ସକ୍ରିୟ ଅଭିଯୋଗ",
+    highRequireAttention: (n) => `${n} ଉଚ୍ଚ ପ୍ରାଥମିକତା ସମସ୍ୟାରେ ଧ୍ୟାନ ଆବଶ୍ୟକ।`,
+    noHigh: "ବର୍ତ୍ତମାନ କୌଣସି ଉଚ୍ଚ ପ୍ରାଥମିକତା ଅଭିଯୋଗ ନାହିଁ।",
+    insight: "CampX ସୂଚନା:",
+    recurringDetected: (location) => `${location} ରେ ବାରମ୍ବାର ଘଟୁଥିବା ସମସ୍ୟା ଚିହ୍ନଟ ହୋଇଛି।`,
+    noComplaints: "ଏପର୍ଯ୍ୟନ୍ତ କୌଣସି ଅଭିଯୋଗ ଦାଖଲ ହୋଇନାହିଁ।",
+    reviewPending: "ବିଚାରାଧୀନ ଅଭିଯୋଗଗୁଡ଼ିକୁ ସମୀକ୍ଷା କରି ସଠିକ୍ ବିଭାଗକୁ ଦିଅନ୍ତୁ।",
+    intelligence: "CampX ଇଣ୍ଟେଲିଜେନ୍ସ",
+    aiRecurring: "AI ଆଧାରିତ ପୁନରାବୃତ୍ତି ସମସ୍ୟା ଚିହ୍ନଟ",
+    live: "ଲାଇଭ୍",
+    noRecurring: "କୌଣସି ପୁନରାବୃତ୍ତି ସମସ୍ୟା ଚିହ୍ନଟ ହୋଇନାହିଁ",
+    autoIdentify: "ଅଭିଯୋଗ ଦାଖଲ ହେବା ସହିତ CampX ପୁନରାବୃତ୍ତି ସମସ୍ୟା ଚିହ୍ନଟ କରିବ।",
+    recurringIssue: "ପୁନରାବୃତ୍ତି ସମସ୍ୟା ଚିହ୍ନଟ",
+    reports: "ରିପୋର୍ଟ",
+    recommendation: "CampX ପରାମର୍ଶ",
+    recommendationText: "ଏକେ ସ୍ଥାନରେ ବାରମ୍ବାର ଅଭିଯୋଗ ଏକ ମୂଳଭୂତ ସମସ୍ୟାର ସଙ୍କେତ ହୋଇପାରେ। ପ୍ରତ୍ୟେକ ଅଭିଯୋଗକୁ ଅଲଗା ଭାବରେ ସମାଧାନ କରିବା ପରିବର୍ତ୍ତେ ସ୍ଥାନଟି ଯାଞ୍ଚ କରନ୍ତୁ।",
+    heatmap: "କ୍ୟାମ୍ପସ୍ ସମସ୍ୟା ହିଟମ୍ୟାପ୍",
+    concentration: "ସ୍ଥାନ ଅନୁଯାୟୀ ଅଭିଯୋଗ ସଂକେନ୍ଦ୍ରଣ",
+    low: "କମ୍",
+    moderate: "ମଧ୍ୟମ",
+    high: "ଅଧିକ",
+    liveQueue: "ଲାଇଭ୍ ଅଭିଯୋଗ କ୍ୟୁ",
+    submittedByStudents: "ଛାତ୍ରଛାତ୍ରୀଙ୍କ ଦ୍ୱାରା ଦାଖଲ ଅଭିଯୋଗ",
+    noComplaintsYet: "ଏପର୍ଯ୍ୟନ୍ତ କୌଣସି ଅଭିଯୋଗ ନାହିଁ",
+    willAppear: "ଛାତ୍ରଛାତ୍ରୀଙ୍କ ଅଭିଯୋଗ ଏଠାରେ ସ୍ୱୟଂଚାଳିତ ଭାବରେ ଦେଖାଯିବ।",
+    studentComplaint: "ଛାତ୍ର ଅଭିଯୋଗ",
+    room: "କୋଠରୀ",
+    age: "ବୟସ",
+    target: "ଲକ୍ଷ୍ୟ",
+    deadline: "ସମୟସୀମା",
+    breached: "ଉଲ୍ଲଂଘନ",
+    overdue: "ବିଳମ୍ବିତ",
+    dueSoonShort: "ଶୀଘ୍ର ଦେୟ",
+    slaComplete: "SLA ସମ୍ପୂର୍ଣ୍ଣ",
+    onTrack: "ସମୟାନୁସାରେ",
+    general: "ସାଧାରଣ",
+    notAvailable: "ଉପଲବ୍ଧ ନାହିଁ",
+    unknown: "ଅଜ୍ଞାତ",
+  },
+};
+
 export default function AdminDashboard() {
   const navigate = useNavigate();
+  const { language } = useLanguage();
+  const t = ADMIN_TRANSLATIONS[language] || ADMIN_TRANSLATIONS.en;
 
   const [complaints, setComplaints] = useState([]);
   const [now, setNow] = useState(Date.now());
@@ -168,7 +376,7 @@ export default function AdminDashboard() {
 const adminSection =
   adminUser?.adminSection ||
   adminUser?.admin_section ||
-  "Administration";
+  t.administration;
 
 const adminName =
   adminUser?.name ||
@@ -540,8 +748,8 @@ const adminName =
         <Topbar
           title={
             isSuperAdmin
-              ? "Super Admin Dashboard"
-              : "Admin Dashboard"
+              ? t.superAdminDashboard
+              : t.adminDashboard
           }
         />
 
@@ -566,8 +774,7 @@ const adminName =
               </h1>
 
               <p>
-                Welcome, {adminName}. Manage complaints,
-                requests and campus operations from one place.
+                {t.welcome(adminName)}
               </p>
 
             </div>
@@ -587,14 +794,14 @@ const adminName =
       className="primary-btn"
       onClick={() => navigate("/admin/faculty/add")}
     >
-      + Add Faculty
+      {t.addFaculty}
     </button>
   ) : (
     <button
       className="primary-btn"
       onClick={() => navigate("/admin/students")}
     >
-      + Add Students
+      {t.addStudents}
     </button>
   )}
 

@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
+import { useLanguage } from "../context/LanguageContext";
 
 const API_URL = import.meta.env.VITE_API_URL || "/api";
 
@@ -29,8 +30,208 @@ const initialForm = {
   confirmPassword: "",
 };
 
+
+const ADD_STUDENT_TRANSLATIONS = {
+  en: {
+    addStudent: "Add Student",
+    back: "Back",
+    registerStudent: "Register Student",
+    registerDescription: "Register a new student in CAMPX.",
+    studentInformation: "Student Information",
+    enterDetails: "Enter the student's academic and personal details.",
+    registrationNumber: "Registration Number",
+    registrationPlaceholder: "e.g. 2401289031",
+    fullName: "Full Name",
+    namePlaceholder: "Enter student's full name",
+    collegeEmail: "College Email",
+    emailPlaceholder: "student@campx.edu",
+    phoneNumber: "Phone Number",
+    phonePlaceholder: "Enter phone number",
+    academicInformation: "Academic Information",
+    branch: "Branch",
+    selectBranch: "Select Branch",
+    cse: "Computer Science Engineering",
+    ece: "Electronics & Communication",
+    eee: "Electrical & Electronics",
+    me: "Mechanical Engineering",
+    ce: "Civil Engineering",
+    it: "Information Technology",
+    ai: "Artificial Intelligence",
+    aiml: "AI & Machine Learning",
+    semester: "Semester",
+    selectSemester: "Select Semester",
+    section: "Section",
+    selectSection: "Select Section",
+    batchYear: "Batch Year",
+    hostelInformation: "Hostel Information",
+    hostelStatus: "Hostel Status",
+    nonHosteller: "Non-Hosteller",
+    hosteller: "Hosteller",
+    hostel: "Hostel",
+    hostelPlaceholder: "e.g. Hostel A",
+    roomNumber: "Room Number",
+    roomPlaceholder: "e.g. A-204",
+    studentLogin: "Student Login",
+    loginDescription: "Create the password the student will use to log in to CAMPX.",
+    password: "Password",
+    minimumPassword: "Minimum 6 characters",
+    confirmPassword: "Confirm Password",
+    reenterPassword: "Re-enter password",
+    cancel: "Cancel",
+    registering: "Registering...",
+    register: "Register Student",
+    sessionExpired: "Your session has expired. Please login again.",
+    registrationNumberRequired: "Registration number is required.",
+    studentNameRequired: "Student name is required.",
+    emailRequired: "Email address is required.",
+    branchRequired: "Branch is required.",
+    semesterRequired: "Semester is required.",
+    sectionRequired: "Section is required.",
+    batchRequired: "Batch year is required.",
+    passwordRequired: "Password is required.",
+    passwordLength: "Password must contain at least 6 characters.",
+    passwordsMismatch: "Passwords do not match.",
+    hostelRoomRequired: "Hostel and room number are required for hostellers.",
+    failedRegister: "Failed to register student.",
+    registeredSuccess: "Student registered successfully!",
+    unableRegister: "Unable to register student.",
+  },
+  hi: {
+    addStudent: "छात्र जोड़ें",
+    back: "वापस",
+    registerStudent: "छात्र पंजीकृत करें",
+    registerDescription: "CAMPX में एक नए छात्र को पंजीकृत करें।",
+    studentInformation: "छात्र जानकारी",
+    enterDetails: "छात्र की शैक्षणिक और व्यक्तिगत जानकारी दर्ज करें।",
+    registrationNumber: "रजिस्ट्रेशन नंबर",
+    registrationPlaceholder: "जैसे 2401289031",
+    fullName: "पूरा नाम",
+    namePlaceholder: "छात्र का पूरा नाम दर्ज करें",
+    collegeEmail: "कॉलेज ईमेल",
+    emailPlaceholder: "student@campx.edu",
+    phoneNumber: "फोन नंबर",
+    phonePlaceholder: "फोन नंबर दर्ज करें",
+    academicInformation: "शैक्षणिक जानकारी",
+    branch: "शाखा",
+    selectBranch: "शाखा चुनें",
+    cse: "कंप्यूटर साइंस इंजीनियरिंग",
+    ece: "इलेक्ट्रॉनिक्स एवं कम्युनिकेशन",
+    eee: "इलेक्ट्रिकल एवं इलेक्ट्रॉनिक्स",
+    me: "मैकेनिकल इंजीनियरिंग",
+    ce: "सिविल इंजीनियरिंग",
+    it: "इन्फॉर्मेशन टेक्नोलॉजी",
+    ai: "आर्टिफिशियल इंटेलिजेंस",
+    aiml: "AI एवं मशीन लर्निंग",
+    semester: "सेमेस्टर",
+    selectSemester: "सेमेस्टर चुनें",
+    section: "सेक्शन",
+    selectSection: "सेक्शन चुनें",
+    batchYear: "बैच वर्ष",
+    hostelInformation: "हॉस्टल जानकारी",
+    hostelStatus: "हॉस्टल स्थिति",
+    nonHosteller: "गैर-हॉस्टल छात्र",
+    hosteller: "हॉस्टल छात्र",
+    hostel: "हॉस्टल",
+    hostelPlaceholder: "जैसे हॉस्टल A",
+    roomNumber: "कमरा नंबर",
+    roomPlaceholder: "जैसे A-204",
+    studentLogin: "छात्र लॉगिन",
+    loginDescription: "वह पासवर्ड बनाएं जिसका उपयोग छात्र CAMPX में लॉगिन करने के लिए करेगा।",
+    password: "पासवर्ड",
+    minimumPassword: "कम से कम 6 अक्षर",
+    confirmPassword: "पासवर्ड की पुष्टि करें",
+    reenterPassword: "पासवर्ड फिर से दर्ज करें",
+    cancel: "रद्द करें",
+    registering: "पंजीकरण हो रहा है...",
+    register: "छात्र पंजीकृत करें",
+    sessionExpired: "आपका सत्र समाप्त हो गया है। कृपया फिर से लॉगिन करें।",
+    registrationNumberRequired: "रजिस्ट्रेशन नंबर आवश्यक है।",
+    studentNameRequired: "छात्र का नाम आवश्यक है।",
+    emailRequired: "ईमेल पता आवश्यक है।",
+    branchRequired: "शाखा आवश्यक है।",
+    semesterRequired: "सेमेस्टर आवश्यक है।",
+    sectionRequired: "सेक्शन आवश्यक है।",
+    batchRequired: "बैच वर्ष आवश्यक है।",
+    passwordRequired: "पासवर्ड आवश्यक है।",
+    passwordLength: "पासवर्ड में कम से कम 6 अक्षर होने चाहिए।",
+    passwordsMismatch: "पासवर्ड मेल नहीं खाते।",
+    hostelRoomRequired: "हॉस्टल छात्रों के लिए हॉस्टल और कमरा नंबर आवश्यक है।",
+    failedRegister: "छात्र पंजीकरण विफल रहा।",
+    registeredSuccess: "छात्र सफलतापूर्वक पंजीकृत हो गया!",
+    unableRegister: "छात्र को पंजीकृत नहीं किया जा सका।",
+  },
+  or: {
+    addStudent: "ଛାତ୍ର ଯୋଡନ୍ତୁ",
+    back: "ପଛକୁ",
+    registerStudent: "ଛାତ୍ର ପଞ୍ଜୀକରଣ କରନ୍ତୁ",
+    registerDescription: "CAMPX ରେ ଜଣେ ନୂତନ ଛାତ୍ରଙ୍କୁ ପଞ୍ଜୀକରଣ କରନ୍ତୁ।",
+    studentInformation: "ଛାତ୍ର ସୂଚନା",
+    enterDetails: "ଛାତ୍ରଙ୍କ ଶିକ୍ଷାଗତ ଏବଂ ବ୍ୟକ୍ତିଗତ ବିବରଣୀ ଦିଅନ୍ତୁ।",
+    registrationNumber: "ପଞ୍ଜୀକରଣ ନମ୍ବର",
+    registrationPlaceholder: "ଯଥା 2401289031",
+    fullName: "ପୂର୍ଣ୍ଣ ନାମ",
+    namePlaceholder: "ଛାତ୍ରଙ୍କ ପୂର୍ଣ୍ଣ ନାମ ଦିଅନ୍ତୁ",
+    collegeEmail: "କଲେଜ୍ ଇମେଲ୍",
+    emailPlaceholder: "student@campx.edu",
+    phoneNumber: "ଫୋନ୍ ନମ୍ବର",
+    phonePlaceholder: "ଫୋନ୍ ନମ୍ବର ଦିଅନ୍ତୁ",
+    academicInformation: "ଶିକ୍ଷାଗତ ସୂଚନା",
+    branch: "ଶାଖା",
+    selectBranch: "ଶାଖା ଚୟନ କରନ୍ତୁ",
+    cse: "କମ୍ପ୍ୟୁଟର ସାଇନ୍ସ ଇଞ୍ଜିନିୟରିଂ",
+    ece: "ଇଲେକ୍ଟ୍ରୋନିକ୍ସ ଏବଂ କମ୍ୟୁନିକେସନ୍",
+    eee: "ଇଲେକ୍ଟ୍ରିକାଲ୍ ଏବଂ ଇଲେକ୍ଟ୍ରୋନିକ୍ସ",
+    me: "ମେକାନିକାଲ୍ ଇଞ୍ଜିନିୟରିଂ",
+    ce: "ସିଭିଲ୍ ଇଞ୍ଜିନିୟରିଂ",
+    it: "ଇନଫର୍ମେସନ୍ ଟେକ୍ନୋଲୋଜି",
+    ai: "ଆର୍ଟିଫିସିଆଲ୍ ଇଣ୍ଟେଲିଜେନ୍ସ",
+    aiml: "AI ଏବଂ ମେସିନ୍ ଲର୍ଣ୍ଣିଂ",
+    semester: "ସେମିଷ୍ଟର",
+    selectSemester: "ସେମିଷ୍ଟର ଚୟନ କରନ୍ତୁ",
+    section: "ସେକ୍ସନ୍",
+    selectSection: "ସେକ୍ସନ୍ ଚୟନ କରନ୍ତୁ",
+    batchYear: "ବ୍ୟାଚ୍ ବର୍ଷ",
+    hostelInformation: "ହଷ୍ଟେଲ୍ ସୂଚନା",
+    hostelStatus: "ହଷ୍ଟେଲ୍ ସ୍ଥିତି",
+    nonHosteller: "ନନ୍-ହଷ୍ଟେଲ୍ ଛାତ୍ର",
+    hosteller: "ହଷ୍ଟେଲ୍ ଛାତ୍ର",
+    hostel: "ହଷ୍ଟେଲ୍",
+    hostelPlaceholder: "ଯଥା ହଷ୍ଟେଲ୍ A",
+    roomNumber: "ରୁମ୍ ନମ୍ବର",
+    roomPlaceholder: "ଯଥା A-204",
+    studentLogin: "ଛାତ୍ର ଲଗଇନ୍",
+    loginDescription: "ଛାତ୍ର CAMPX ରେ ଲଗଇନ୍ କରିବା ପାଇଁ ବ୍ୟବହାର କରିବା ପାସୱାର୍ଡ ସୃଷ୍ଟି କରନ୍ତୁ।",
+    password: "ପାସୱାର୍ଡ",
+    minimumPassword: "ଅତି କମରେ 6ଟି ଅକ୍ଷର",
+    confirmPassword: "ପାସୱାର୍ଡ ନିଶ୍ଚିତ କରନ୍ତୁ",
+    reenterPassword: "ପାସୱାର୍ଡ ପୁଣି ଦିଅନ୍ତୁ",
+    cancel: "ବାତିଲ୍",
+    registering: "ପଞ୍ଜୀକରଣ ହେଉଛି...",
+    register: "ଛାତ୍ର ପଞ୍ଜୀକରଣ କରନ୍ତୁ",
+    sessionExpired: "ଆପଣଙ୍କ ସେସନ୍ ସମାପ୍ତ ହୋଇଛି। ଦୟାକରି ପୁଣି ଲଗଇନ୍ କରନ୍ତୁ।",
+    registrationNumberRequired: "ପଞ୍ଜୀକରଣ ନମ୍ବର ଆବଶ୍ୟକ।",
+    studentNameRequired: "ଛାତ୍ରଙ୍କ ନାମ ଆବଶ୍ୟକ।",
+    emailRequired: "ଇମେଲ୍ ଠିକଣା ଆବଶ୍ୟକ।",
+    branchRequired: "ଶାଖା ଆବଶ୍ୟକ।",
+    semesterRequired: "ସେମିଷ୍ଟର ଆବଶ୍ୟକ।",
+    sectionRequired: "ସେକ୍ସନ୍ ଆବଶ୍ୟକ।",
+    batchRequired: "ବ୍ୟାଚ୍ ବର୍ଷ ଆବଶ୍ୟକ।",
+    passwordRequired: "ପାସୱାର୍ଡ ଆବଶ୍ୟକ।",
+    passwordLength: "ପାସୱାର୍ଡରେ ଅତି କମରେ 6ଟି ଅକ୍ଷର ଥିବା ଆବଶ୍ୟକ।",
+    passwordsMismatch: "ପାସୱାର୍ଡ ମେଳ ଖାଉନାହିଁ।",
+    hostelRoomRequired: "ହଷ୍ଟେଲ୍ ଛାତ୍ରଙ୍କ ପାଇଁ ହଷ୍ଟେଲ୍ ଏବଂ ରୁମ୍ ନମ୍ବର ଆବଶ୍ୟକ।",
+    failedRegister: "ଛାତ୍ର ପଞ୍ଜୀକରଣ ବିଫଳ ହେଲା।",
+    registeredSuccess: "ଛାତ୍ର ସଫଳତାର ସହ ପଞ୍ଜୀକୃତ ହୋଇଛନ୍ତି!",
+    unableRegister: "ଛାତ୍ରଙ୍କୁ ପଞ୍ଜୀକରଣ କରିହେଲା ନାହିଁ।",
+  },
+};
+
 export default function AddStudent() {
   const navigate = useNavigate();
+  const { language } = useLanguage();
+  const t =
+    ADD_STUDENT_TRANSLATIONS[language] ||
+    ADD_STUDENT_TRANSLATIONS.en;
 
   const [form, setForm] = useState(initialForm);
 
@@ -75,50 +276,50 @@ export default function AddStudent() {
 
   const validateForm = () => {
     if (!form.registrationNumber.trim()) {
-      return "Registration number is required.";
+      return t.registrationNumberRequired;
     }
 
     if (!form.name.trim()) {
-      return "Student name is required.";
+      return t.studentNameRequired;
     }
 
     if (!form.email.trim()) {
-      return "Email address is required.";
+      return t.emailRequired;
     }
 
     if (!form.branch.trim()) {
-      return "Branch is required.";
+      return t.branchRequired;
     }
 
     if (!form.semester.trim()) {
-      return "Semester is required.";
+      return t.semesterRequired;
     }
 
     if (!form.section.trim()) {
-      return "Section is required.";
+      return t.sectionRequired;
     }
 
     if (!form.batchYear) {
-      return "Batch year is required.";
+      return t.batchRequired;
     }
 
     if (!form.password) {
-      return "Password is required.";
+      return t.passwordRequired;
     }
 
     if (form.password.length < 6) {
-      return "Password must contain at least 6 characters.";
+      return t.passwordLength;
     }
 
     if (form.password !== form.confirmPassword) {
-      return "Passwords do not match.";
+      return t.passwordsMismatch;
     }
 
     if (
       form.hostelStatus === "HOSTELLER" &&
       (!form.hostel.trim() || !form.room.trim())
     ) {
-      return "Hostel and room number are required for hostellers.";
+      return t.hostelRoomRequired;
     }
 
     return "";
@@ -149,7 +350,7 @@ export default function AddStudent() {
 
     if (!token) {
       setError(
-        "Your session has expired. Please login again."
+        t.sessionExpired
       );
 
       setTimeout(() => {
@@ -246,7 +447,7 @@ export default function AddStudent() {
         throw new Error(
           data.message ||
             data.error ||
-            "Failed to register student."
+            t.failedRegister
         );
       }
 
@@ -256,7 +457,7 @@ export default function AddStudent() {
 
       setMessage(
         data.message ||
-          "Student registered successfully!"
+          t.registeredSuccess
       );
 
       // Clear form
@@ -274,7 +475,7 @@ export default function AddStudent() {
 
       setError(
         err.message ||
-          "Unable to register student."
+          t.unableRegister
       );
     } finally {
       setLoading(false);
@@ -308,7 +509,7 @@ export default function AddStudent() {
 
       <main className="main-content">
 
-        <Topbar title="Add Student" />
+        <Topbar title={t.addStudent} />
 
         <div className="dashboard-content">
 
@@ -353,7 +554,7 @@ export default function AddStudent() {
                     justifyContent: "center",
                     cursor: "pointer",
                   }}
-                  title="Back"
+                  title={t.back}
                 >
                   <ArrowLeft size={19} />
                 </button>
@@ -374,7 +575,7 @@ export default function AddStudent() {
                   color: "#64748b",
                 }}
               >
-                Register a new student in CAMPX.
+                {t.registerDescription}
               </p>
 
             </div>
@@ -472,7 +673,7 @@ export default function AddStudent() {
                       fontSize: "20px",
                     }}
                   >
-                    Student Information
+                    {t.studentInformation}
                   </h2>
 
                   <p
@@ -483,8 +684,7 @@ export default function AddStudent() {
                       fontSize: "14px",
                     }}
                   >
-                    Enter the student's academic
-                    and personal details.
+                    {t.enterDetails}
                   </p>
 
                 </div>
@@ -498,7 +698,7 @@ export default function AddStudent() {
                 <div className="form-group">
 
                   <label>
-                    Registration Number
+                    {t.registrationNumber}
                     <span className="required">
                       *
                     </span>
@@ -511,7 +711,7 @@ export default function AddStudent() {
                       form.registrationNumber
                     }
                     onChange={handleChange}
-                    placeholder="e.g. 2401289031"
+                    placeholder={t.registrationPlaceholder}
                     required
                   />
 
@@ -522,7 +722,7 @@ export default function AddStudent() {
                 <div className="form-group">
 
                   <label>
-                    Full Name
+                    {t.fullName}
                     <span className="required">
                       *
                     </span>
@@ -533,7 +733,7 @@ export default function AddStudent() {
                     name="name"
                     value={form.name}
                     onChange={handleChange}
-                    placeholder="Enter student's full name"
+                    placeholder={t.namePlaceholder}
                     required
                   />
 
@@ -544,7 +744,7 @@ export default function AddStudent() {
                 <div className="form-group">
 
                   <label>
-                    College Email
+                    {t.collegeEmail}
                     <span className="required">
                       *
                     </span>
@@ -555,7 +755,7 @@ export default function AddStudent() {
                     name="email"
                     value={form.email}
                     onChange={handleChange}
-                    placeholder="student@campx.edu"
+                    placeholder={t.emailPlaceholder}
                     required
                   />
 
@@ -566,7 +766,7 @@ export default function AddStudent() {
                 <div className="form-group">
 
                   <label>
-                    Phone Number
+                    {t.phoneNumber}
                   </label>
 
                   <input
@@ -574,7 +774,7 @@ export default function AddStudent() {
                     name="phone"
                     value={form.phone}
                     onChange={handleChange}
-                    placeholder="Enter phone number"
+                    placeholder={t.phonePlaceholder}
                   />
 
                 </div>
@@ -601,7 +801,7 @@ export default function AddStudent() {
                   fontSize: "20px",
                 }}
               >
-                Academic Information
+                {t.academicInformation}
               </h2>
 
               <div className="form-grid">
@@ -611,7 +811,7 @@ export default function AddStudent() {
                 <div className="form-group">
 
                   <label>
-                    Branch
+                    {t.branch}
                     <span className="required">
                       *
                     </span>
@@ -625,39 +825,39 @@ export default function AddStudent() {
                   >
 
                     <option value="">
-                      Select Branch
+                      {t.selectBranch}
                     </option>
 
                     <option value="CSE">
-                      Computer Science Engineering
+                      {t.cse}
                     </option>
 
                     <option value="ECE">
-                      Electronics & Communication
+                      {t.ece}
                     </option>
 
                     <option value="EEE">
-                      Electrical & Electronics
+                      {t.eee}
                     </option>
 
                     <option value="ME">
-                      Mechanical Engineering
+                      {t.me}
                     </option>
 
                     <option value="CE">
-                      Civil Engineering
+                      {t.ce}
                     </option>
 
                     <option value="IT">
-                      Information Technology
+                      {t.it}
                     </option>
 
                     <option value="AI">
-                      Artificial Intelligence
+                      {t.ai}
                     </option>
 
                     <option value="AIML">
-                      AI & Machine Learning
+                      {t.aiml}
                     </option>
 
                   </select>
@@ -669,7 +869,7 @@ export default function AddStudent() {
                 <div className="form-group">
 
                   <label>
-                    Semester
+                    {t.semester}
                     <span className="required">
                       *
                     </span>
@@ -683,7 +883,7 @@ export default function AddStudent() {
                   >
 
                     <option value="">
-                      Select Semester
+                      {t.selectSemester}
                     </option>
 
                     <option value="1st Semester">
@@ -727,7 +927,7 @@ export default function AddStudent() {
                 <div className="form-group">
 
                   <label>
-                    Section
+                    {t.section}
                     <span className="required">
                       *
                     </span>
@@ -741,7 +941,7 @@ export default function AddStudent() {
                   >
 
                     <option value="">
-                      Select Section
+                      {t.selectSection}
                     </option>
 
                     <option value="A">
@@ -769,7 +969,7 @@ export default function AddStudent() {
                 <div className="form-group">
 
                   <label>
-                    Batch Year
+                    {t.batchYear}
                     <span className="required">
                       *
                     </span>
@@ -824,7 +1024,7 @@ export default function AddStudent() {
                   fontSize: "20px",
                 }}
               >
-                Hostel Information
+                {t.hostelInformation}
               </h2>
 
               <div className="form-grid">
@@ -834,7 +1034,7 @@ export default function AddStudent() {
                 <div className="form-group">
 
                   <label>
-                    Hostel Status
+                    {t.hostelStatus}
                     <span className="required">
                       *
                     </span>
@@ -848,11 +1048,11 @@ export default function AddStudent() {
                   >
 
                     <option value="NON_HOSTELLER">
-                      Non-Hosteller
+                      {t.nonHosteller}
                     </option>
 
                     <option value="HOSTELLER">
-                      Hosteller
+                      {t.hosteller}
                     </option>
 
                   </select>
@@ -866,7 +1066,7 @@ export default function AddStudent() {
                   <div className="form-group">
 
                     <label>
-                      Hostel
+                      {t.hostel}
                       <span className="required">
                         *
                       </span>
@@ -877,7 +1077,7 @@ export default function AddStudent() {
                       name="hostel"
                       value={form.hostel}
                       onChange={handleChange}
-                      placeholder="e.g. Hostel A"
+                      placeholder={t.hostelPlaceholder}
                       required
                     />
 
@@ -891,7 +1091,7 @@ export default function AddStudent() {
                   <div className="form-group">
 
                     <label>
-                      Room Number
+                      {t.roomNumber}
                       <span className="required">
                         *
                       </span>
@@ -902,7 +1102,7 @@ export default function AddStudent() {
                       name="room"
                       value={form.room}
                       onChange={handleChange}
-                      placeholder="e.g. A-204"
+                      placeholder={t.roomPlaceholder}
                       required
                     />
 
@@ -931,7 +1131,7 @@ export default function AddStudent() {
                   fontSize: "20px",
                 }}
               >
-                Student Login
+                {t.studentLogin}
               </h2>
 
               <p
@@ -941,8 +1141,7 @@ export default function AddStudent() {
                   marginBottom: "25px",
                 }}
               >
-                Create the password the student
-                will use to log in to CAMPX.
+                {t.loginDescription}
               </p>
 
               <div className="form-grid">
@@ -952,7 +1151,7 @@ export default function AddStudent() {
                 <div className="form-group">
 
                   <label>
-                    Password
+                    {t.password}
                     <span className="required">
                       *
                     </span>
@@ -973,7 +1172,7 @@ export default function AddStudent() {
                       name="password"
                       value={form.password}
                       onChange={handleChange}
-                      placeholder="Minimum 6 characters"
+                      placeholder={t.minimumPassword}
                       required
                       style={{
                         paddingRight:
@@ -1018,7 +1217,7 @@ export default function AddStudent() {
                 <div className="form-group">
 
                   <label>
-                    Confirm Password
+                    {t.confirmPassword}
                     <span className="required">
                       *
                     </span>
@@ -1041,7 +1240,7 @@ export default function AddStudent() {
                         form.confirmPassword
                       }
                       onChange={handleChange}
-                      placeholder="Re-enter password"
+                      placeholder={t.reenterPassword}
                       required
                       style={{
                         paddingRight:
@@ -1108,7 +1307,7 @@ export default function AddStudent() {
                     "11px 22px",
                 }}
               >
-                Cancel
+                {t.cancel}
               </button>
 
               <button

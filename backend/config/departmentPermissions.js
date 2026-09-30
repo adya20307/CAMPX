@@ -2,10 +2,8 @@
 // CAMPX DEPARTMENT PERMISSIONS
 // =====================================================
 //
-// Central source of truth for department-based access.
-//
-// SUPER_ADMIN = full access
-// ADMIN       = access based on department
+// SUPER_ADMIN = Full access
+// ADMIN       = Common permissions + department permissions
 //
 // =====================================================
 
@@ -16,42 +14,20 @@
 
 const DEPARTMENTS = {
 
-  DOCUMENTATION: "Documentation",
+  ACADEMICS_STUDENT_AFFAIRS:
+    "Academics & Student Affairs",
 
-  ACCOUNTS: "Accounts",
+  HOSTEL_MANAGEMENT:
+    "Hostel Management",
 
-  ACADEMIC: "Academic / Class",
+  DOCUMENTATION:
+    "Documentation",
 
-  EXAMINATION: "Examination",
+  TEACHING_FACULTY:
+    "Teaching Faculty",
 
-  NOTICE_COMMUNICATION:
-    "Notice & Communication",
-
-  HOSTEL: "Hostel",
-
-  STUDENT_AFFAIRS:
-    "Student Affairs",
-
-  ADMINISTRATION: "Administration",
-
-  LIBRARY: "Library",
-
-  TRANSPORT: "Transport",
-
-  IT: "IT Services",
-
-  PLACEMENT: "Placement",
-
-  DISCIPLINE: "Discipline",
-
-  HEALTH_EMERGENCY:
-    "Health & Emergency",
-
-  INFRASTRUCTURE_MAINTENANCE:
-    "Infrastructure & Maintenance",
-
-  MESS_FOOD:
-    "Mess / Food Services",
+  ACCOUNTS:
+    "Accounts",
 
 };
 
@@ -62,11 +38,78 @@ const DEPARTMENTS = {
 
 const DEPARTMENT_PERMISSIONS = {
 
+
+  // ===================================================
+  // ACADEMICS & STUDENT AFFAIRS
+  // ===================================================
+
+  ACADEMICS_STUDENT_AFFAIRS: [
+
+    "STUDENT_PROFILES",
+
+    "STUDENT_SERVICES",
+
+    "STUDENT_LIST",
+
+    "TIMETABLE",
+
+    "COURSE_REGISTRATION",
+
+    "ACADEMIC_CONTROL",
+
+    "NOTIFICATIONS",
+
+    "CIRCULARS",
+
+    "ANNOUNCEMENTS",
+
+    "BATCH_NOTICES",
+
+    "CLUBS_ACTIVITIES",
+
+    "ACADEMIC_REQUESTS",
+
+  ],
+
+
+  // ===================================================
+  // HOSTEL MANAGEMENT
+  // ===================================================
+
+  HOSTEL_MANAGEMENT: [
+
+    "HOSTEL_DETAILS",
+
+    "HOSTEL_COMPLAINTS",
+
+    "ROOM_ALLOCATION",
+
+    "HOSTELLER_MANAGEMENT",
+
+    "GATE_PASS_APPROVALS",
+
+    "GATE_PASS_MONITORING",
+
+    "MENU_MANAGEMENT",
+
+    "FOOD_COMPLAINTS",
+
+    "MESS_FEEDBACK",
+
+    "CANTEEN_FEEDBACK",
+
+    "HOSTELLER_PROFILES",
+
+  ],
+
+
   // ===================================================
   // DOCUMENTATION
   // ===================================================
 
   DOCUMENTATION: [
+
+    "STUDENT_DOCUMENTS",
 
     "REQUESTS",
 
@@ -74,7 +117,26 @@ const DEPARTMENT_PERMISSIONS = {
 
     "COMPLAINT_RECORDS",
 
-    "STUDENT_DOCUMENTS",
+    "DOCUMENTATION_COMPLAINTS",
+
+  ],
+
+
+  // ===================================================
+  // TEACHING FACULTY
+  // ===================================================
+
+  TEACHING_FACULTY: [
+
+    "CLASS_STUDENTS",
+
+    "ATTENDANCE",
+
+    "TIMETABLE",
+
+    "ASSIGNED_SUBJECTS",
+
+    "ACADEMIC_CONTROL",
 
   ],
 
@@ -85,221 +147,27 @@ const DEPARTMENT_PERMISSIONS = {
 
   ACCOUNTS: [
 
-    "FEE_PAYMENT",
+    "FEE_MANAGEMENT",
 
-    "REFUND_REQUESTS",
+    "FEE_STRUCTURES",
+
+    "STUDENT_FEES",
+
+    "FEE_PAYMENTS",
+
+    "PAYMENT_HISTORY",
+
+    "FEE_RECEIPTS",
 
     "SCHOLARSHIPS",
 
+    "REFUND_REQUESTS",
+
     "FINANCIAL_RECORDS",
 
-  ],
+    "FINANCIAL_REPORTS",
 
-
-  // ===================================================
-  // ACADEMIC / CLASS
-  // ===================================================
-
-  ACADEMIC: [
-
-    "ATTENDANCE",
-
-    "TIMETABLE",
-
-    "COURSE_REGISTRATION",
-
-    "ACADEMIC_CONTROL",
-
-  ],
-
-
-  // ===================================================
-  // EXAMINATION
-  // ===================================================
-
-  EXAMINATION: [
-
-    "EXAM_FORMS",
-
-    "ADMIT_CARDS",
-
-    "RESULTS",
-
-    "REVALUATION",
-
-  ],
-
-
-  // ===================================================
-  // NOTICE & COMMUNICATION
-  // ===================================================
-
-  NOTICE_COMMUNICATION: [
-
-    "NOTIFICATIONS",
-
-    "CIRCULARS",
-
-    "ANNOUNCEMENTS",
-
-  ],
-
-
-  // ===================================================
-  // HOSTEL
-  // ===================================================
-
-  HOSTEL: [
-
-    "HOSTEL_COMPLAINTS",
-
-    "ROOM_ALLOCATION",
-
-    "GATE_PASS_APPROVALS",
-
-  ],
-
-
-  // ===================================================
-  // STUDENT AFFAIRS
-  // ===================================================
-
-  STUDENT_AFFAIRS: [
-
-    "STUDENT_PROFILES",
-
-    "STUDENT_SERVICES",
-
-    "CLUBS_ACTIVITIES",
-
-  ],
-
-
-  // ===================================================
-  // ADMINISTRATION
-  // ===================================================
-
-  ADMINISTRATION: [
-
-    "DASHBOARD",
-
-    "OVERVIEW",
-
-    "USER_MANAGEMENT",
-
-    "GATE_PASS_MONITORING",
-
-  ],
-
-
-  // ===================================================
-  // LIBRARY
-  // ===================================================
-
-  LIBRARY: [
-
-    "BOOK_ISSUE_RETURN",
-
-    "FINE_MANAGEMENT",
-
-  ],
-
-
-  // ===================================================
-  // TRANSPORT
-  // ===================================================
-
-  TRANSPORT: [
-
-    "BUS_ROUTES",
-
-    "TRANSPORT_REQUESTS",
-
-  ],
-
-
-  // ===================================================
-  // IT SERVICES
-  // ===================================================
-
-  IT: [
-
-    "SETTINGS",
-
-    "TECHNICAL_SUPPORT",
-
-    "SYSTEM_MAINTENANCE",
-
-  ],
-
-
-  // ===================================================
-  // PLACEMENT
-  // ===================================================
-
-  PLACEMENT: [
-
-    "JOB_POSTINGS",
-
-    "COMPANY_DRIVES",
-
-    "PLACEMENT_RECORDS",
-
-  ],
-
-
-  // ===================================================
-  // DISCIPLINE
-  // ===================================================
-
-  DISCIPLINE: [
-
-    "MISCONDUCT_REPORTS",
-
-    "DISCIPLINARY_ACTIONS",
-
-  ],
-
-
-  // ===================================================
-  // HEALTH & EMERGENCY
-  // ===================================================
-
-  HEALTH_EMERGENCY: [
-
-    "MEDICAL_ASSISTANCE",
-
-    "EMERGENCY_REPORTING",
-
-  ],
-
-
-  // ===================================================
-  // INFRASTRUCTURE & MAINTENANCE
-  // ===================================================
-
-  INFRASTRUCTURE_MAINTENANCE: [
-
-    "ELECTRICAL_COMPLAINTS",
-
-    "WATER_ISSUES",
-
-    "CLASSROOM_MAINTENANCE",
-
-  ],
-
-
-  // ===================================================
-  // MESS / FOOD SERVICES
-  // ===================================================
-
-  MESS_FOOD: [
-
-    "FOOD_COMPLAINTS",
-
-    "MENU_MANAGEMENT",
-
-    "MESS_FEEDBACK",
+    "FEE_DUE_MANAGEMENT",
 
   ],
 
@@ -310,16 +178,7 @@ const DEPARTMENT_PERMISSIONS = {
 // COMMON ADMIN PERMISSIONS
 // =====================================================
 //
-// Every authenticated ADMIN gets these permissions.
-//
-// These are intentionally NOT department restricted.
-//
-// Therefore every Admin can:
-//
-// 1. View Overview
-// 2. View Profile
-// 3. Add Students
-// 4. View Student Profiles
+// Every normal Admin gets these permissions.
 //
 // =====================================================
 
@@ -337,7 +196,7 @@ const CORE_ADMIN_PERMISSIONS = [
 
 
 // =====================================================
-// SUPER ADMIN
+// SUPER ADMIN PERMISSIONS
 // =====================================================
 
 const SUPER_ADMIN_PERMISSIONS = [
@@ -351,16 +210,13 @@ const SUPER_ADMIN_PERMISSIONS = [
 // NORMALIZE DEPARTMENT
 // =====================================================
 
-function normalizeDepartment(
-  department
-) {
+function normalizeDepartment(department) {
 
   if (!department) {
 
     return "";
 
   }
-
 
   return String(department)
     .trim()
@@ -373,22 +229,16 @@ function normalizeDepartment(
 // GET DEPARTMENT PERMISSIONS
 // =====================================================
 
-function getDepartmentPermissions(
-  department
-) {
+function getDepartmentPermissions(department) {
 
   const normalizedDepartment =
-    normalizeDepartment(
-      department
-    );
-
+    normalizeDepartment(department);
 
   if (!normalizedDepartment) {
 
     return [];
 
   }
-
 
   return (
     DEPARTMENT_PERMISSIONS[
@@ -403,9 +253,7 @@ function getDepartmentPermissions(
 // CHECK SUPER ADMIN
 // =====================================================
 
-function isSuperAdmin(
-  user
-) {
+function isSuperAdmin(user) {
 
   return (
     user?.role ===
@@ -419,9 +267,7 @@ function isSuperAdmin(
 // CHECK ADMIN
 // =====================================================
 
-function isAdmin(
-  user
-) {
+function isAdmin(user) {
 
   return (
     user?.role === "ADMIN" ||
@@ -444,12 +290,25 @@ function hasPermission(
   // ---------------------------------------------------
   // SUPER ADMIN
   // ---------------------------------------------------
-  // Super Admin has complete access.
-  // ---------------------------------------------------
 
   if (
     user &&
     isSuperAdmin(user)
+  ) {
+
+    return true;
+
+  }
+
+
+  // ---------------------------------------------------
+  // COMMON ADMIN PERMISSIONS
+  // ---------------------------------------------------
+
+  if (
+    CORE_ADMIN_PERMISSIONS.includes(
+      permission
+    )
   ) {
 
     return true;
@@ -465,30 +324,6 @@ function hasPermission(
     getDepartmentPermissions(
       department
     );
-
-
-  // ---------------------------------------------------
-  // COMMON ADMIN PERMISSIONS
-  // ---------------------------------------------------
-  //
-  // These permissions are available to ALL Admins.
-  //
-  // ---------------------------------------------------
-
-  if (
-    CORE_ADMIN_PERMISSIONS.includes(
-      permission
-    )
-  ) {
-
-    return true;
-
-  }
-
-
-  // ---------------------------------------------------
-  // DEPARTMENT-SPECIFIC PERMISSION
-  // ---------------------------------------------------
 
   return permissions.includes(
     permission
@@ -558,9 +393,7 @@ function hasDepartmentAccess(
 // GET USER PERMISSIONS
 // =====================================================
 
-function getUserPermissions(
-  user
-) {
+function getUserPermissions(user) {
 
   if (!user) {
 
@@ -597,10 +430,8 @@ function getUserPermissions(
 
   return [
 
-    // Common permissions
     ...CORE_ADMIN_PERMISSIONS,
 
-    // Department permissions
     ...getDepartmentPermissions(
       department
     ),

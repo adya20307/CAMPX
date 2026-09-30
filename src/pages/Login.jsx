@@ -28,13 +28,17 @@ export default function Login() {
   const location = useLocation();
 
   // ===================================================
-  // DETERMINE LOGIN TYPE FROM URL
+  // LOGIN MODE
   // ===================================================
 
-  const mode =
+  // The login page can now switch between Student and Admin
+  // without leaving the page.
+  const initialMode =
     location.pathname === "/admin"
       ? "admin"
       : "student";
+
+  const [mode, setMode] = useState(initialMode);
 
   const isStudent = mode === "student";
   const isAdmin = mode === "admin";
@@ -480,6 +484,67 @@ export default function Login() {
 
           </div>
 
+
+          {/* =================================================
+              STUDENT / ADMIN SWITCH
+          ================================================= */}
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: "6px",
+              padding: "5px",
+              marginBottom: "24px",
+              borderRadius: "12px",
+              background: "#f1f5f9",
+              border: "1px solid #e2e8f0",
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => {
+                setMode("student");
+                setError("");
+                setPassword("");
+              }}
+              style={{
+                border: "none",
+                borderRadius: "9px",
+                padding: "11px 12px",
+                cursor: "pointer",
+                fontWeight: "700",
+                fontSize: "14px",
+                background: isStudent ? "#2563eb" : "transparent",
+                color: isStudent ? "#ffffff" : "#64748b",
+                transition: "all 0.2s ease",
+              }}
+            >
+              🎓 Student
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setMode("admin");
+                setError("");
+                setPassword("");
+              }}
+              style={{
+                border: "none",
+                borderRadius: "9px",
+                padding: "11px 12px",
+                cursor: "pointer",
+                fontWeight: "700",
+                fontSize: "14px",
+                background: isAdmin ? "#2563eb" : "transparent",
+                color: isAdmin ? "#ffffff" : "#64748b",
+                transition: "all 0.2s ease",
+              }}
+            >
+              🛡️ Admin
+            </button>
+          </div>
 
           {/* =================================================
               HEADING

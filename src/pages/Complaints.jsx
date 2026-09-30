@@ -11,13 +11,77 @@ import { Link } from "react-router-dom";
 
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
+import { useLanguage } from "../context/LanguageContext";
 
 const COMPLAINTS_KEY = "campxComplaints";
 
-const CURRENT_STUDENT_ID = "CX2026001";
+function getCurrentStudentId() {
+  try {
+    const savedUser = localStorage.getItem("campx_user");
+    const user = savedUser ? JSON.parse(savedUser) : {};
+
+    return (
+      user?.studentId ||
+      user?.student_id ||
+      user?.registrationNumber ||
+      user?.registration_number ||
+      ""
+    );
+  } catch (error) {
+    console.error("Error reading logged-in student:", error);
+    return "";
+  }
+}
 
 export default function Complaints() {
+  const { t, language } = useLanguage();
+
   const [complaints, setComplaints] = useState([]);
+
+  // ==========================================
+  // LANGUAGE HELPERS
+  // ==========================================
+
+  const translate = (english, hindi, odia) => {
+    if (language === "hi") return hindi;
+    if (language === "or") return odia;
+    return english;
+  };
+
+  const getStatusText = (status) => {
+    if (status === "Resolved") {
+      return translate(
+        "Resolved",
+        "समाधान किया गया",
+        "ସମାଧାନ ହୋଇଛି"
+      );
+    }
+
+    if (
+      status === "In Progress" ||
+      status === "Processing"
+    ) {
+      return translate(
+        "In Progress",
+        "प्रगति में",
+        "ପ୍ରଗତିରେ"
+      );
+    }
+
+    if (status === "Rejected") {
+      return translate(
+        "Rejected",
+        "अस्वीकृत",
+        "ଅଗ୍ରାହ୍ୟ"
+      );
+    }
+
+    return translate(
+      "Submitted",
+      "जमा किया गया",
+      "ଦାଖଲ ହୋଇଛି"
+    );
+  };
 
   // ==========================================
   // LOAD COMPLAINTS
@@ -38,7 +102,7 @@ export default function Complaints() {
         allComplaints.filter(
           (complaint) =>
             !complaint.studentId ||
-            complaint.studentId === CURRENT_STUDENT_ID
+            complaint.studentId === getCurrentStudentId()
         );
 
       setComplaints(studentComplaints);
@@ -167,7 +231,13 @@ export default function Complaints() {
 
       <main className="main-content">
 
-        <Topbar title="My Complaints" />
+        <Topbar
+          title={translate(
+            "My Complaints",
+            "मेरी शिकायतें",
+            "ମୋର ଅଭିଯୋଗ"
+          )}
+        />
 
         <div className="content">
 
@@ -180,16 +250,27 @@ export default function Complaints() {
             <div>
 
               <p className="eyebrow">
-                CAMPUS SUPPORT
+                {translate(
+                  "CAMPUS SUPPORT",
+                  "कैंपस सहायता",
+                  "କ୍ୟାମ୍ପସ ସହାୟତା"
+                )}
               </p>
 
               <h1>
-                Your Complaints
+                {translate(
+                  "Your Complaints",
+                  "आपकी शिकायतें",
+                  "ଆପଣଙ୍କ ଅଭିଯୋଗ"
+                )}
               </h1>
 
               <p>
-                Track and manage the issues
-                you've reported.
+                {translate(
+                  "Track and manage the issues you've reported.",
+                  "आपके द्वारा रिपोर्ट की गई समस्याओं को ट्रैक और प्रबंधित करें।",
+                  "ଆପଣ ରିପୋର୍ଟ କରିଥିବା ସମସ୍ୟାଗୁଡ଼ିକୁ ଟ୍ରାକ୍ ଏବଂ ପରିଚାଳନା କରନ୍ତୁ।"
+                )}
               </p>
 
             </div>
@@ -199,7 +280,12 @@ export default function Complaints() {
               className="primary-btn compact"
             >
               <Plus size={18} />
-              New Complaint
+
+              {translate(
+                "New Complaint",
+                "नई शिकायत",
+                "ନୂତନ ଅଭିଯୋଗ"
+              )}
             </Link>
 
           </section>
@@ -218,12 +304,19 @@ export default function Complaints() {
                 <AlertCircle size={42} />
 
                 <h3>
-                  No complaints yet
+                  {translate(
+                    "No complaints yet",
+                    "अभी कोई शिकायत नहीं",
+                    "ଏପର୍ଯ୍ୟନ୍ତ କୌଣସି ଅଭିଯୋଗ ନାହିଁ"
+                  )}
                 </h3>
 
                 <p>
-                  You haven't submitted any
-                  complaints.
+                  {translate(
+                    "You haven't submitted any complaints.",
+                    "आपने अभी तक कोई शिकायत जमा नहीं की है।",
+                    "ଆପଣ ଏପର୍ଯ୍ୟନ୍ତ କୌଣସି ଅଭିଯୋଗ ଦାଖଲ କରିନାହାଁନ୍ତି।"
+                  )}
                 </p>
 
                 <Link
@@ -231,7 +324,12 @@ export default function Complaints() {
                   className="primary-btn compact"
                 >
                   <Plus size={18} />
-                  Submit a Complaint
+
+                  {translate(
+                    "Submit a Complaint",
+                    "शिकायत जमा करें",
+                    "ଅଭିଯୋଗ ଦାଖଲ କରନ୍ତୁ"
+                  )}
                 </Link>
 
               </div>
@@ -277,20 +375,36 @@ export default function Complaints() {
                       {complaint.room &&
                       complaint.room !==
                         "Not detected"
-                        ? ` • Room ${complaint.room}`
+                        ? ` • ${translate(
+                            "Room",
+                            "कमरा",
+                            "ରୁମ୍"
+                          )} ${complaint.room}`
                         : ""}
                     </span>
 
                     <small>
                       {complaint.createdAt
-                        ? `Submitted ${formatDate(
+                        ? `${translate(
+                            "Submitted",
+                            "जमा किया गया",
+                            "ଦାଖଲ ହୋଇଛି"
+                          )} ${formatDate(
                             complaint.createdAt
                           )}`
-                        : "Recently submitted"}
+                        : translate(
+                            "Recently submitted",
+                            "हाल ही में जमा किया गया",
+                            "ସମ୍ପ୍ରତି ଦାଖଲ ହୋଇଛି"
+                          )}
                     </small>
 
                     <small>
-                      Complaint ID:{" "}
+                      {translate(
+                        "Complaint ID:",
+                        "शिकायत ID:",
+                        "ଅଭିଯୋଗ ID:"
+                      )}{" "}
                       {complaint.id}
                     </small>
 
@@ -304,8 +418,9 @@ export default function Complaints() {
                       complaint.status
                     )}
                   >
-                    {complaint.status ||
-                      "Submitted"}
+                    {getStatusText(
+                      complaint.status
+                    )}
                   </span>
 
                 </div>

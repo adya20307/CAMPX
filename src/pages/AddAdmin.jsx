@@ -13,42 +13,358 @@ import {
 
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
+import { useLanguage } from "../context/LanguageContext";
 
 const API_URL =
   import.meta.env.VITE_API_URL || "/api";
 
+
+const ADD_ADMIN_TRANSLATIONS = {
+  en: {
+    accessDenied: "Access Denied",
+    onlySuperAdmin:
+      "Only the Super Admin can register new Admins.",
+    backDashboard:
+      "Back to Dashboard",
+    addAdmin:
+      "Add Admin",
+    registerNew:
+      "Register New Admin",
+    createDescription:
+      "Create an admin account with department-specific access.",
+    back:
+      "Back",
+    adminAccount:
+      "Admin Account",
+    enterDetails:
+      "Enter the details of the new administrator.",
+    basicInformation:
+      "Basic Information",
+    fullName:
+      "Full Name",
+    email:
+      "Email",
+    department:
+      "Department / Category",
+    designation:
+      "Designation",
+    selectDepartment:
+      "Select Department / Category",
+    loadingDepartments:
+      "Loading departments...",
+    departmentAccessNote:
+      "This admin will only have access to the selected category.",
+    departmentAccess:
+      "Department Access",
+    assignedTo:
+      "This admin will be assigned to",
+    notificationsAndSidebar:
+      "and will receive category-specific notifications and sidebar options.",
+    loginCredentials:
+      "Login Credentials",
+    facultyId:
+      "Faculty ID",
+    facultyIdHelp:
+      "This will be the admin's login ID.",
+    password:
+      "Password",
+    confirmPassword:
+      "Confirm Password",
+    enterPassword:
+      "Enter password",
+    confirmPasswordPlaceholder:
+      "Confirm password",
+    facultyHod:
+      "Faculty / HOD",
+    cancel:
+      "Cancel",
+    creating:
+      "Creating...",
+    createAdmin:
+      "Create Admin",
+    required:
+      "Please fill all required fields.",
+    invalidEmail:
+      "Please enter a valid email address.",
+    passwordMismatch:
+      "Password and confirm password do not match.",
+    passwordLength:
+      "Password must contain at least 6 characters.",
+    invalidDepartment:
+      "Please select a valid department.",
+    authToken:
+      "Authentication token not found.",
+    authLogin:
+      "Authentication token not found. Please login again.",
+    unableDepartments:
+      "Unable to load departments.",
+    failedCreate:
+      "Failed to create admin.",
+    unableCreate:
+      "Unable to create admin.",
+    created:
+      (department) =>
+        `Admin created successfully for ${department}.`,
+    fullNamePlaceholder:
+      "Enter full name",
+    emailPlaceholder:
+      "admin@campx.edu",
+    facultyIdPlaceholder:
+      "FAC002",
+    accessInfo:
+      "The selected category controls the admin's available features.",
+  },
+
+  hi: {
+    accessDenied:
+      "पहुंच अस्वीकृत",
+    onlySuperAdmin:
+      "केवल Super Admin नए एडमिन पंजीकृत कर सकता है।",
+    backDashboard:
+      "डैशबोर्ड पर वापस जाएं",
+    addAdmin:
+      "एडमिन जोड़ें",
+    registerNew:
+      "नया एडमिन पंजीकृत करें",
+    createDescription:
+      "विभाग-विशिष्ट पहुंच वाला एडमिन खाता बनाएं।",
+    back:
+      "वापस",
+    adminAccount:
+      "एडमिन खाता",
+    enterDetails:
+      "नए एडमिनिस्ट्रेटर का विवरण दर्ज करें।",
+    basicInformation:
+      "मूल जानकारी",
+    fullName:
+      "पूरा नाम",
+    email:
+      "ईमेल",
+    department:
+      "विभाग / श्रेणी",
+    designation:
+      "पद",
+    selectDepartment:
+      "विभाग / श्रेणी चुनें",
+    loadingDepartments:
+      "विभाग लोड हो रहे हैं...",
+    departmentAccessNote:
+      "इस एडमिन को केवल चयनित श्रेणी की पहुंच मिलेगी।",
+    departmentAccess:
+      "विभागीय पहुंच",
+    assignedTo:
+      "यह एडमिन नियुक्त किया जाएगा",
+    notificationsAndSidebar:
+      "और इसे श्रेणी-विशिष्ट सूचनाएं और साइडबार विकल्प मिलेंगे।",
+    loginCredentials:
+      "लॉगिन विवरण",
+    facultyId:
+      "फैकल्टी ID",
+    facultyIdHelp:
+      "यह एडमिन का लॉगिन ID होगा।",
+    password:
+      "पासवर्ड",
+    confirmPassword:
+      "पासवर्ड की पुष्टि करें",
+    enterPassword:
+      "पासवर्ड दर्ज करें",
+    confirmPasswordPlaceholder:
+      "पासवर्ड की पुष्टि करें",
+    facultyHod:
+      "फैकल्टी / HOD",
+    cancel:
+      "रद्द करें",
+    creating:
+      "बनाया जा रहा है...",
+    createAdmin:
+      "एडमिन बनाएं",
+    required:
+      "कृपया सभी आवश्यक फ़ील्ड भरें।",
+    invalidEmail:
+      "कृपया एक मान्य ईमेल पता दर्ज करें।",
+    passwordMismatch:
+      "पासवर्ड और पुष्टि पासवर्ड मेल नहीं खाते।",
+    passwordLength:
+      "पासवर्ड में कम से कम 6 अक्षर होने चाहिए।",
+    invalidDepartment:
+      "कृपया एक मान्य विभाग चुनें।",
+    authToken:
+      "ऑथेंटिकेशन टोकन नहीं मिला।",
+    authLogin:
+      "ऑथेंटिकेशन टोकन नहीं मिला। कृपया फिर से लॉगिन करें।",
+    unableDepartments:
+      "विभाग लोड नहीं हो सके।",
+    failedCreate:
+      "एडमिन बनाने में विफल।",
+    unableCreate:
+      "एडमिन बनाया नहीं जा सका।",
+    created:
+      (department) =>
+        `${department} के लिए एडमिन सफलतापूर्वक बनाया गया।`,
+    fullNamePlaceholder:
+      "पूरा नाम दर्ज करें",
+    emailPlaceholder:
+      "admin@campx.edu",
+    facultyIdPlaceholder:
+      "FAC002",
+    accessInfo:
+      "चयनित श्रेणी एडमिन की उपलब्ध सुविधाओं को नियंत्रित करती है।",
+  },
+
+  or: {
+    accessDenied:
+      "ପ୍ରବେଶ ଅନୁମତି ନାହିଁ",
+    onlySuperAdmin:
+      "କେବଳ Super Admin ନୂତନ ଆଡମିନ୍ ପଞ୍ଜୀକରଣ କରିପାରିବେ।",
+    backDashboard:
+      "ଡ୍ୟାସବୋର୍ଡକୁ ଫେରନ୍ତୁ",
+    addAdmin:
+      "ଆଡମିନ୍ ଯୋଡନ୍ତୁ",
+    registerNew:
+      "ନୂତନ ଆଡମିନ୍ ପଞ୍ଜୀକରଣ କରନ୍ତୁ",
+    createDescription:
+      "ବିଭାଗ-ନିର୍ଦ୍ଦିଷ୍ଟ ପ୍ରବେଶ ସହିତ ଏକ ଆଡମିନ୍ ଖାତା ସୃଷ୍ଟି କରନ୍ତୁ।",
+    back:
+      "ପଛକୁ",
+    adminAccount:
+      "ଆଡମିନ୍ ଖାତା",
+    enterDetails:
+      "ନୂତନ ଆଡମିନିଷ୍ଟ୍ରେଟରଙ୍କ ବିବରଣୀ ଦିଅନ୍ତୁ।",
+    basicInformation:
+      "ମୌଳିକ ସୂଚନା",
+    fullName:
+      "ପୂର୍ଣ୍ଣ ନାମ",
+    email:
+      "ଇମେଲ୍",
+    department:
+      "ବିଭାଗ / ଶ୍ରେଣୀ",
+    designation:
+      "ପଦବୀ",
+    selectDepartment:
+      "ବିଭାଗ / ଶ୍ରେଣୀ ଚୟନ କରନ୍ତୁ",
+    loadingDepartments:
+      "ବିଭାଗଗୁଡ଼ିକ ଲୋଡ୍ ହେଉଛି...",
+    departmentAccessNote:
+      "ଏହି ଆଡମିନଙ୍କୁ କେବଳ ଚୟନ କରାଯାଇଥିବା ଶ୍ରେଣୀରେ ପ୍ରବେଶ ମିଳିବ।",
+    departmentAccess:
+      "ବିଭାଗୀୟ ପ୍ରବେଶ",
+    assignedTo:
+      "ଏହି ଆଡମିନଙ୍କୁ ନିଯୁକ୍ତ କରାଯିବ",
+    notificationsAndSidebar:
+      "ଏବଂ ବିଭାଗ-ନିର୍ଦ୍ଦିଷ୍ଟ ସୂଚନା ଓ ସାଇଡବାର୍ ବିକଳ୍ପ ମିଳିବ।",
+    loginCredentials:
+      "ଲଗଇନ୍ ବିବରଣୀ",
+    facultyId:
+      "ଫ୍ୟାକଲ୍ଟି ID",
+    facultyIdHelp:
+      "ଏହା ଆଡମିନଙ୍କ ଲଗଇନ୍ ID ହେବ।",
+    password:
+      "ପାସୱାର୍ଡ",
+    confirmPassword:
+      "ପାସୱାର୍ଡ ନିଶ୍ଚିତ କରନ୍ତୁ",
+    enterPassword:
+      "ପାସୱାର୍ଡ ଦିଅନ୍ତୁ",
+    confirmPasswordPlaceholder:
+      "ପାସୱାର୍ଡ ନିଶ୍ଚିତ କରନ୍ତୁ",
+    facultyHod:
+      "ଫ୍ୟାକଲ୍ଟି / HOD",
+    cancel:
+      "ବାତିଲ୍",
+    creating:
+      "ସୃଷ୍ଟି ହେଉଛି...",
+    createAdmin:
+      "ଆଡମିନ୍ ସୃଷ୍ଟି କରନ୍ତୁ",
+    required:
+      "ଦୟାକରି ସମସ୍ତ ଆବଶ୍ୟକ ଫିଲ୍ଡ ପୂରଣ କରନ୍ତୁ।",
+    invalidEmail:
+      "ଦୟାକରି ଏକ ବୈଧ ଇମେଲ୍ ଠିକଣା ଦିଅନ୍ତୁ।",
+    passwordMismatch:
+      "ପାସୱାର୍ଡ ଏବଂ ନିଶ୍ଚିତ ପାସୱାର୍ଡ ମେଳ ଖାଉନାହିଁ।",
+    passwordLength:
+      "ପାସୱାର୍ଡରେ ଅତି କମରେ 6ଟି ଅକ୍ଷର ଥିବା ଆବଶ୍ୟକ।",
+    invalidDepartment:
+      "ଦୟାକରି ଏକ ବୈଧ ବିଭାଗ ଚୟନ କରନ୍ତୁ।",
+    authToken:
+      "ଅଥେଣ୍ଟିକେସନ୍ ଟୋକେନ୍ ମିଳିଲା ନାହିଁ।",
+    authLogin:
+      "ଅଥେଣ୍ଟିକେସନ୍ ଟୋକେନ୍ ମିଳିଲା ନାହିଁ। ଦୟାକରି ପୁଣି ଲଗଇନ୍ କରନ୍ତୁ।",
+    unableDepartments:
+      "ବିଭାଗଗୁଡ଼ିକ ଲୋଡ୍ ହୋଇପାରିଲା ନାହିଁ।",
+    failedCreate:
+      "ଆଡମିନ୍ ସୃଷ୍ଟି ବିଫଳ ହେଲା।",
+    unableCreate:
+      "ଆଡମିନ୍ ସୃଷ୍ଟି ହୋଇପାରିଲା ନାହିଁ।",
+    created:
+      (department) =>
+        `${department} ପାଇଁ ଆଡମିନ୍ ସଫଳତାର ସହ ସୃଷ୍ଟି ହୋଇଛି।`,
+    fullNamePlaceholder:
+      "ପୂର୍ଣ୍ଣ ନାମ ଦିଅନ୍ତୁ",
+    emailPlaceholder:
+      "admin@campx.edu",
+    facultyIdPlaceholder:
+      "FAC002",
+    accessInfo:
+      "ଚୟନ କରାଯାଇଥିବା ଶ୍ରେଣୀ ଆଡମିନଙ୍କ ଉପଲବ୍ଧ ସୁବିଧାଗୁଡ଼ିକୁ ନିୟନ୍ତ୍ରଣ କରେ।",
+  },
+};
+
+
 function AddAdmin() {
+
   const navigate = useNavigate();
 
+  const { language } =
+    useLanguage();
+
+  const t =
+    ADD_ADMIN_TRANSLATIONS[
+      language
+    ] ||
+    ADD_ADMIN_TRANSLATIONS.en;
+
+
   // =====================================================
-  // GET CURRENT USER
+  // CURRENT USER
   // =====================================================
 
   const storedUser =
-    localStorage.getItem("campx_user");
+    localStorage.getItem(
+      "campx_user"
+    );
 
   let currentUser = {};
 
   try {
-    currentUser = storedUser
-      ? JSON.parse(storedUser)
-      : {};
+
+    currentUser =
+      storedUser
+        ? JSON.parse(storedUser)
+        : {};
+
   } catch (error) {
+
     console.error(
       "Invalid CAMPX user data:",
       error
     );
+
   }
 
+
   const isSuperAdmin =
-    currentUser?.role === "SUPER_ADMIN";
+    currentUser?.role ===
+    "SUPER_ADMIN";
 
 
   // =====================================================
   // FORM DATA
   // =====================================================
 
-  const [formData, setFormData] = useState({
+  const [
+    formData,
+    setFormData,
+  ] = useState({
+
     name: "",
     email: "",
     department: "",
@@ -56,6 +372,7 @@ function AddAdmin() {
     faculty_id: "",
     password: "",
     confirm_password: "",
+
   });
 
 
@@ -63,31 +380,45 @@ function AddAdmin() {
   // DEPARTMENTS
   // =====================================================
 
-  const [departments, setDepartments] =
-    useState([]);
+  const [
+    departments,
+    setDepartments,
+  ] = useState([]);
 
-  const [departmentsLoading, setDepartmentsLoading] =
-    useState(true);
+  const [
+    departmentsLoading,
+    setDepartmentsLoading,
+  ] = useState(true);
 
 
   // =====================================================
   // UI STATES
   // =====================================================
 
-  const [showPassword, setShowPassword] =
-    useState(false);
+  const [
+    showPassword,
+    setShowPassword,
+  ] = useState(false);
 
-  const [showConfirmPassword, setShowConfirmPassword] =
-    useState(false);
+  const [
+    showConfirmPassword,
+    setShowConfirmPassword,
+  ] = useState(false);
 
-  const [loading, setLoading] =
-    useState(false);
+  const [
+    loading,
+    setLoading,
+  ] = useState(false);
 
-  const [error, setError] =
-    useState("");
+  const [
+    error,
+    setError,
+  ] = useState("");
 
-  const [message, setMessage] =
-    useState("");
+  const [
+    message,
+    setMessage,
+  ] = useState("");
 
 
   // =====================================================
@@ -96,371 +427,402 @@ function AddAdmin() {
 
   useEffect(() => {
 
-    const loadDepartments = async () => {
+    const loadDepartments =
+      async () => {
 
-      try {
+        if (!isSuperAdmin) {
 
-        setDepartmentsLoading(true);
-        setError("");
-
-        const token =
-          localStorage.getItem(
-            "campx_token"
+          setDepartmentsLoading(
+            false
           );
 
-        if (!token) {
-          throw new Error(
-            "Authentication token not found."
-          );
-        }
-
-        const response =
-          await fetch(
-            `${API_URL}/faculty/departments`,
-            {
-              method: "GET",
-
-              headers: {
-                Authorization:
-                  `Bearer ${token}`,
-              },
-            }
-          );
-
-        const data =
-          await response.json();
-
-        if (!response.ok) {
-
-          throw new Error(
-            data.message ||
-              "Unable to load departments."
-          );
+          return;
 
         }
 
-        setDepartments(
-          data.departments || []
-        );
 
-      } catch (err) {
+        try {
 
-        console.error(
-          "Load Departments Error:",
-          err
-        );
+          setDepartmentsLoading(
+            true
+          );
 
-        setError(
-          err.message ||
-            "Unable to load departments."
-        );
-
-      } finally {
-
-        setDepartmentsLoading(false);
-
-      }
-
-    };
+          setError("");
 
 
-    if (isSuperAdmin) {
-      loadDepartments();
-    } else {
-      setDepartmentsLoading(false);
-    }
+          const token =
+            localStorage.getItem(
+              "campx_token"
+            );
 
-  }, [isSuperAdmin]);
+
+          if (!token) {
+
+            throw new Error(
+              t.authToken
+            );
+
+          }
+
+
+          const response =
+            await fetch(
+              `${API_URL}/faculty/departments`,
+              {
+                method: "GET",
+
+                headers: {
+                  Authorization:
+                    `Bearer ${token}`,
+                },
+              }
+            );
+
+
+          const data =
+            await response.json();
+
+
+          if (!response.ok) {
+
+            throw new Error(
+              data.message ||
+                t.unableDepartments
+            );
+
+          }
+
+
+          setDepartments(
+            Array.isArray(
+              data.departments
+            )
+              ? data.departments
+              : []
+          );
+
+        } catch (err) {
+
+          console.error(
+            "Load Departments Error:",
+            err
+          );
+
+          setError(
+            err.message ||
+              t.unableDepartments
+          );
+
+        } finally {
+
+          setDepartmentsLoading(
+            false
+          );
+
+        }
+
+      };
+
+
+    loadDepartments();
+
+  }, [isSuperAdmin, language]);
 
 
   // =====================================================
   // INPUT CHANGE
   // =====================================================
 
-  const handleChange = (e) => {
+  const handleChange =
+    (e) => {
 
-    const {
-      name,
-      value,
-    } = e.target;
-
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+      const {
+        name,
+        value,
+      } = e.target;
 
 
-    setError("");
-    setMessage("");
+      setFormData(
+        (previous) => ({
+          ...previous,
+          [name]: value,
+        })
+      );
 
-  };
+
+      setError("");
+      setMessage("");
+
+    };
 
 
   // =====================================================
   // SUBMIT
   // =====================================================
 
-  const handleSubmit = async (e) => {
+  const handleSubmit =
+    async (e) => {
 
-    e.preventDefault();
+      e.preventDefault();
 
-    setError("");
-    setMessage("");
-
-
-    // ===================================================
-    // SUPER ADMIN CHECK
-    // ===================================================
-
-    if (!isSuperAdmin) {
-
-      setError(
-        "Only the Super Admin can create a new Admin."
-      );
-
-      return;
-
-    }
+      setError("");
+      setMessage("");
 
 
-    // ===================================================
-    // REQUIRED FIELD VALIDATION
-    // ===================================================
+      // ================================================
+      // SUPER ADMIN CHECK
+      // ================================================
 
-    if (
-      !formData.name.trim() ||
-      !formData.email.trim() ||
-      !formData.department ||
-      !formData.designation.trim() ||
-      !formData.faculty_id.trim() ||
-      !formData.password ||
-      !formData.confirm_password
-    ) {
+      if (!isSuperAdmin) {
 
-      setError(
-        "Please fill in all required fields."
-      );
-
-      return;
-
-    }
-
-
-    // ===================================================
-    // EMAIL VALIDATION
-    // ===================================================
-
-    const emailPattern =
-      /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (
-      !emailPattern.test(
-        formData.email.trim()
-      )
-    ) {
-
-      setError(
-        "Please enter a valid email address."
-      );
-
-      return;
-
-    }
-
-
-    // ===================================================
-    // PASSWORD MATCH
-    // ===================================================
-
-    if (
-      formData.password !==
-      formData.confirm_password
-    ) {
-
-      setError(
-        "Password and Confirm Password do not match."
-      );
-
-      return;
-
-    }
-
-
-    // ===================================================
-    // PASSWORD LENGTH
-    // ===================================================
-
-    if (
-      formData.password.length < 6
-    ) {
-
-      setError(
-        "Password must contain at least 6 characters."
-      );
-
-      return;
-
-    }
-
-
-    // ===================================================
-    // DEPARTMENT VALIDATION
-    // ===================================================
-
-    const selectedDepartment =
-      departments.find(
-        (department) =>
-          department.id ===
-          formData.department
-      );
-
-
-    if (!selectedDepartment) {
-
-      setError(
-        "Please select a valid department."
-      );
-
-      return;
-
-    }
-
-
-    try {
-
-      setLoading(true);
-
-
-      // =================================================
-      // GET TOKEN
-      // =================================================
-
-      const token =
-        localStorage.getItem(
-          "campx_token"
+        setError(
+          t.onlySuperAdmin
         );
 
-
-      if (!token) {
-
-        throw new Error(
-          "Authentication token not found. Please login again."
-        );
+        return;
 
       }
 
 
-      // =================================================
+      // ================================================
+      // REQUIRED FIELDS
+      // ================================================
+
+      if (
+        !formData.name.trim() ||
+        !formData.email.trim() ||
+        !formData.department ||
+        !formData.designation.trim() ||
+        !formData.faculty_id.trim() ||
+        !formData.password ||
+        !formData.confirm_password
+      ) {
+
+        setError(
+          t.required
+        );
+
+        return;
+
+      }
+
+
+      // ================================================
+      // EMAIL VALIDATION
+      // ================================================
+
+      const emailPattern =
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+
+      if (
+        !emailPattern.test(
+          formData.email.trim()
+        )
+      ) {
+
+        setError(
+          t.invalidEmail
+        );
+
+        return;
+
+      }
+
+
+      // ================================================
+      // PASSWORD MATCH
+      // ================================================
+
+      if (
+        formData.password !==
+        formData.confirm_password
+      ) {
+
+        setError(
+          t.passwordMismatch
+        );
+
+        return;
+
+      }
+
+
+      // ================================================
+      // PASSWORD LENGTH
+      // ================================================
+
+      if (
+        formData.password.length <
+        6
+      ) {
+
+        setError(
+          t.passwordLength
+        );
+
+        return;
+
+      }
+
+
+      // ================================================
+      // SELECTED DEPARTMENT
+      // ================================================
+
+      const selectedDepartment =
+        departments.find(
+          (department) =>
+            department.id ===
+            formData.department
+        );
+
+
+      if (!selectedDepartment) {
+
+        setError(
+          t.invalidDepartment
+        );
+
+        return;
+
+      }
+
+
+      // ================================================
       // CREATE ADMIN
-      // =================================================
+      // ================================================
 
-      const response =
-        await fetch(
-          `${API_URL}/faculty/admin`,
-          {
-            method: "POST",
+      try {
 
-            headers: {
-              "Content-Type":
-                "application/json",
+        setLoading(true);
 
-              Authorization:
-                `Bearer ${token}`,
-            },
 
-            body: JSON.stringify({
+        const token =
+          localStorage.getItem(
+            "campx_token"
+          );
 
-              name:
-                formData.name.trim(),
 
-              email:
-                formData.email
-                  .trim()
-                  .toLowerCase(),
+        if (!token) {
 
-              department:
-                formData.department,
+          throw new Error(
+            t.authLogin
+          );
 
-              designation:
-                formData.designation.trim(),
+        }
 
-              faculty_id:
-                formData.faculty_id.trim(),
 
-              password:
-                formData.password,
+        const response =
+          await fetch(
+            `${API_URL}/faculty/admin`,
+            {
+              method: "POST",
 
-            }),
-          }
+              headers: {
+                "Content-Type":
+                  "application/json",
+
+                Authorization:
+                  `Bearer ${token}`,
+              },
+
+              body:
+                JSON.stringify({
+
+                  name:
+                    formData.name.trim(),
+
+                  email:
+                    formData.email
+                      .trim()
+                      .toLowerCase(),
+
+                  department:
+                    formData.department,
+
+                  designation:
+                    formData.designation.trim(),
+
+                  faculty_id:
+                    formData.faculty_id.trim(),
+
+                  password:
+                    formData.password,
+
+                }),
+
+            }
+          );
+
+
+        const data =
+          await response.json();
+
+
+        if (!response.ok) {
+
+          throw new Error(
+            data.message ||
+              t.failedCreate
+          );
+
+        }
+
+
+        // ============================================
+        // SUCCESS
+        // ============================================
+
+        setMessage(
+          t.created(
+            selectedDepartment.name
+          )
         );
 
 
-      const data =
-        await response.json();
+        // ============================================
+        // RESET FORM
+        // ============================================
+
+        setFormData({
+
+          name: "",
+          email: "",
+          department: "",
+          designation: "",
+          faculty_id: "",
+          password: "",
+          confirm_password: "",
+
+        });
 
 
-      // =================================================
-      // ERROR
-      // =================================================
+        setShowPassword(false);
 
-      if (!response.ok) {
-
-        throw new Error(
-          data.message ||
-            "Failed to create Admin."
+        setShowConfirmPassword(
+          false
         );
+
+      } catch (err) {
+
+        console.error(
+          "Add Admin Error:",
+          err
+        );
+
+        setError(
+          err.message ||
+            t.unableCreate
+        );
+
+      } finally {
+
+        setLoading(false);
 
       }
 
-
-      // =================================================
-      // SUCCESS
-      // =================================================
-
-      setMessage(
-        `Admin created successfully for ${selectedDepartment.name}.`
-      );
-
-
-      // =================================================
-      // RESET FORM
-      // =================================================
-
-      setFormData({
-        name: "",
-        email: "",
-        department: "",
-        designation: "",
-        faculty_id: "",
-        password: "",
-        confirm_password: "",
-      });
-
-
-      setShowPassword(false);
-      setShowConfirmPassword(false);
-
-
-    } catch (err) {
-
-      console.error(
-        "Add Admin Error:",
-        err
-      );
-
-      setError(
-        err.message ||
-          "Unable to create Admin."
-      );
-
-    } finally {
-
-      setLoading(false);
-
-    }
-
-  };
+    };
 
 
   // =====================================================
@@ -478,7 +840,9 @@ function AddAdmin() {
         <main className="main-content">
 
           <Topbar
-            title="Access Denied"
+            title={
+              t.accessDenied
+            }
           />
 
           <div className="dashboard-content">
@@ -499,12 +863,11 @@ function AddAdmin() {
                 />
 
                 <h2>
-                  Access Denied
+                  {t.accessDenied}
                 </h2>
 
                 <p>
-                  Only the Super Admin can
-                  register new Admins.
+                  {t.onlySuperAdmin}
                 </p>
 
                 <button
@@ -520,7 +883,7 @@ function AddAdmin() {
                     size={17}
                   />
 
-                  Back to Dashboard
+                  {t.backDashboard}
 
                 </button>
 
@@ -552,14 +915,15 @@ function AddAdmin() {
       <main className="main-content">
 
         <Topbar
-          title="Add Admin"
+          title={t.addAdmin}
         />
+
 
         <div className="dashboard-content">
 
 
           {/* =================================================
-              HEADER
+              PAGE HEADER
           ================================================= */}
 
           <div
@@ -576,17 +940,18 @@ function AddAdmin() {
 
               marginBottom:
                 "25px",
+
             }}
           >
 
             <div>
 
               <h1>
-                Register New Admin
+                {t.registerNew}
               </h1>
 
               <p>
-                Create a departmental Admin account.
+                {t.createDescription}
               </p>
 
             </div>
@@ -605,7 +970,7 @@ function AddAdmin() {
                 size={17}
               />
 
-              Back
+              {t.back}
 
             </button>
 
@@ -659,7 +1024,7 @@ function AddAdmin() {
                     margin: 0,
                   }}
                 >
-                  Admin Account
+                  {t.adminAccount}
                 </h2>
 
                 <p
@@ -668,7 +1033,7 @@ function AddAdmin() {
                       "5px 0",
                   }}
                 >
-                  Enter the new administrator's details.
+                  {t.enterDetails}
                 </p>
 
               </div>
@@ -756,7 +1121,7 @@ function AddAdmin() {
               ================================================= */}
 
               <h3>
-                Basic Information
+                {t.basicInformation}
               </h3>
 
 
@@ -784,7 +1149,7 @@ function AddAdmin() {
                 <div>
 
                   <label>
-                    Full Name *
+                    {t.fullName} *
                   </label>
 
                   <input
@@ -796,7 +1161,9 @@ function AddAdmin() {
                     onChange={
                       handleChange
                     }
-                    placeholder="Enter full name"
+                    placeholder={
+                      t.fullNamePlaceholder
+                    }
                     required
                   />
 
@@ -810,7 +1177,7 @@ function AddAdmin() {
                 <div>
 
                   <label>
-                    Email *
+                    {t.email} *
                   </label>
 
                   <input
@@ -822,7 +1189,9 @@ function AddAdmin() {
                     onChange={
                       handleChange
                     }
-                    placeholder="admin@campx.edu"
+                    placeholder={
+                      t.emailPlaceholder
+                    }
                     required
                   />
 
@@ -830,14 +1199,15 @@ function AddAdmin() {
 
 
                 {/* =================================================
-                    DEPARTMENT
+                    DEPARTMENT / CATEGORY
                 ================================================= */}
 
                 <div>
 
                   <label>
-                    Department *
+                    {t.department} *
                   </label>
+
 
                   <div
                     style={{
@@ -869,6 +1239,7 @@ function AddAdmin() {
                       }}
                     />
 
+
                     <select
                       name="department"
                       value={
@@ -891,13 +1262,18 @@ function AddAdmin() {
                     >
 
                       <option value="">
+
                         {departmentsLoading
-                          ? "Loading departments..."
-                          : "Select Department"}
+                          ? t.loadingDepartments
+                          : t.selectDepartment}
+
                       </option>
 
+
                       {departments.map(
-                        (department) => (
+                        (
+                          department
+                        ) => (
 
                           <option
                             key={
@@ -919,6 +1295,7 @@ function AddAdmin() {
 
                   </div>
 
+
                   <small
                     style={{
                       display:
@@ -931,7 +1308,11 @@ function AddAdmin() {
                         "#64748b",
                     }}
                   >
-                    The Admin will only have access to this department.
+
+                    {
+                      t.departmentAccessNote
+                    }
+
                   </small>
 
                 </div>
@@ -944,7 +1325,7 @@ function AddAdmin() {
                 <div>
 
                   <label>
-                    Designation *
+                    {t.designation} *
                   </label>
 
                   <input
@@ -956,12 +1337,13 @@ function AddAdmin() {
                     onChange={
                       handleChange
                     }
-                    placeholder="Faculty / HOD"
+                    placeholder={
+                      t.facultyHod
+                    }
                     required
                   />
 
                 </div>
-
 
               </div>
 
@@ -992,7 +1374,9 @@ function AddAdmin() {
                 >
 
                   <strong>
-                    Department Access
+                    {
+                      t.departmentAccess
+                    }
                   </strong>
 
                   <p
@@ -1008,21 +1392,43 @@ function AddAdmin() {
                     }}
                   >
 
-                    This Admin will be assigned to{" "}
+                    {t.assignedTo}{" "}
 
                     <strong>
+
                       {
                         departments.find(
-                          (d) =>
-                            d.id ===
+                          (department) =>
+                            department.id ===
                             formData.department
                         )?.name
                       }
+
                     </strong>
 
-                    {" "}and will receive
-                    department-specific notifications
-                    and sidebar options.
+                    {" "}
+
+                    {
+                      t.notificationsAndSidebar
+                    }
+
+                  </p>
+
+
+                  <p
+                    style={{
+                      margin:
+                        "8px 0 0",
+
+                      color:
+                        "#64748b",
+
+                      fontSize:
+                        "13px",
+                    }}
+                  >
+
+                    {t.accessInfo}
 
                   </p>
 
@@ -1041,7 +1447,7 @@ function AddAdmin() {
                     "35px",
                 }}
               >
-                Login Credentials
+                {t.loginCredentials}
               </h3>
 
 
@@ -1069,7 +1475,7 @@ function AddAdmin() {
                 <div>
 
                   <label>
-                    Faculty ID *
+                    {t.facultyId} *
                   </label>
 
                   <input
@@ -1081,12 +1487,14 @@ function AddAdmin() {
                     onChange={
                       handleChange
                     }
-                    placeholder="FAC002"
+                    placeholder={
+                      t.facultyIdPlaceholder
+                    }
                     required
                   />
 
                   <small>
-                    This will be the Admin login ID.
+                    {t.facultyIdHelp}
                   </small>
 
                 </div>
@@ -1099,8 +1507,9 @@ function AddAdmin() {
                 <div>
 
                   <label>
-                    Password *
+                    {t.password} *
                   </label>
+
 
                   <div
                     style={{
@@ -1126,7 +1535,9 @@ function AddAdmin() {
                         handleChange
                       }
 
-                      placeholder="Enter password"
+                      placeholder={
+                        t.enterPassword
+                      }
 
                       required
 
@@ -1145,7 +1556,8 @@ function AddAdmin() {
 
                       onClick={() =>
                         setShowPassword(
-                          !showPassword
+                          (previous) =>
+                            !previous
                         )
                       }
 
@@ -1201,8 +1613,11 @@ function AddAdmin() {
                 <div>
 
                   <label>
-                    Confirm Password *
+                    {
+                      t.confirmPassword
+                    } *
                   </label>
+
 
                   <div
                     style={{
@@ -1228,7 +1643,9 @@ function AddAdmin() {
                         handleChange
                       }
 
-                      placeholder="Confirm password"
+                      placeholder={
+                        t.confirmPasswordPlaceholder
+                      }
 
                       required
 
@@ -1247,7 +1664,8 @@ function AddAdmin() {
 
                       onClick={() =>
                         setShowConfirmPassword(
-                          !showConfirmPassword
+                          (previous) =>
+                            !previous
                         )
                       }
 
@@ -1295,7 +1713,6 @@ function AddAdmin() {
 
                 </div>
 
-
               </div>
 
 
@@ -1339,7 +1756,9 @@ function AddAdmin() {
                     loading
                   }
                 >
-                  Cancel
+
+                  {t.cancel}
+
                 </button>
 
 
@@ -1355,7 +1774,7 @@ function AddAdmin() {
 
                   {loading ? (
 
-                    "Creating..."
+                    t.creating
 
                   ) : (
 
@@ -1364,7 +1783,7 @@ function AddAdmin() {
                         size={17}
                       />
 
-                      Create Admin
+                      {t.createAdmin}
                     </>
 
                   )}
@@ -1372,7 +1791,6 @@ function AddAdmin() {
                 </button>
 
               </div>
-
 
             </form>
 
@@ -1387,9 +1805,5 @@ function AddAdmin() {
   );
 }
 
-
-// =====================================================
-// DEFAULT EXPORT
-// =====================================================
 
 export default AddAdmin;

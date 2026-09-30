@@ -11,6 +11,7 @@ import {
 
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
+import { useLanguage } from "../context/LanguageContext";
 import { addNotification } from "../notificationStorage";
 
 import mentorApproval from "../assets/authorities/mentor.png";
@@ -39,6 +40,72 @@ const AUTHORITIES = {
   },
 };
 
+const ADMIN_APPLICATIONS_TRANSLATIONS = {
+  en: {
+    admin: "CAMPX ADMINISTRATION", digital: "Digital Applications",
+    verifyDesc: "Verify student applications and approve them through the appropriate authority.",
+    total: "Total", pending: "Pending", approved: "Approved", rejected: "Rejected", all: "All",
+    noApplications: "No applications found", applicationsAppear: "Student applications will appear here.",
+    student: "Student", id: "ID", review: "Review", applicationReview: "APPLICATION REVIEW",
+    to: "To,", concerned: "The Concerned Authority", respected: "Respected Sir/Madam,",
+    requestText: "request you to kindly consider my application regarding the above-mentioned subject.",
+    reason: "Reason:", additional: "Additional Details:", applicant: "Applicant",
+    approvedBy: "Approved By", verification: "Verification & Approval",
+    selectAuthority: "Select the authority who will approve this application.",
+    selected: "Selected", selectedAuthority: "Selected Authority", note: "Verification Note",
+    notePlaceholder: "Optional verification note...",
+    requirement: "The selected authority's official stamp and signature will automatically appear on the approved application.",
+    reject: "Reject", verifyApprove: "Verify & Approve", applicationApproved: "Application Approved",
+    approvedByLabel: "Approved by", printApproved: "Print Approved Application", applicationRejected: "Application Rejected",
+    selectAuthorityAlert: "Please select an approving authority.", rejectedNotification: "Application Rejected",
+    approvedNotification: "Application Approved", yourApplication: "Your application", rejectedMessage: "has been rejected.",
+    approvedMessage: "has been approved by the", principal: "Principal", hod: "HOD", mentor: "Mentor",
+    hodDesignation: "Head of Department", mentorDesignation: "Faculty Mentor"
+  },
+  hi: {
+    admin: "CAMPX प्रशासन", digital: "डिजिटल आवेदन",
+    verifyDesc: "छात्र आवेदनों की जांच करें और उचित प्राधिकरण के माध्यम से अनुमोदित करें।",
+    total: "कुल", pending: "लंबित", approved: "अनुमोदित", rejected: "अस्वीकृत", all: "सभी",
+    noApplications: "कोई आवेदन नहीं मिला", applicationsAppear: "छात्र आवेदन यहां दिखाई देंगे।",
+    student: "छात्र", id: "ID", review: "समीक्षा", applicationReview: "आवेदन समीक्षा",
+    to: "प्रति,", concerned: "संबंधित प्राधिकरण", respected: "आदरणीय सर/मैडम,",
+    requestText: "कृपया उपरोक्त विषय के संबंध में मेरे आवेदन पर विचार करने का अनुरोध है।",
+    reason: "कारण:", additional: "अतिरिक्त विवरण:", applicant: "आवेदक",
+    approvedBy: "अनुमोदित द्वारा", verification: "सत्यापन और अनुमोदन",
+    selectAuthority: "इस आवेदन को अनुमोदित करने वाले प्राधिकरण का चयन करें।",
+    selected: "चयनित", selectedAuthority: "चयनित प्राधिकरण", note: "सत्यापन टिप्पणी",
+    notePlaceholder: "वैकल्पिक सत्यापन टिप्पणी...",
+    requirement: "चयनित प्राधिकरण की आधिकारिक मुहर और हस्ताक्षर अनुमोदित आवेदन पर स्वतः दिखाई देंगे।",
+    reject: "अस्वीकार करें", verifyApprove: "सत्यापित और अनुमोदित करें", applicationApproved: "आवेदन अनुमोदित",
+    approvedByLabel: "अनुमोदित द्वारा", printApproved: "अनुमोदित आवेदन प्रिंट करें", applicationRejected: "आवेदन अस्वीकृत",
+    selectAuthorityAlert: "कृपया अनुमोदन प्राधिकरण चुनें।", rejectedNotification: "आवेदन अस्वीकृत",
+    approvedNotification: "आवेदन अनुमोदित", yourApplication: "आपका आवेदन", rejectedMessage: "अस्वीकृत कर दिया गया है।",
+    approvedMessage: "द्वारा अनुमोदित किया गया है", principal: "प्राचार्य", hod: "विभागाध्यक्ष", mentor: "फैकल्टी मेंटर",
+    hodDesignation: "विभागाध्यक्ष", mentorDesignation: "फैकल्टी मेंटर"
+  },
+  or: {
+    admin: "CAMPX ପ୍ରଶାସନ", digital: "ଡିଜିଟାଲ୍ ଆବେଦନ",
+    verifyDesc: "ଛାତ୍ର ଆବେଦନଗୁଡିକୁ ଯାଞ୍ଚ କରି ଉପଯୁକ୍ତ କର୍ତ୍ତୃପକ୍ଷଙ୍କ ମାଧ୍ୟମରେ ଅନୁମୋଦନ କରନ୍ତୁ।",
+    total: "ମୋଟ", pending: "ବିଚାରାଧୀନ", approved: "ଅନୁମୋଦିତ", rejected: "ପ୍ରତ୍ୟାଖ୍ୟାନ", all: "ସମସ୍ତ",
+    noApplications: "କୌଣସି ଆବେଦନ ମିଳିଲା ନାହିଁ", applicationsAppear: "ଛାତ୍ର ଆବେଦନଗୁଡିକ ଏଠାରେ ଦେଖାଯିବ।",
+    student: "ଛାତ୍ର", id: "ID", review: "ସମୀକ୍ଷା", applicationReview: "ଆବେଦନ ସମୀକ୍ଷା",
+    to: "ପ୍ରତି,", concerned: "ସମ୍ପୃକ୍ତ କର୍ତ୍ତୃପକ୍ଷ", respected: "ମାନ୍ୟବର ସାର୍/ମ୍ୟାଡାମ୍,",
+    requestText: "ଉପରୋକ୍ତ ବିଷୟ ସମ୍ବନ୍ଧରେ ମୋର ଆବେଦନକୁ ବିଚାର କରିବାକୁ ଅନୁରୋଧ କରୁଛି।",
+    reason: "କାରଣ:", additional: "ଅତିରିକ୍ତ ବିବରଣୀ:", applicant: "ଆବେଦନକାରୀ",
+    approvedBy: "ଅନୁମୋଦନକାରୀ", verification: "ଯାଞ୍ଚ ଏବଂ ଅନୁମୋଦନ",
+    selectAuthority: "ଏହି ଆବେଦନକୁ ଅନୁମୋଦନ କରିବାକୁ ଥିବା କର୍ତ୍ତୃପକ୍ଷ ଚୟନ କରନ୍ତୁ।",
+    selected: "ଚୟନିତ", selectedAuthority: "ଚୟନିତ କର୍ତ୍ତୃପକ୍ଷ", note: "ଯାଞ୍ଚ ଟିପ୍ପଣୀ",
+    notePlaceholder: "ବୈକଳ୍ପିକ ଯାଞ୍ଚ ଟିପ୍ପଣୀ...",
+    requirement: "ଚୟନିତ କର୍ତ୍ତୃପକ୍ଷଙ୍କ ଅଧିକୃତ ମୋହର ଏବଂ ସ୍ୱାକ୍ଷର ଅନୁମୋଦିତ ଆବେଦନରେ ସ୍ୱୟଂଚାଳିତ ଭାବେ ଦେଖାଯିବ।",
+    reject: "ପ୍ରତ୍ୟାଖ୍ୟାନ କରନ୍ତୁ", verifyApprove: "ଯାଞ୍ଚ ଏବଂ ଅନୁମୋଦନ କରନ୍ତୁ", applicationApproved: "ଆବେଦନ ଅନୁମୋଦିତ",
+    approvedByLabel: "ଅନୁମୋଦନକାରୀ", printApproved: "ଅନୁମୋଦିତ ଆବେଦନ ପ୍ରିଣ୍ଟ କରନ୍ତୁ", applicationRejected: "ଆବେଦନ ପ୍ରତ୍ୟାଖ୍ୟାନ",
+    selectAuthorityAlert: "ଦୟାକରି ଜଣେ ଅନୁମୋଦନ କର୍ତ୍ତୃପକ୍ଷ ଚୟନ କରନ୍ତୁ।", rejectedNotification: "ଆବେଦନ ପ୍ରତ୍ୟାଖ୍ୟାନ",
+    approvedNotification: "ଆବେଦନ ଅନୁମୋଦିତ", yourApplication: "ଆପଣଙ୍କ ଆବେଦନ", rejectedMessage: "ପ୍ରତ୍ୟାଖ୍ୟାନ ହୋଇଛି।",
+    approvedMessage: "ଙ୍କ ଦ୍ୱାରା ଅନୁମୋଦିତ ହୋଇଛି", principal: "ପ୍ରିନ୍ସିପାଲ୍", hod: "HOD", mentor: "ମେଣ୍ଟର୍",
+    hodDesignation: "ବିଭାଗ ମୁଖ୍ୟ", mentorDesignation: "ଫ୍ୟାକଲ୍ଟି ମେଣ୍ଟର୍"
+  }
+};
+
 function loadApplications() {
   try {
     const saved = localStorage.getItem(APPLICATIONS_KEY);
@@ -55,6 +122,12 @@ function loadApplications() {
 }
 
 export default function AdminApplications() {
+  const { language } = useLanguage();
+  const t =
+    ADMIN_APPLICATIONS_TRANSLATIONS[language] ||
+    ADMIN_APPLICATIONS_TRANSLATIONS.en;
+
+
   const [applications, setApplications] =
     useState(loadApplications);
 
@@ -161,8 +234,8 @@ export default function AdminApplications() {
       audience: "student",
       studentId: selectedApplication.studentId,
       type: "application",
-      title: "Application Rejected",
-      message: `Your application ${selectedApplication.id} has been rejected.`,
+      title: t.rejectedNotification,
+      message: `${t.yourApplication} ${selectedApplication.id} ${t.rejectedMessage}`,
       relatedId: selectedApplication.id,
       status: "Rejected",
     });
@@ -177,9 +250,7 @@ export default function AdminApplications() {
       AUTHORITIES[authority];
 
     if (!selectedAuthority) {
-      alert(
-        "Please select an approving authority."
-      );
+      alert(t.selectAuthorityAlert);
       return;
     }
 
@@ -225,11 +296,10 @@ export default function AdminApplications() {
 
       type: "application",
 
-      title: "Application Approved",
+      title: t.approvedNotification,
 
       message:
-        `Your application ${selectedApplication.id} ` +
-        `has been approved by the ${authority}.`,
+        `${t.yourApplication} ${selectedApplication.id} ${t.approvedMessage} ${authority}.`,
 
       relatedId:
         selectedApplication.id,
@@ -271,7 +341,7 @@ export default function AdminApplications() {
       <Sidebar admin />
 
       <main className="main-content">
-        <Topbar />
+        <Topbar title={t.digital} />
 
         <div className="page-content">
 
@@ -280,17 +350,15 @@ export default function AdminApplications() {
           <div className="page-header">
             <div>
               <div className="page-eyebrow">
-                CAMPX ADMINISTRATION
+                {t.admin}
               </div>
 
               <h1>
-                Digital Applications
+                {t.digital}
               </h1>
 
               <p>
-                Verify student applications and
-                approve them through the appropriate
-                authority.
+                {t.verifyDesc}
               </p>
             </div>
           </div>
@@ -305,7 +373,7 @@ export default function AdminApplications() {
               </div>
 
               <div>
-                <span>Total</span>
+                <span>{t.total}</span>
                 <strong>
                   {applications.length}
                 </strong>
@@ -318,7 +386,7 @@ export default function AdminApplications() {
               </div>
 
               <div>
-                <span>Pending</span>
+                <span>{t.pending}</span>
                 <strong>
                   {submittedCount}
                 </strong>
@@ -331,7 +399,7 @@ export default function AdminApplications() {
               </div>
 
               <div>
-                <span>Approved</span>
+                <span>{t.approved}</span>
                 <strong>
                   {approvedCount}
                 </strong>
@@ -344,7 +412,7 @@ export default function AdminApplications() {
               </div>
 
               <div>
-                <span>Rejected</span>
+                <span>{t.rejected}</span>
                 <strong>
                   {rejectedCount}
                 </strong>
@@ -374,7 +442,13 @@ export default function AdminApplications() {
                   setActiveFilter(filter)
                 }
               >
-                {filter}
+                {filter === "All"
+                    ? t.all
+                    : filter === "Submitted"
+                    ? t.pending
+                    : filter === "Approved"
+                    ? t.approved
+                    : t.rejected}
               </button>
             ))}
 
@@ -389,12 +463,11 @@ export default function AdminApplications() {
                 <FileText size={34} />
 
                 <h3>
-                  No applications found
+                  {t.noApplications}
                 </h3>
 
                 <p>
-                  Student applications will
-                  appear here.
+                  {t.applicationsAppear}
                 </p>
               </div>
             ) : (
@@ -428,7 +501,11 @@ export default function AdminApplications() {
                             application.status.toLowerCase()
                           }
                         >
-                          {application.status}
+                          {application.status === "Submitted"
+                            ? t.pending
+                            : application.status === "Approved"
+                            ? t.approved
+                            : t.rejected}
                         </span>
 
                       </div>
@@ -436,14 +513,14 @@ export default function AdminApplications() {
                       <div className="admin-application-details">
 
                         <span>
-                          Student:{" "}
+                          {t.student}:{" "}
                           <strong>
                             {application.studentName}
                           </strong>
                         </span>
 
                         <span>
-                          ID:{" "}
+                          {t.id}:{" "}
                           <strong>
                             {application.studentId}
                           </strong>
@@ -495,7 +572,7 @@ export default function AdminApplications() {
               <div>
 
                 <span>
-                  APPLICATION REVIEW
+                  {t.applicationReview}
                 </span>
 
                 <h2>
@@ -530,7 +607,7 @@ export default function AdminApplications() {
                 <div className="document-to">
                   To,
                   <br />
-                  The Concerned Authority
+                  {t.concerned}
                   <br />
                   {selectedApplication.department}
                 </div>
@@ -541,7 +618,7 @@ export default function AdminApplications() {
                 </h3>
 
                 <p>
-                  Respected Sir/Madam,
+                  {t.respected}
                 </p>
 
                 <p>
@@ -551,9 +628,7 @@ export default function AdminApplications() {
                   </strong>{" "}
                   (
                   {selectedApplication.studentId}
-                  ), request you to kindly consider
-                  my application regarding the
-                  above-mentioned subject.
+                  ), {t.requestText}
                 </p>
 
                 <p>
@@ -569,7 +644,7 @@ export default function AdminApplications() {
                 {selectedApplication.additionalDetails && (
                   <p>
                     <strong>
-                      Additional Details:
+                      {t.additional}
                     </strong>
                     <br />
 
@@ -606,7 +681,7 @@ export default function AdminApplications() {
 
                       <div className="approved-authority-label">
                         <strong>
-                          Approved By
+                          {t.approvedBy}
                         </strong>
 
                         <span>
@@ -651,12 +726,11 @@ export default function AdminApplications() {
 
                     <div>
                       <h3>
-                        Verification & Approval
+                        {t.verification}
                       </h3>
 
                       <p>
-                        Select the authority who
-                        will approve this application.
+                        {t.selectAuthority}
                       </p>
                     </div>
 
@@ -677,7 +751,11 @@ export default function AdminApplications() {
                       ]) => (
                         <button
                           type="button"
-                          key={authorityName}
+                          key={authorityName === "Principal"
+                              ? t.principal
+                              : authorityName === "HOD"
+                              ? t.hod
+                              : t.mentor}
                           className={
                             `authority-card ` +
                             (
@@ -701,14 +779,22 @@ export default function AdminApplications() {
                                 authorityData.image
                               }
                               alt={
-                                `${authorityName} approval`
+                                `${authorityName === "Principal"
+                              ? t.principal
+                              : authorityName === "HOD"
+                              ? t.hod
+                              : t.mentor} approval`
                               }
                             />
 
                           </div>
 
                           <strong>
-                            {authorityName}
+                            {authorityName === "Principal"
+                              ? t.principal
+                              : authorityName === "HOD"
+                              ? t.hod
+                              : t.mentor}
                           </strong>
 
                           <span>
@@ -745,7 +831,7 @@ export default function AdminApplications() {
 
                       <div>
                         <strong>
-                          Selected Authority
+                          {t.selectedAuthority}
                         </strong>
 
                         <span>
@@ -780,12 +866,12 @@ export default function AdminApplications() {
                   <div className="form-field">
 
                     <label>
-                      Verification Note
+                      {t.note}
                     </label>
 
                     <textarea
                       rows="3"
-                      placeholder="Optional verification note..."
+                      placeholder={t.notePlaceholder}
                       value={
                         verificationNote
                       }
@@ -805,10 +891,7 @@ export default function AdminApplications() {
                     <CheckCircle2 size={17} />
 
                     <span>
-                      The selected authority's
-                      official stamp and signature
-                      will automatically appear on
-                      the approved application.
+                      {t.requirement}
                     </span>
 
                   </div>
@@ -853,11 +936,11 @@ export default function AdminApplications() {
                       />
 
                       <h3>
-                        Application Approved
+                        {t.applicationApproved}
                       </h3>
 
                       <p>
-                        Approved by{" "}
+                        {t.approvedByLabel}{" "}
                         {
                           selectedApplication.authorityName
                         }
@@ -877,8 +960,7 @@ export default function AdminApplications() {
                       >
                         <Printer size={17} />
 
-                        Print Approved
-                        Application
+                        {t.printApproved}
                       </button>
                     </>
                   ) : (
@@ -888,7 +970,7 @@ export default function AdminApplications() {
                       />
 
                       <h3>
-                        Application Rejected
+                        {t.applicationRejected}
                       </h3>
 
                       {selectedApplication.verificationNote && (

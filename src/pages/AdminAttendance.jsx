@@ -14,6 +14,7 @@ import {
 
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
+import { useLanguage } from "../context/LanguageContext";
 import { addNotification } from "../notificationStorage";
 
 const STUDENTS_KEY = "campx_students";
@@ -276,7 +277,123 @@ function getSubjectsForStudent(
    COMPONENT
 ========================================================= */
 
+
+
+const ADMIN_ATTENDANCE_TRANSLATIONS = {
+  en: {
+    attendanceControl: "Attendance Control",
+    administration: "ADMINISTRATION",
+    manageAttendance: "Manage attendance for individual students.",
+    selectStudent: "Select Student",
+    chooseStudent: "Choose the student whose attendance you want to manage.",
+    searchStudent: "Search student...",
+    overallAttendance: "Overall Attendance",
+    classes: "classes",
+    below75: "Below 75%",
+    subjects: "Subjects",
+    totalFine: "Total Fine",
+    dynamicFine: "Dynamic fine",
+    required: "Required",
+    minimumAttendance: "Minimum attendance",
+    smartFine: "Smart Attendance Fine",
+    fineRule: "75% or above = ₹0. Every 1% below 75% adds ₹50. When attendance improves, the fine decreases automatically.",
+    subjectAttendance: "Subject Attendance",
+    recordFor: "Record attendance for",
+    fine: "Fine",
+    absent: "Absent",
+    present: "Present",
+    saveAttendance: "Save Attendance",
+    attendanceSaved: "Attendance saved",
+    semester: "Semester",
+    section: "Section",
+    noStudent: "No student selected",
+    attendanceAlert: "Attendance Alert",
+    attendanceFineIncreased: "Attendance Fine Increased",
+    attendanceFineDecreased: "Attendance Fine Decreased",
+    attendanceRestored: "Attendance Restored",
+    attendanceDropped: "Your attendance has fallen below 75%.",
+    fineIncreasedMessage: "Your attendance fine has increased.",
+    fineDecreasedMessage: "Your attendance fine has decreased.",
+    fineRestoredMessage: "Your attendance fine is now ₹0.",
+  },
+  hi: {
+    attendanceControl: "उपस्थिति नियंत्रण",
+    administration: "प्रशासन",
+    manageAttendance: "व्यक्तिगत छात्रों की उपस्थिति प्रबंधित करें।",
+    selectStudent: "छात्र चुनें",
+    chooseStudent: "जिस छात्र की उपस्थिति प्रबंधित करनी है, उसे चुनें।",
+    searchStudent: "छात्र खोजें...",
+    overallAttendance: "कुल उपस्थिति",
+    classes: "कक्षाएं",
+    below75: "75% से कम",
+    subjects: "विषय",
+    totalFine: "कुल जुर्माना",
+    dynamicFine: "गतिशील जुर्माना",
+    required: "आवश्यक",
+    minimumAttendance: "न्यूनतम उपस्थिति",
+    smartFine: "स्मार्ट उपस्थिति जुर्माना",
+    fineRule: "75% या अधिक = ₹0। 75% से नीचे प्रत्येक 1% पर ₹50 जुर्माना जुड़ता है। उपस्थिति बढ़ने पर जुर्माना अपने आप कम हो जाता है।",
+    subjectAttendance: "विषयवार उपस्थिति",
+    recordFor: "उपस्थिति दर्ज करें:",
+    fine: "जुर्माना",
+    absent: "अनुपस्थित",
+    present: "उपस्थित",
+    saveAttendance: "उपस्थिति सहेजें",
+    attendanceSaved: "उपस्थिति सहेजी गई",
+    semester: "सेमेस्टर",
+    section: "सेक्शन",
+    noStudent: "कोई छात्र चयनित नहीं है",
+    attendanceAlert: "उपस्थिति चेतावनी",
+    attendanceFineIncreased: "उपस्थिति जुर्माना बढ़ा",
+    attendanceFineDecreased: "उपस्थिति जुर्माना घटा",
+    attendanceRestored: "उपस्थिति बहाल",
+    attendanceDropped: "आपकी उपस्थिति 75% से नीचे चली गई है।",
+    fineIncreasedMessage: "आपका उपस्थिति जुर्माना बढ़ गया है।",
+    fineDecreasedMessage: "आपका उपस्थिति जुर्माना कम हो गया है।",
+    fineRestoredMessage: "आपका उपस्थिति जुर्माना अब ₹0 है।",
+  },
+  or: {
+    attendanceControl: "ଉପସ୍ଥାନ ନିୟନ୍ତ୍ରଣ",
+    administration: "ପ୍ରଶାସନ",
+    manageAttendance: "ବ୍ୟକ୍ତିଗତ ଛାତ୍ରଛାତ୍ରୀଙ୍କ ଉପସ୍ଥାନ ପରିଚାଳନା କରନ୍ତୁ।",
+    selectStudent: "ଛାତ୍ର ଚୟନ କରନ୍ତୁ",
+    chooseStudent: "ଯାହାର ଉପସ୍ଥାନ ପରିଚାଳନା କରିବେ ସେହି ଛାତ୍ରଙ୍କୁ ଚୟନ କରନ୍ତୁ।",
+    searchStudent: "ଛାତ୍ର ଖୋଜନ୍ତୁ...",
+    overallAttendance: "ମୋଟ ଉପସ୍ଥାନ",
+    classes: "କ୍ଲାସ୍",
+    below75: "75% ରୁ କମ୍",
+    subjects: "ବିଷୟ",
+    totalFine: "ମୋଟ ଜରିମାନା",
+    dynamicFine: "ଗତିଶୀଳ ଜରିମାନା",
+    required: "ଆବଶ୍ୟକ",
+    minimumAttendance: "ସର୍ବନିମ୍ନ ଉପସ୍ଥାନ",
+    smartFine: "ସ୍ମାର୍ଟ ଉପସ୍ଥାନ ଜରିମାନା",
+    fineRule: "75% କିମ୍ବା ଅଧିକ = ₹0। 75% ରୁ କମ୍ ପ୍ରତ୍ୟେକ 1% ପାଇଁ ₹50 ଜରିମାନା ଯୋଗ ହୁଏ। ଉପସ୍ଥାନ ବଢ଼ିଲେ ଜରିମାନା ସ୍ୱୟଂଚାଳିତ ଭାବେ କମିଯାଏ।",
+    subjectAttendance: "ବିଷୟ ଅନୁଯାୟୀ ଉପସ୍ଥାନ",
+    recordFor: "ଉପସ୍ଥାନ ରେକର୍ଡ କରନ୍ତୁ:",
+    fine: "ଜରିମାନା",
+    absent: "ଅନୁପସ୍ଥିତ",
+    present: "ଉପସ୍ଥିତ",
+    saveAttendance: "ଉପସ୍ଥାନ ସଂରକ୍ଷଣ କରନ୍ତୁ",
+    attendanceSaved: "ଉପସ୍ଥାନ ସଂରକ୍ଷିତ ହୋଇଛି",
+    semester: "ସେମିଷ୍ଟର",
+    section: "ସେକ୍ସନ୍",
+    noStudent: "କୌଣସି ଛାତ୍ର ଚୟନ ହୋଇନାହାନ୍ତି",
+    attendanceAlert: "ଉପସ୍ଥାନ ସତର୍କତା",
+    attendanceFineIncreased: "ଉପସ୍ଥାନ ଜରିମାନା ବଢ଼ିଛି",
+    attendanceFineDecreased: "ଉପସ୍ଥାନ ଜରିମାନା କମିଛି",
+    attendanceRestored: "ଉପସ୍ଥାନ ପୁନଃସ୍ଥାପିତ",
+    attendanceDropped: "ଆପଣଙ୍କ ଉପସ୍ଥାନ 75% ରୁ କମିଯାଇଛି।",
+    fineIncreasedMessage: "ଆପଣଙ୍କ ଉପସ୍ଥାନ ଜରିମାନା ବଢ଼ିଛି।",
+    fineDecreasedMessage: "ଆପଣଙ୍କ ଉପସ୍ଥାନ ଜରିମାନା କମିଛି।",
+    fineRestoredMessage: "ଆପଣଙ୍କ ଉପସ୍ଥାନ ଜରିମାନା ବର୍ତ୍ତମାନ ₹0 ଅଟେ।",
+  },
+};
+
 export default function AdminAttendance() {
+  const { language } = useLanguage();
+  const t = ADMIN_ATTENDANCE_TRANSLATIONS[language] || ADMIN_ATTENDANCE_TRANSLATIONS.en;
+
   const [students, setStudents] = useState([]);
 
   const [attendance, setAttendance] = useState([]);
@@ -557,9 +674,9 @@ export default function AdminAttendance() {
         studentId:
           selectedStudent.id,
         type: "attendance",
-        title: "Attendance Alert",
+        title: t.attendanceAlert,
         message:
-          `Your ${currentSubject.code} attendance has fallen to ${newPercentage}%. Your current fine is ₹${newFine}. Please improve your attendance.`,
+          `${currentSubject.code}: ${t.attendanceDropped} Current attendance: ${newPercentage}%. Current fine: ₹${newFine}.`,
         status: "Warning",
         relatedId:
           currentSubject.id,
@@ -581,7 +698,7 @@ export default function AdminAttendance() {
         title:
           "Attendance Fine Increased",
         message:
-          `Your ${currentSubject.code} attendance is now ${newPercentage}%. Your fine has increased to ₹${newFine}.`,
+          `${currentSubject.code}: ${t.fineIncreasedMessage} Current attendance: ${newPercentage}%. Current fine: ₹${newFine}.`,
         status: "Warning",
         relatedId:
           currentSubject.id,
@@ -605,7 +722,7 @@ export default function AdminAttendance() {
         title:
           "Attendance Fine Decreased",
         message:
-          `Your ${currentSubject.code} attendance is now ${newPercentage}%. Your fine has decreased to ₹${newFine}.`,
+          `${currentSubject.code}: ${t.fineDecreasedMessage} Current attendance: ${newPercentage}%. Current fine: ₹${newFine}.`,
         status: "Updated",
         relatedId:
           currentSubject.id,
@@ -625,9 +742,9 @@ export default function AdminAttendance() {
         studentId:
           selectedStudent.id,
         type: "attendance",
-        title: "Attendance Restored",
+        title: t.attendanceRestored,
         message:
-          `Your ${currentSubject.code} attendance is now ${newPercentage}%. Your attendance fine is now ₹0.`,
+          `${currentSubject.code}: ${t.fineRestoredMessage} Current attendance: ${newPercentage}%.`,
         status: "Resolved",
         relatedId:
           currentSubject.id,
@@ -747,7 +864,7 @@ export default function AdminAttendance() {
 
       <main className="main-content">
 
-        <Topbar title="Attendance Control" />
+        <Topbar title={t.attendanceControl} />
 
         <div className="content">
 
@@ -760,16 +877,15 @@ export default function AdminAttendance() {
             <div>
 
               <p className="eyebrow">
-                ADMINISTRATION
+                {t.administration}
               </p>
 
               <h1>
-                Attendance Control
+                {t.attendanceControl}
               </h1>
 
               <p>
-                Manage attendance for
-                individual students.
+                {t.manageAttendance}
               </p>
 
             </div>
@@ -796,12 +912,11 @@ export default function AdminAttendance() {
               <div>
 
                 <strong>
-                  Select Student
+                  {t.selectStudent}
                 </strong>
 
                 <span>
-                  Choose the student whose
-                  attendance you want to manage.
+                  {t.chooseStudent}
                 </span>
 
               </div>
@@ -864,7 +979,7 @@ export default function AdminAttendance() {
 
                     <input
                       autoFocus
-                      placeholder="Search student..."
+                      placeholder={t.searchStudent}
                       value={studentSearch}
                       onChange={(e) =>
                         setStudentSearch(
@@ -1052,7 +1167,7 @@ export default function AdminAttendance() {
               </div>
 
               <span>
-                Overall Attendance
+                {t.overallAttendance}
               </span>
 
               <strong>
@@ -1074,7 +1189,7 @@ export default function AdminAttendance() {
               </div>
 
               <span>
-                Below 75%
+                {t.below75}
               </span>
 
               <strong>
@@ -1095,7 +1210,7 @@ export default function AdminAttendance() {
               </div>
 
               <span>
-                Total Fine
+                {t.totalFine}
               </span>
 
               <strong>
@@ -1103,7 +1218,7 @@ export default function AdminAttendance() {
               </strong>
 
               <small>
-                Dynamic fine
+                {t.dynamicFine}
               </small>
 
             </div>
@@ -1116,7 +1231,7 @@ export default function AdminAttendance() {
               </div>
 
               <span>
-                Required
+                {t.required}
               </span>
 
               <strong>
@@ -1124,7 +1239,7 @@ export default function AdminAttendance() {
               </strong>
 
               <small>
-                Minimum attendance
+                {t.minimumAttendance}
               </small>
 
             </div>
@@ -1143,7 +1258,7 @@ export default function AdminAttendance() {
             <div>
 
               <strong>
-                Smart Attendance Fine
+                {t.smartFine}
               </strong>
 
               <p>
@@ -1169,11 +1284,11 @@ export default function AdminAttendance() {
               <div>
 
                 <h3>
-                  Subject Attendance
+                  {t.subjectAttendance}
                 </h3>
 
                 <p>
-                  Record attendance for{" "}
+                  {t.recordFor}{" "}
                   {selectedStudent?.name}.
                 </p>
 
@@ -1272,14 +1387,14 @@ export default function AdminAttendance() {
                             <AlertTriangle
                               size={14}
                             />
-                            Fine ₹{fine}
+                            {t.fine} ₹{fine}
                           </>
                         ) : (
                           <>
                             <CheckCircle2
                               size={14}
                             />
-                            Fine ₹0
+                            {t.fine} ₹0
                           </>
                         )}
 
@@ -1301,10 +1416,8 @@ export default function AdminAttendance() {
                         >
 
                           <Minus size={15} />
-
-                          Absent
-
-                        </button>
+                            {t.absent}
+                          </button>
 
 
                         <button
@@ -1318,10 +1431,8 @@ export default function AdminAttendance() {
                         >
 
                           <Plus size={15} />
-
-                          Present
-
-                        </button>
+                            {t.present}
+                          </button>
 
                       </div>
 
@@ -1346,20 +1457,16 @@ export default function AdminAttendance() {
               >
 
                 <Save size={17} />
-
-                Save Attendance
-
-              </button>
+                            {t.saveAttendance}
+                          </button>
 
               {lastSaved && (
 
                 <span className="attendance-saved-message">
 
                   <CheckCircle2 size={14} />
-
-                  Attendance saved
-
-                </span>
+                            {t.attendanceSaved}
+                          </span>
 
               )}
 

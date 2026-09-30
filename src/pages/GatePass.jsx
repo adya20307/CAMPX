@@ -11,9 +11,13 @@ import {
   XCircle,
 } from "lucide-react";
 
+import { useLanguage } from "../context/LanguageContext";
+
 const STORAGE_KEY = "campx_gate_passes";
 
 export default function GatePass() {
+  const { language } = useLanguage();
+
   const [destination, setDestination] = useState("");
   const [purpose, setPurpose] = useState("");
   const [exitDate, setExitDate] = useState("");
@@ -32,9 +36,167 @@ export default function GatePass() {
   const [submitted, setSubmitted] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
 
-  // --------------------------------------------------
+  // ============================================
+  // TRANSLATIONS
+  // ============================================
+
+  const translations = {
+    en: {
+      communication: "GATE PASS",
+      newGatePass: "New Gate Pass",
+      fillExitDetails: "Fill in your exit details",
+
+      destination: "Destination",
+      destinationPlaceholder:
+        "e.g. Home, Hospital, Market",
+
+      purpose: "Purpose",
+      purposePlaceholder:
+        "Why do you need to leave campus?",
+
+      exitDate: "Exit Date",
+      exitTime: "Exit Time",
+      expectedReturn: "Expected Return",
+
+      submitRequest: "Submit Gate Pass Request",
+
+      myRequests: "My Gate Pass Requests",
+      trackRequests: "Track your submitted requests",
+
+      noRequests: "No gate pass requests yet.",
+
+      requestId: "Request ID",
+
+      pending: "Pending",
+      approved: "Approved",
+      rejected: "Rejected",
+
+      submittedTitle:
+        "Gate Pass request submitted!",
+      submittedMessage:
+        "Your request has been sent to the administration for approval.",
+
+      approvedMessage:
+        "Gate pass approved for",
+      rejectedMessage:
+        "Gate pass rejected for",
+      statusUpdated:
+        "Your gate pass status has been updated by the administration.",
+
+      allFields:
+        "Please fill all the fields.",
+    },
+
+    hi: {
+      communication: "गेट पास",
+      newGatePass: "नया गेट पास",
+      fillExitDetails: "अपने बाहर जाने का विवरण भरें",
+
+      destination: "गंतव्य",
+      destinationPlaceholder:
+        "जैसे घर, अस्पताल, बाजार",
+
+      purpose: "उद्देश्य",
+      purposePlaceholder:
+        "आपको कैंपस से बाहर क्यों जाना है?",
+
+      exitDate: "बाहर जाने की तारीख",
+      exitTime: "बाहर जाने का समय",
+      expectedReturn: "वापसी का अपेक्षित समय",
+
+      submitRequest: "गेट पास अनुरोध भेजें",
+
+      myRequests: "मेरे गेट पास अनुरोध",
+      trackRequests: "अपने भेजे गए अनुरोधों की स्थिति देखें",
+
+      noRequests: "अभी तक कोई गेट पास अनुरोध नहीं है।",
+
+      requestId: "अनुरोध आईडी",
+
+      pending: "लंबित",
+      approved: "स्वीकृत",
+      rejected: "अस्वीकृत",
+
+      submittedTitle:
+        "गेट पास अनुरोध भेज दिया गया!",
+      submittedMessage:
+        "आपका अनुरोध प्रशासन को अनुमोदन के लिए भेज दिया गया है।",
+
+      approvedMessage:
+        "गेट पास स्वीकृत किया गया है",
+      rejectedMessage:
+        "गेट पास अस्वीकृत किया गया है",
+      statusUpdated:
+        "आपके गेट पास की स्थिति प्रशासन द्वारा अपडेट कर दी गई है।",
+
+      allFields:
+        "कृपया सभी फ़ील्ड भरें।",
+    },
+
+    or: {
+      communication: "ଗେଟ୍ ପାସ୍",
+      newGatePass: "ନୂତନ ଗେଟ୍ ପାସ୍",
+      fillExitDetails: "ଆପଣଙ୍କ ବାହାରିବା ବିବରଣୀ ପୂରଣ କରନ୍ତୁ",
+
+      destination: "ଗନ୍ତବ୍ୟସ୍ଥଳ",
+      destinationPlaceholder:
+        "ଯଥା ଘର, ହସ୍ପିଟାଲ୍, ବଜାର",
+
+      purpose: "ଉଦ୍ଦେଶ୍ୟ",
+      purposePlaceholder:
+        "ଆପଣଙ୍କୁ କ୍ୟାମ୍ପସରୁ ବାହାରକୁ କାହିଁକି ଯିବାକୁ ପଡ଼ିବ?",
+
+      exitDate: "ବାହାରିବା ତାରିଖ",
+      exitTime: "ବାହାରିବା ସମୟ",
+      expectedReturn: "ଆଶା କରାଯାଉଥିବା ଫେରିବା ସମୟ",
+
+      submitRequest: "ଗେଟ୍ ପାସ୍ ଅନୁରୋଧ ପଠାନ୍ତୁ",
+
+      myRequests: "ମୋର ଗେଟ୍ ପାସ୍ ଅନୁରୋଧ",
+      trackRequests: "ଆପଣଙ୍କ ପଠାଇଥିବା ଅନୁରୋଧଗୁଡ଼ିକର ସ୍ଥିତି ଦେଖନ୍ତୁ",
+
+      noRequests: "ଏପର୍ଯ୍ୟନ୍ତ କୌଣସି ଗେଟ୍ ପାସ୍ ଅନୁରୋଧ ନାହିଁ।",
+
+      requestId: "ଅନୁରୋଧ ID",
+
+      pending: "ବିଚାରାଧୀନ",
+      approved: "ଅନୁମୋଦିତ",
+      rejected: "ପ୍ରତ୍ୟାଖ୍ୟାନ",
+
+      submittedTitle:
+        "ଗେଟ୍ ପାସ୍ ଅନୁରୋଧ ପଠାଯାଇଛି!",
+      submittedMessage:
+        "ଆପଣଙ୍କ ଅନୁରୋଧ ଅନୁମୋଦନ ପାଇଁ ପ୍ରଶାସନକୁ ପଠାଯାଇଛି।",
+
+      approvedMessage:
+        "ଗେଟ୍ ପାସ୍ ଅନୁମୋଦିତ ହୋଇଛି",
+      rejectedMessage:
+        "ଗେଟ୍ ପାସ୍ ପ୍ରତ୍ୟାଖ୍ୟାନ ହୋଇଛି",
+      statusUpdated:
+        "ଆପଣଙ୍କ ଗେଟ୍ ପାସ୍ ସ୍ଥିତି ପ୍ରଶାସନ ଦ୍ୱାରା ଅପଡେଟ୍ କରାଯାଇଛି।",
+
+      allFields:
+        "ଦୟାକରି ସମସ୍ତ ଫିଲ୍ଡ ପୂରଣ କରନ୍ତୁ।",
+    },
+  };
+
+  const t = translations[language] || translations.en;
+
+  // ============================================
+  // STATUS TRANSLATION
+  // ============================================
+
+  const translateStatus = (status) => {
+    if (status === "Pending") return t.pending;
+    if (status === "Approved") return t.approved;
+    if (status === "Rejected") return t.rejected;
+
+    return status;
+  };
+
+  // ============================================
   // LOAD REQUESTS
-  // --------------------------------------------------
+  // ============================================
 
   const loadRequests = () => {
     try {
@@ -46,43 +208,48 @@ export default function GatePass() {
         setRequests([]);
       }
     } catch (error) {
-      console.error("Unable to load gate pass requests:", error);
+      console.error(
+        "Unable to load gate pass requests:",
+        error
+      );
     }
   };
 
-  // --------------------------------------------------
+  // ============================================
   // SYNC WITH ADMIN PANEL
-  // --------------------------------------------------
+  // ============================================
 
   useEffect(() => {
-    // Check for changes when page loads
     loadRequests();
 
-    // Detect changes made from another browser tab
     const handleStorageChange = (event) => {
       if (event.key === STORAGE_KEY) {
         loadRequests();
       }
     };
 
-    window.addEventListener("storage", handleStorageChange);
+    window.addEventListener(
+      "storage",
+      handleStorageChange
+    );
 
-    // Also check periodically.
-    // This makes the demo work even when student/admin
-    // pages are opened in the same browser environment.
     const interval = setInterval(() => {
       loadRequests();
     }, 1000);
 
     return () => {
-      window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener(
+        "storage",
+        handleStorageChange
+      );
+
       clearInterval(interval);
     };
   }, []);
 
-  // --------------------------------------------------
+  // ============================================
   // SUBMIT GATE PASS
-  // --------------------------------------------------
+  // ============================================
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -94,7 +261,7 @@ export default function GatePass() {
       !exitTime ||
       !returnTime
     ) {
-      alert("Please fill all the fields.");
+      alert(t.allFields);
       return;
     }
 
@@ -115,11 +282,14 @@ export default function GatePass() {
 
       createdAt: new Date().toISOString(),
 
-      // Useful for future notification system
-      notification: "Your gate pass request is waiting for approval.",
+      notification:
+        "Your gate pass request is waiting for approval.",
     };
 
-    const updatedRequests = [newRequest, ...requests];
+    const updatedRequests = [
+      newRequest,
+      ...requests,
+    ];
 
     localStorage.setItem(
       STORAGE_KEY,
@@ -127,29 +297,39 @@ export default function GatePass() {
     );
 
     setRequests(updatedRequests);
-    // 🔔 Notify ADMIN about new gate pass
 
-addNotification({
-  audience: "admin",
+    // ==========================================
+    // NOTIFY ADMIN
+    // ==========================================
 
-  type: "gate-pass",
+    addNotification({
+      audience: "admin",
 
-  title: "New Gate Pass Request",
+      type: "gate-pass",
 
-  message: `${newRequest.studentName} has submitted a gate pass request for ${newRequest.destination}.`,
+      title: "New Gate Pass Request",
 
-  studentId: newRequest.studentId,
+      message: `${newRequest.studentName} has submitted a gate pass request for ${newRequest.destination}.`,
 
-  relatedId: newRequest.id,
+      studentId: newRequest.studentId,
 
-  status: "Pending",
-});
-    // Custom event for same-page communication
+      relatedId: newRequest.id,
+
+      status: "Pending",
+    });
+
+    // ==========================================
+    // CUSTOM EVENT
+    // ==========================================
+
     window.dispatchEvent(
       new Event("campx-gatepass-updated")
     );
 
-    // Clear form
+    // ==========================================
+    // CLEAR FORM
+    // ==========================================
+
     setDestination("");
     setPurpose("");
     setExitDate("");
@@ -163,21 +343,25 @@ addNotification({
     }, 5000);
   };
 
-  // --------------------------------------------------
+  // ============================================
   // DETECT STATUS CHANGES
-  // --------------------------------------------------
+  // ============================================
 
   useEffect(() => {
     const previousStatuses = JSON.parse(
-      sessionStorage.getItem("campx_gatepass_statuses") || "{}"
+      sessionStorage.getItem(
+        "campx_gatepass_statuses"
+      ) || "{}"
     );
 
     const currentStatuses = {};
 
     requests.forEach((request) => {
-      currentStatuses[request.id] = request.status;
+      currentStatuses[request.id] =
+        request.status;
 
-      const previousStatus = previousStatuses[request.id];
+      const previousStatus =
+        previousStatuses[request.id];
 
       if (
         previousStatus &&
@@ -185,13 +369,13 @@ addNotification({
       ) {
         if (request.status === "Approved") {
           setStatusMessage(
-            `Gate pass approved for ${request.destination}.`
+            `${t.approvedMessage} ${request.destination}.`
           );
         }
 
         if (request.status === "Rejected") {
           setStatusMessage(
-            `Gate pass rejected for ${request.destination}.`
+            `${t.rejectedMessage} ${request.destination}.`
           );
         }
 
@@ -205,16 +389,19 @@ addNotification({
       "campx_gatepass_statuses",
       JSON.stringify(currentStatuses)
     );
-  }, [requests]);
+  }, [requests, language]);
 
-  // --------------------------------------------------
+  // ============================================
   // UI
-  // --------------------------------------------------
+  // ============================================
 
   return (
     <div className="page-container">
 
-      {/* SUCCESS MESSAGE */}
+      {/* ======================================
+          SUCCESS MESSAGE
+      ====================================== */}
+
       {submitted && (
         <div className="success-message">
 
@@ -222,17 +409,18 @@ addNotification({
 
           <div>
             <strong>
-              Gate Pass request submitted!
+              {t.submittedTitle}
             </strong>
 
             <p>
-              Your request has been sent to the
-              administration for approval.
+              {t.submittedMessage}
             </p>
           </div>
 
           <button
-            onClick={() => setSubmitted(false)}
+            onClick={() =>
+              setSubmitted(false)
+            }
           >
             ×
           </button>
@@ -240,29 +428,38 @@ addNotification({
         </div>
       )}
 
-      {/* STATUS UPDATE MESSAGE */}
+
+      {/* ======================================
+          STATUS UPDATE MESSAGE
+      ====================================== */}
+
       {statusMessage && (
         <div className="success-message">
 
-          {statusMessage.includes("approved") ? (
+          {statusMessage.includes(
+            t.approvedMessage
+          ) ? (
             <CheckCircle2 size={22} />
           ) : (
             <XCircle size={22} />
           )}
 
           <div>
+
             <strong>
               {statusMessage}
             </strong>
 
             <p>
-              Your gate pass status has been updated
-              by the administration.
+              {t.statusUpdated}
             </p>
+
           </div>
 
           <button
-            onClick={() => setStatusMessage("")}
+            onClick={() =>
+              setStatusMessage("")
+            }
           >
             ×
           </button>
@@ -270,7 +467,11 @@ addNotification({
         </div>
       )}
 
-      {/* NEW GATE PASS */}
+
+      {/* ======================================
+          NEW GATE PASS
+      ====================================== */}
+
       <div className="card">
 
         <div className="page-title">
@@ -280,21 +481,28 @@ addNotification({
           </div>
 
           <div>
-            <h2>New Gate Pass</h2>
+
+            <h2>
+              {t.newGatePass}
+            </h2>
+
             <p>
-              Fill in your exit details
+              {t.fillExitDetails}
             </p>
+
           </div>
 
         </div>
 
+
         <form onSubmit={handleSubmit}>
 
           {/* DESTINATION */}
+
           <div className="form-group">
 
             <label>
-              Destination
+              {t.destination}
             </label>
 
             <div className="input-icon">
@@ -303,10 +511,14 @@ addNotification({
 
               <input
                 type="text"
-                placeholder="e.g. Home, Hospital, Market"
+                placeholder={
+                  t.destinationPlaceholder
+                }
                 value={destination}
                 onChange={(e) =>
-                  setDestination(e.target.value)
+                  setDestination(
+                    e.target.value
+                  )
                 }
               />
 
@@ -314,11 +526,13 @@ addNotification({
 
           </div>
 
+
           {/* PURPOSE */}
+
           <div className="form-group">
 
             <label>
-              Purpose
+              {t.purpose}
             </label>
 
             <div className="textarea-icon">
@@ -326,10 +540,14 @@ addNotification({
               <FileText size={19} />
 
               <textarea
-                placeholder="Why do you need to leave campus?"
+                placeholder={
+                  t.purposePlaceholder
+                }
                 value={purpose}
                 onChange={(e) =>
-                  setPurpose(e.target.value)
+                  setPurpose(
+                    e.target.value
+                  )
                 }
               />
 
@@ -337,13 +555,15 @@ addNotification({
 
           </div>
 
+
           {/* DATE + EXIT TIME */}
+
           <div className="form-row">
 
             <div className="form-group">
 
               <label>
-                Exit Date
+                {t.exitDate}
               </label>
 
               <div className="input-icon">
@@ -354,7 +574,9 @@ addNotification({
                   type="date"
                   value={exitDate}
                   onChange={(e) =>
-                    setExitDate(e.target.value)
+                    setExitDate(
+                      e.target.value
+                    )
                   }
                 />
 
@@ -362,10 +584,11 @@ addNotification({
 
             </div>
 
+
             <div className="form-group">
 
               <label>
-                Exit Time
+                {t.exitTime}
               </label>
 
               <div className="input-icon">
@@ -376,7 +599,9 @@ addNotification({
                   type="time"
                   value={exitTime}
                   onChange={(e) =>
-                    setExitTime(e.target.value)
+                    setExitTime(
+                      e.target.value
+                    )
                   }
                 />
 
@@ -386,11 +611,13 @@ addNotification({
 
           </div>
 
+
           {/* RETURN TIME */}
+
           <div className="form-group">
 
             <label>
-              Expected Return
+              {t.expectedReturn}
             </label>
 
             <div className="input-icon">
@@ -401,7 +628,9 @@ addNotification({
                 type="time"
                 value={returnTime}
                 onChange={(e) =>
-                  setReturnTime(e.target.value)
+                  setReturnTime(
+                    e.target.value
+                  )
                 }
               />
 
@@ -409,7 +638,9 @@ addNotification({
 
           </div>
 
+
           {/* SUBMIT */}
+
           <button
             type="submit"
             className="primary-button gate-submit"
@@ -417,7 +648,7 @@ addNotification({
 
             <Send size={18} />
 
-            Submit Gate Pass Request
+            {t.submitRequest}
 
           </button>
 
@@ -425,24 +656,31 @@ addNotification({
 
       </div>
 
-      {/* REQUEST HISTORY */}
+
+      {/* ======================================
+          REQUEST HISTORY
+      ====================================== */}
+
       <div className="card">
 
         <div className="section-header">
 
           <div>
+
             <h2>
-              My Gate Pass Requests
+              {t.myRequests}
             </h2>
 
             <p>
-              Track your submitted requests
+              {t.trackRequests}
             </p>
+
           </div>
 
           <DoorOpen size={24} />
 
         </div>
+
 
         {requests.length === 0 ? (
 
@@ -451,7 +689,7 @@ addNotification({
             <DoorOpen size={35} />
 
             <p>
-              No gate pass requests yet.
+              {t.noRequests}
             </p>
 
           </div>
@@ -470,6 +708,7 @@ addNotification({
                 <div className="request-icon">
                   <DoorOpen size={20} />
                 </div>
+
 
                 <div className="request-info">
 
@@ -494,12 +733,15 @@ addNotification({
                       color: "#94a3b8",
                     }}
                   >
-                    Request ID: {request.id}
+                    {t.requestId}:{" "}
+                    {request.id}
                   </small>
 
                 </div>
 
+
                 {/* STATUS */}
+
                 <div
                   className={`status-badge ${
                     request.status
@@ -508,19 +750,24 @@ addNotification({
                   }`}
                 >
 
-                  {request.status === "Approved" && (
+                  {request.status ===
+                    "Approved" && (
                     <CheckCircle2 size={15} />
                   )}
 
-                  {request.status === "Rejected" && (
+                  {request.status ===
+                    "Rejected" && (
                     <XCircle size={15} />
                   )}
 
-                  {request.status === "Pending" && (
+                  {request.status ===
+                    "Pending" && (
                     <Clock size={15} />
                   )}
 
-                  {request.status}
+                  {translateStatus(
+                    request.status
+                  )}
 
                 </div>
 

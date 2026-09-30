@@ -10,10 +10,79 @@ import {
 
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
+import { useLanguage } from "../context/LanguageContext";
+
+
+const PROFILE_TRANSLATIONS = {
+  en: {
+    superAdminProfile: "Super Admin Profile",
+    adminProfile: t.adminProfile,
+    myProfile: "My Profile",
+    description: "View your CAMPX administrator account information.",
+    backDashboard: "Back to Dashboard",
+    superAdministrator: "Super Administrator",
+    administrator: "Administrator",
+    facultyId: "Faculty ID",
+    email: "Email",
+    department: "Department",
+    designation: "Designation",
+    accountRole: "Account Role",
+    adminSection: "Admin Section",
+    departmentFallback: "Administration",
+    superAdmin: "SUPER ADMIN",
+    admin: "ADMIN",
+    notAssigned: "Not Assigned",
+    noData: "—",
+  },
+
+  hi: {
+    superAdminProfile: "सुपर एडमिन प्रोफ़ाइल",
+    adminProfile: "एडमिन प्रोफ़ाइल",
+    myProfile: "मेरी प्रोफ़ाइल",
+    description: "अपने CAMPX एडमिनिस्ट्रेटर अकाउंट की जानकारी देखें।",
+    backDashboard: "डैशबोर्ड पर वापस जाएं",
+    superAdministrator: "सुपर एडमिनिस्ट्रेटर",
+    administrator: "एडमिनिस्ट्रेटर",
+    facultyId: "फैकल्टी आईडी",
+    email: "ईमेल",
+    department: "विभाग",
+    designation: "पद",
+    accountRole: "अकाउंट भूमिका",
+    adminSection: "एडमिन सेक्शन",
+    departmentFallback: "प्रशासन",
+    superAdmin: "सुपर एडमिन",
+    admin: "एडमिन",
+    notAssigned: "निर्धारित नहीं",
+    noData: "—",
+  },
+
+  or: {
+    superAdminProfile: "ସୁପର ଆଡମିନ୍ ପ୍ରୋଫାଇଲ୍",
+    adminProfile: "ଆଡମିନ୍ ପ୍ରୋଫାଇଲ୍",
+    myProfile: "ମୋ ପ୍ରୋଫାଇଲ୍",
+    description: "ଆପଣଙ୍କ CAMPX ଆଡମିନିଷ୍ଟ୍ରେଟର୍ ଆକାଉଣ୍ଟ ସୂଚନା ଦେଖନ୍ତୁ।",
+    backDashboard: "ଡ୍ୟାସବୋର୍ଡକୁ ଫେରନ୍ତୁ",
+    superAdministrator: "ସୁପର ଆଡମିନିଷ୍ଟ୍ରେଟର୍",
+    administrator: "ଆଡମିନିଷ୍ଟ୍ରେଟର୍",
+    facultyId: "ଫ୍ୟାକଲ୍ଟି ଆଇଡି",
+    email: "ଇମେଲ୍",
+    department: "ବିଭାଗ",
+    designation: "ପଦବୀ",
+    accountRole: "ଆକାଉଣ୍ଟ ଭୂମିକା",
+    adminSection: "ଆଡମିନ୍ ବିଭାଗ",
+    departmentFallback: "ପ୍ରଶାସନ",
+    superAdmin: "ସୁପର ଆଡମିନ୍",
+    admin: "ଆଡମିନ୍",
+    notAssigned: "ନିର୍ଦ୍ଧାରିତ ନୁହେଁ",
+    noData: "—",
+  },
+};
 
 export default function AdminProfile() {
 
   const navigate = useNavigate();
+  const { language } = useLanguage();
+  const t = PROFILE_TRANSLATIONS[language] || PROFILE_TRANSLATIONS.en;
 
   // ==========================================
   // GET LOGGED-IN USER
@@ -65,8 +134,8 @@ export default function AdminProfile() {
         <Topbar
           title={
             isSuperAdmin
-              ? "Super Admin Profile"
-              : "Admin Profile"
+              ? t.superAdminProfile
+              : t.adminProfile
           }
         />
 
@@ -195,8 +264,8 @@ export default function AdminProfile() {
                 >
 
                   {isSuperAdmin
-                    ? "Super Administrator"
-                    : "Administrator"}
+                    ? t.superAdministrator
+                    : t.administrator}
 
                 </p>
 
@@ -251,7 +320,7 @@ export default function AdminProfile() {
                   <span>
                     {user?.facultyId ||
                       user?.faculty_id ||
-                      "—"}
+                      t.noData}
                   </span>
 
                 </div>
@@ -290,7 +359,7 @@ export default function AdminProfile() {
                   <Mail size={18} />
 
                   <span>
-                    {user?.email || "—"}
+                    {user?.email || t.noData}
                   </span>
 
                 </div>
@@ -329,7 +398,7 @@ export default function AdminProfile() {
                   <Building2 size={18} />
 
                   <span>
-                    {user?.department || "—"}
+                    {user?.department || t.noData}
                   </span>
 
                 </div>
@@ -368,7 +437,7 @@ export default function AdminProfile() {
                   <User size={18} />
 
                   <span>
-                    {user?.designation || "—"}
+                    {user?.designation || t.noData}
                   </span>
 
                 </div>
@@ -408,8 +477,8 @@ export default function AdminProfile() {
 
                   <span>
                     {isSuperAdmin
-                      ? "SUPER ADMIN"
-                      : "ADMIN"}
+                      ? t.superAdmin
+                      : t.admin}
                   </span>
 
                 </div>
@@ -451,8 +520,8 @@ export default function AdminProfile() {
                     {user?.adminSection ||
                       user?.admin_section ||
                       (isSuperAdmin
-                        ? "Administration"
-                        : "Not Assigned")}
+                        ? t.departmentFallback
+                        : t.notAssigned)}
                   </span>
 
                 </div>

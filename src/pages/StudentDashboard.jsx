@@ -12,9 +12,7 @@ import {
   ArrowRight,
   Sparkles,
   RefreshCw,
-  BookOpen,
-  MapPin,
-  UserRound,
+  CreditCard,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -25,86 +23,7 @@ import { getNotifications } from "../notificationStorage";
 const COMPLAINTS_KEY = "campxComplaints";
 const REQUESTS_KEY = "campxRequests";
 const GATEPASS_KEY = "campx_gate_passes";
-const ATTENDANCE_KEY = "campx_attendance";
-const TIMETABLE_KEY = "campx_timetable";
-
-const DEFAULT_ATTENDANCE = [
-  { id: "sub1", subject: "Data Base Management System", code: "DBMS", present: 28, total: 32 },
-  { id: "sub2", subject: "Computer Networks", code: "CN", present: 24, total: 30 },
-  { id: "sub3", subject: "Artificial Intelligence", code: "AI", present: 27, total: 30 },
-  { id: "sub4", subject: "Software Engineering", code: "SE", present: 21, total: 30 },
-  { id: "sub5", subject: "Environmental Engineering", code: "EE", present: 25, total: 30 },
-];
-
-const DEFAULT_TIMETABLE = {
-  Monday: [
-    { id: "MON-1", time: "09:00 AM - 10:00 AM", subject: "Artificial Intelligence", faculty: "Dr. Sharma", room: "Room 201", status: "Scheduled" },
-    { id: "MON-2", time: "10:00 AM - 11:00 AM", subject: "Computer Networks", faculty: "Prof. Das", room: "Room 204", status: "Scheduled" },
-    { id: "MON-3", time: "11:30 AM - 12:30 PM", subject: "Database Management", faculty: "Dr. Patnaik", room: "Lab 2", status: "Scheduled" },
-  ],
-  Tuesday: [
-    { id: "TUE-1", time: "09:00 AM - 10:00 AM", subject: "Operating Systems", faculty: "Prof. Mishra", room: "Room 202", status: "Scheduled" },
-    { id: "TUE-2", time: "10:00 AM - 11:00 AM", subject: "Machine Learning", faculty: "Dr. Sharma", room: "Lab 3", status: "Scheduled" },
-  ],
-  Wednesday: [
-    { id: "WED-1", time: "09:00 AM - 10:00 AM", subject: "Computer Networks", faculty: "Prof. Das", room: "Room 204", status: "Scheduled" },
-    { id: "WED-2", time: "11:00 AM - 12:00 PM", subject: "Artificial Intelligence", faculty: "Dr. Sharma", room: "Room 201", status: "Scheduled" },
-  ],
-  Thursday: [
-    { id: "THU-1", time: "10:00 AM - 11:00 AM", subject: "Database Management", faculty: "Dr. Patnaik", room: "Room 205", status: "Scheduled" },
-  ],
-  Friday: [
-    { id: "FRI-1", time: "09:00 AM - 10:00 AM", subject: "Operating Systems", faculty: "Prof. Mishra", room: "Room 202", status: "Scheduled" },
-    { id: "FRI-2", time: "11:00 AM - 12:00 PM", subject: "Machine Learning", faculty: "Dr. Sharma", room: "Lab 3", status: "Scheduled" },
-  ],
-  Saturday: [
-    { id: "SAT-1", time: "09:00 AM - 10:00 AM", subject: "Project / Practical", faculty: "Department Faculty", room: "Lab 1", status: "Scheduled" },
-  ],
-};
-
-function readLocalData(key, fallback) {
-  try {
-    const saved = localStorage.getItem(key);
-    if (!saved) return fallback;
-    const parsed = JSON.parse(saved);
-    return parsed || fallback;
-  } catch (error) {
-    console.error(`Error loading ${key}:`, error);
-    return fallback;
-  }
-}
-
-function getStudentAttendance(savedData, studentId) {
-  if (!Array.isArray(savedData) || savedData.length === 0) {
-    return DEFAULT_ATTENDANCE;
-  }
-
-  const studentRecord = savedData.find(
-    (record) =>
-      record &&
-      record.studentId === studentId &&
-      Array.isArray(record.subjects)
-  );
-
-  if (studentRecord) {
-    return studentRecord.subjects;
-  }
-
-  const looksLikeSubjectArray = savedData.every(
-    (item) =>
-      item &&
-      typeof item === "object" &&
-      ("subject" in item || "code" in item) &&
-      ("present" in item || "total" in item)
-  );
-
-  return looksLikeSubjectArray ? savedData : DEFAULT_ATTENDANCE;
-}
-
-function attendancePercentage(present, total) {
-  if (!Number(total)) return 0;
-  return Math.round((Number(present) / Number(total)) * 100);
-}
+const API_URL = import.meta.env.VITE_API_URL || "/api";
 
 
 export default function StudentDashboard() {
@@ -112,8 +31,9 @@ export default function StudentDashboard() {
   const [requests, setRequests] = useState([]);
   const [gatePasses, setGatePasses] = useState([]);
   const [notifications, setNotifications] = useState([]);
-  const [attendance, setAttendance] = useState(DEFAULT_ATTENDANCE);
-  const [timetable, setTimetable] = useState(DEFAULT_TIMETABLE);
+  const [notices, setNotices] = useState([]);
+  const [noticesLoading, setNoticesLoading] = useState(true);
+  const [noticesError, setNoticesError] = useState("");
 
   // =====================================================
   // CURRENT LOGGED-IN STUDENT
@@ -148,25 +68,6 @@ export default function StudentDashboard() {
 
   const loadDashboardData = () => {
     try {
-      const savedAttendance = readLocalData(
-        ATTENDANCE_KEY,
-        DEFAULT_ATTENDANCE
-      );
-
-      setAttendance(
-        getStudentAttendance(
-          savedAttendance,
-          currentStudentId
-        )
-      );
-
-      setTimetable(
-        readLocalData(
-          TIMETABLE_KEY,
-          DEFAULT_TIMETABLE
-        )
-      );
-
       const savedComplaints =
         JSON.parse(
           localStorage.getItem(COMPLAINTS_KEY) || "[]"
@@ -229,8 +130,115 @@ export default function StudentDashboard() {
       setRequests([]);
       setGatePasses([]);
       setNotifications([]);
-      setAttendance(DEFAULT_ATTENDANCE);
-      setTimetable(DEFAULT_TIMETABLE);
+    }
+  };
+
+  /* =====================================================
+     LOAD OFFICIAL NOTICES
+  ===================================================== */
+
+  const loadNotices = async () => {
+    try {
+      const token = localStorage.getItem("campx_token");
+
+      if (!token) {
+        setNotices([]);
+        setNoticesError("Please login again to view notices.");
+        return;
+      }
+
+      setNoticesLoading(true);
+      setNoticesError("");
+
+      const response = await fetch(
+        `${API_URL}/notices/student`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.message || "Unable to load notices."
+        );
+      }
+
+      setNotices(
+        Array.isArray(data.notices)
+          ? data.notices
+          : []
+      );
+    } catch (error) {
+      console.error("Error loading student notices:", error);
+      setNotices([]);
+      setNoticesError(
+        error.message || "Unable to load notices."
+      );
+    } finally {
+      setNoticesLoading(false);
+    }
+  };
+
+  const downloadNotice = async (noticeId, title) => {
+    try {
+      const token = localStorage.getItem("campx_token");
+
+      if (!token) {
+        alert("Your session has expired. Please login again.");
+        return;
+      }
+
+      const response = await fetch(
+        `${API_URL}/notices/${noticeId}/download`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        let message = "Unable to download notice.";
+        try {
+          const data = await response.json();
+          message = data.message || message;
+        } catch {
+          // Keep the default message.
+        }
+        throw new Error(message);
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+
+      const contentDisposition =
+        response.headers.get("content-disposition") || "";
+
+      const filenameMatch =
+        contentDisposition.match(/filename="?([^"]+)"?/i);
+
+      const fallbackName =
+        String(title || "Notice")
+          .replace(/[^a-zA-Z0-9-_]/g, "_");
+
+      link.href = url;
+      link.download =
+        filenameMatch?.[1] || fallbackName;
+
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Notice download error:", error);
+      alert(error.message || "Unable to download notice.");
     }
   };
 
@@ -240,6 +248,7 @@ export default function StudentDashboard() {
 
   useEffect(() => {
     loadDashboardData();
+    loadNotices();
 
     const handleUpdate = () => {
       loadDashboardData();
@@ -271,8 +280,11 @@ export default function StudentDashboard() {
     );
 
     const interval = setInterval(
-      loadDashboardData,
-      2000
+      () => {
+        loadDashboardData();
+        loadNotices();
+      },
+      10000
     );
 
     return () => {
@@ -340,34 +352,6 @@ export default function StudentDashboard() {
     notifications.filter(
       (item) => !item.read
     ).length;
-
-  // =====================================================
-  // ACADEMIC DASHBOARD
-  // =====================================================
-
-  const totalPresent = attendance.reduce(
-    (sum, subject) =>
-      sum + Number(subject.present || 0),
-    0
-  );
-
-  const totalClasses = attendance.reduce(
-    (sum, subject) =>
-      sum + Number(subject.total || 0),
-    0
-  );
-
-  const overallAttendance = attendancePercentage(
-    totalPresent,
-    totalClasses
-  );
-
-  const todayDay = new Date().toLocaleDateString(
-    "en-US",
-    { weekday: "long" }
-  );
-
-  const todayClasses = timetable[todayDay] || [];
 
   const recentComplaints =
     complaints.slice(0, 3);
@@ -594,316 +578,6 @@ export default function StudentDashboard() {
 
 
           {/* =================================================
-              ACADEMIC OVERVIEW
-          ================================================= */}
-
-          <section
-            className="dashboard-section"
-            style={{ marginTop: "24px" }}
-          >
-            <div
-              className="dashboard-grid"
-              style={{
-                gridTemplateColumns:
-                  "minmax(0, 0.85fr) minmax(0, 1.15fr)",
-                alignItems: "stretch",
-              }}
-            >
-
-              {/* OVERALL ATTENDANCE */}
-
-              <div className="panel">
-                <div className="panel-header">
-                  <div>
-                    <h3>Overall Attendance</h3>
-                    <p>Your attendance across all subjects</p>
-                  </div>
-
-                  <BookOpen size={20} />
-                </div>
-
-                <div style={{ padding: "10px 4px 20px" }}>
-
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      gap: "20px",
-                    }}
-                  >
-                    <div>
-                      <strong
-                        style={{
-                          display: "block",
-                          fontSize: "42px",
-                          lineHeight: 1,
-                          color: "#102d52",
-                        }}
-                      >
-                        {overallAttendance}%
-                      </strong>
-
-                      <span
-                        style={{
-                          display: "block",
-                          marginTop: "10px",
-                          color: "#71829a",
-                          fontSize: "14px",
-                        }}
-                      >
-                        {totalPresent} / {totalClasses} classes attended
-                      </span>
-                    </div>
-
-                    <div
-                      style={{
-                        width: "78px",
-                        height: "78px",
-                        borderRadius: "50%",
-                        border: "8px solid #edf4ff",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        color: "#2866b3",
-                        fontWeight: "700",
-                        fontSize: "17px",
-                      }}
-                    >
-                      {overallAttendance}%
-                    </div>
-                  </div>
-
-                  <div
-                    style={{
-                      marginTop: "24px",
-                      height: "10px",
-                      background: "#edf1f6",
-                      borderRadius: "10px",
-                      overflow: "hidden",
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: `${Math.min(overallAttendance, 100)}%`,
-                        height: "100%",
-                        background: "#2866b3",
-                        borderRadius: "10px",
-                        transition: "width 0.3s ease",
-                      }}
-                    />
-                  </div>
-
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      marginTop: "10px",
-                      fontSize: "13px",
-                      color: "#71829a",
-                    }}
-                  >
-                    <span>Minimum required: 75%</span>
-
-                    <span
-                      style={{
-                        fontWeight: "600",
-                        color:
-                          overallAttendance >= 75
-                            ? "#238b4d"
-                            : "#d13b3b",
-                      }}
-                    >
-                      {overallAttendance >= 75
-                        ? "Attendance is safe"
-                        : "Needs improvement"}
-                    </span>
-                  </div>
-
-                  <Link
-                    to="/attendance"
-                    className="dashboard-view-link"
-                    style={{
-                      display: "inline-flex",
-                      marginTop: "20px",
-                    }}
-                  >
-                    View detailed attendance
-                    <ArrowRight size={15} />
-                  </Link>
-
-                </div>
-              </div>
-
-
-              {/* TODAY'S CLASS SCHEDULE */}
-
-              <div className="panel">
-                <div className="panel-header">
-                  <div>
-                    <h3>Today's Class Schedule</h3>
-                    <p>
-                      {todayDay} • {todayClasses.length}{" "}
-                      {todayClasses.length === 1
-                        ? "class"
-                        : "classes"}
-                    </p>
-                  </div>
-
-                  <CalendarDays size={20} />
-                </div>
-
-                {todayClasses.length === 0 ? (
-                  <div
-                    className="student-empty-state"
-                    style={{ minHeight: "220px" }}
-                  >
-                    <CalendarDays size={30} />
-                    <strong>No classes scheduled</strong>
-                    <p>
-                      There are no classes scheduled for
-                      today.
-                    </p>
-                  </div>
-                ) : (
-                  <div
-                    style={{
-                      padding: "4px 0 8px",
-                      maxHeight: "330px",
-                      overflowY: "auto",
-                    }}
-                  >
-                    {todayClasses.map((item) => (
-                      <div
-                        key={item.id}
-                        style={{
-                          padding: "15px 4px",
-                          borderBottom:
-                            "1px solid #edf0f5",
-                        }}
-                      >
-                        <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "flex-start",
-                            gap: "14px",
-                          }}
-                        >
-                          <div style={{ minWidth: 0 }}>
-                            <div
-                              style={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: "7px",
-                                color: "#2866b3",
-                                fontSize: "13px",
-                                fontWeight: "600",
-                              }}
-                            >
-                              <Clock3 size={14} />
-                              {item.time}
-                            </div>
-
-                            <strong
-                              style={{
-                                display: "block",
-                                marginTop: "7px",
-                                color: "#102d52",
-                                fontSize: "15px",
-                              }}
-                            >
-                              {item.subject}
-                            </strong>
-
-                            <div
-                              style={{
-                                display: "flex",
-                                flexWrap: "wrap",
-                                gap: "12px",
-                                marginTop: "7px",
-                                color: "#71829a",
-                                fontSize: "12px",
-                              }}
-                            >
-                              <span>
-                                <UserRound
-                                  size={12}
-                                  style={{
-                                    verticalAlign:
-                                      "middle",
-                                    marginRight: "4px",
-                                  }}
-                                />
-                                {item.faculty}
-                              </span>
-
-                              <span>
-                                <MapPin
-                                  size={12}
-                                  style={{
-                                    verticalAlign:
-                                      "middle",
-                                    marginRight: "4px",
-                                  }}
-                                />
-                                {item.room}
-                              </span>
-                            </div>
-                          </div>
-
-                          <span
-                            style={{
-                              flexShrink: 0,
-                              padding: "5px 9px",
-                              borderRadius: "20px",
-                              background:
-                                item.status ===
-                                "Cancelled"
-                                  ? "#fff0f0"
-                                  : item.status ===
-                                    "Suspended"
-                                  ? "#fff5e8"
-                                  : "#eaf8ef",
-                              color:
-                                item.status ===
-                                "Cancelled"
-                                  ? "#d13b3b"
-                                  : item.status ===
-                                    "Suspended"
-                                  ? "#c56b12"
-                                  : "#238b4d",
-                              fontSize: "11px",
-                              fontWeight: "600",
-                            }}
-                          >
-                            {item.status}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                <Link
-                  to="/timetable"
-                  className="dashboard-view-link"
-                  style={{
-                    display: "inline-flex",
-                    marginTop: "10px",
-                  }}
-                >
-                  View full timetable
-                  <ArrowRight size={15} />
-                </Link>
-
-              </div>
-
-            </div>
-          </section>
-
-
-          {/* =================================================
               QUICK ACTIONS
           ================================================= */}
 
@@ -1058,6 +732,130 @@ export default function StudentDashboard() {
 
                 <ArrowRight size={16} />
               </Link>
+
+              <Link
+                to="/student/fees"
+                className="quick-action-card"
+              >
+                <div className="quick-action-icon fee">
+                  <CreditCard size={21} />
+                </div>
+
+                <div>
+                  <strong>
+                    My Fees
+                  </strong>
+
+                  <span>
+                    View fees, payments and receipts
+                  </span>
+                </div>
+
+                <ArrowRight size={16} />
+              </Link>
+
+            </div>
+
+          </section>
+
+
+          {/* =================================================
+              OFFICIAL NOTICES
+          ================================================= */}
+
+          <section className="dashboard-section">
+
+            <div className="section-heading">
+
+              <div>
+                <h2>
+                  Official Notices
+                </h2>
+
+                <p>
+                  Important notices from CAMPX administration
+                </p>
+              </div>
+
+              <Link
+                to="/notifications"
+                className="dashboard-view-link"
+              >
+                View all
+                <ArrowRight size={15} />
+              </Link>
+
+            </div>
+
+            <div className="panel">
+
+              {noticesLoading ? (
+                <div className="student-empty-state">
+                  <FileText size={30} />
+                  <strong>Loading notices...</strong>
+                  <p>Please wait while we fetch your batch notices.</p>
+                </div>
+              ) : noticesError ? (
+                <div className="student-empty-state">
+                  <AlertTriangle size={30} />
+                  <strong>Unable to load notices</strong>
+                  <p>{noticesError}</p>
+                  <button
+                    className="secondary-btn"
+                    onClick={loadNotices}
+                  >
+                    <RefreshCw size={16} />
+                    Retry
+                  </button>
+                </div>
+              ) : notices.length === 0 ? (
+                <div className="student-empty-state">
+                  <FileText size={30} />
+                  <strong>No official notices</strong>
+                  <p>New notices for your batch will appear here.</p>
+                </div>
+              ) : (
+                <div className="student-dashboard-list">
+                  {notices.slice(0, 5).map((notice) => (
+                    <div
+                      className="student-dashboard-list-item"
+                      key={notice.id}
+                    >
+                      <div className="dashboard-list-icon notification-list-icon">
+                        <FileText size={17} />
+                      </div>
+
+                      <div className="dashboard-list-info">
+                        <strong>{notice.title}</strong>
+                        <span>
+                          {notice.message}
+                        </span>
+                        <small>
+                          {notice.created_at
+                            ? new Date(notice.created_at).toLocaleDateString("en-IN")
+                            : ""}
+                        </small>
+                      </div>
+
+                      {notice.file_path && (
+                        <button
+                          type="button"
+                          className="secondary-btn"
+                          onClick={() =>
+                            downloadNotice(
+                              notice.id,
+                              notice.title
+                            )
+                          }
+                          title="Download notice"
+                        >
+                          Download
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
 
             </div>
 

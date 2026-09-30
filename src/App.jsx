@@ -5,10 +5,6 @@ import {
   Navigate,
 } from "react-router-dom";
 
-// ============================================
-// LANGUAGE
-// ============================================
-
 import { LanguageProvider } from "./context/LanguageContext";
 
 // ============================================
@@ -29,8 +25,9 @@ import Requests from "./pages/Requests";
 import Timetable from "./pages/Timetable";
 import Applications from "./pages/Applications";
 import Attendance from "./pages/Attendance";
-import Notifications from "./Notifications";
+import Notifications from "./pages/Notifications";
 import Canteen from "./pages/Canteen";
+import StudentFees from "./pages/StudentFees";
 
 // ============================================
 // ADMIN PAGES
@@ -45,6 +42,9 @@ import AdminTimetable from "./pages/AdminTimetable";
 import AdminApplications from "./pages/AdminApplications";
 import AdminAttendance from "./pages/AdminAttendance";
 import AdminStudents from "./pages/AdminStudents";
+import AdminHostel from "./pages/AdminHostel";
+import AdminCanteen from "./pages/AdminCanteen";
+import Accounts from "./pages/Accounts";
 
 // ============================================
 // ADMIN MANAGEMENT
@@ -104,6 +104,32 @@ function getUserRole(user) {
 }
 
 // ============================================
+// GET CORRECT HOME ROUTE
+// ============================================
+
+function getHomeRoute() {
+  const token =
+    localStorage.getItem("campx_token");
+
+  const user = getCurrentUser();
+
+  if (!token || !user) {
+    return "/login";
+  }
+
+  const role = getUserRole(user);
+
+  if (
+    role === "ADMIN" ||
+    role === "SUPER_ADMIN"
+  ) {
+    return "/admin/dashboard";
+  }
+
+  return "/student";
+}
+
+// ============================================
 // HOSTELLER ROUTE PROTECTION
 // ============================================
 
@@ -124,8 +150,8 @@ function HostellerRoute({ children }) {
 
   const role = getUserRole(user);
 
-  // Admin users should never enter student
-  // hosteller routes.
+  // Admin users should never enter
+  // student hosteller routes.
   if (
     role === "ADMIN" ||
     role === "SUPER_ADMIN"
@@ -175,10 +201,7 @@ function StudentRoute({ children }) {
 
   const role = getUserRole(user);
 
-  // ==========================================
-  // ADMIN USERS CANNOT ENTER STUDENT PORTAL
-  // ==========================================
-
+  // Admin users cannot enter student portal.
   if (
     role === "ADMIN" ||
     role === "SUPER_ADMIN"
@@ -204,10 +227,6 @@ function AdminRoute({ children }) {
 
   const user = getCurrentUser();
 
-  // ==========================================
-  // NO LOGIN
-  // ==========================================
-
   if (!token || !user) {
     return (
       <Navigate
@@ -219,18 +238,10 @@ function AdminRoute({ children }) {
 
   const role = getUserRole(user);
 
-  // ==========================================
-  // ADMIN / SUPER ADMIN ONLY
-  // ==========================================
-
   if (
     role !== "ADMIN" &&
     role !== "SUPER_ADMIN"
   ) {
-    // IMPORTANT:
-    // An invalid/non-admin user attempting
-    // an admin page goes to ADMIN LOGIN,
-    // NOT STUDENT LOGIN.
     return (
       <Navigate
         to="/admin"
@@ -283,7 +294,6 @@ export default function App() {
   return (
     <LanguageProvider>
       <BrowserRouter>
-
         <Routes>
 
           {/* =====================================
@@ -294,7 +304,7 @@ export default function App() {
             path="/"
             element={
               <Navigate
-                to="/login"
+                to={getHomeRoute()}
                 replace
               />
             }
@@ -444,6 +454,19 @@ export default function App() {
             element={
               <StudentRoute>
                 <Notifications />
+              </StudentRoute>
+            }
+          />
+
+          {/* =====================================
+              STUDENT MY FEES
+          ===================================== */}
+
+          <Route
+            path="/student/fees"
+            element={
+              <StudentRoute>
+                <StudentFees />
               </StudentRoute>
             }
           />
@@ -609,6 +632,19 @@ export default function App() {
           />
 
           {/* =====================================
+              ADMIN HOSTEL
+          ===================================== */}
+
+          <Route
+            path="/admin/hostel"
+            element={
+              <AdminRoute>
+                <AdminHostel />
+              </AdminRoute>
+            }
+          />
+
+          {/* =====================================
               ADMIN REQUESTS
           ===================================== */}
 
@@ -674,21 +710,46 @@ export default function App() {
           />
 
           {/* =====================================
-              FALLBACK
+              ADMIN CANTEEN
+          ===================================== */}
+
+          <Route
+            path="/admin/canteen"
+            element={
+              <AdminRoute>
+                <AdminCanteen />
+              </AdminRoute>
+            }
+          />
+
+          {/* =====================================
+              ADMIN ACCOUNTS
+          ===================================== */}
+
+          <Route
+            path="/admin/accounts"
+            element={
+              <AdminRoute>
+                <Accounts />
+              </AdminRoute>
+            }
+          />
+
+          {/* =====================================
+              UNKNOWN ROUTE
           ===================================== */}
 
           <Route
             path="*"
             element={
               <Navigate
-                to="/login"
+                to={getHomeRoute()}
                 replace
               />
             }
           />
 
         </Routes>
-
       </BrowserRouter>
     </LanguageProvider>
   );

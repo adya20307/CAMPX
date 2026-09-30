@@ -16,6 +16,7 @@ import {
 } from "react-router-dom";
 
 import Sidebar from "../components/Sidebar";
+import { useLanguage } from "../context/LanguageContext";
 
 
 // =====================================================
@@ -30,10 +31,136 @@ const API_URL =
 // ADMIN LIST PAGE
 // =====================================================
 
+
+const ADMIN_FACULTY_TRANSLATIONS = {
+  en: {
+    admins: "Admins",
+    search: "Search CampX...",
+    backDashboard: "Back to Dashboard",
+    management: "Admin Management",
+    managementDesc: "View and manage registered CAMPX administrators.",
+    refreshing: "Refreshing...",
+    refresh: "Refresh",
+    totalAdmins: "Total Admins",
+    activeAdmins: "Active Admins",
+    departments: "Departments",
+    registeredAdmins: "Registered Admins",
+    administrator: "administrator",
+    administrators: "administrators",
+    addAdmin: "+ Add Admin",
+    loadingAdmins: "Loading Admins...",
+    noAdmins: "No Admins Found",
+    noAccounts: "No Admin accounts have been registered yet.",
+    addFirst: "Add First Admin",
+    facultyId: "Faculty ID",
+    administratorColumn: "Administrator",
+    department: "Department",
+    designation: "Designation",
+    status: "Status",
+    created: "Created",
+    action: "Action",
+    active: "Active",
+    inactive: "Inactive",
+    deleteAdmin: "Delete Admin",
+    expired: "Your session has expired. Please login again.",
+    unableLoad: "Unable to load Admins.",
+    unableDelete: "Unable to delete Admin.",
+    deletedSuccess: "Admin deleted successfully.",
+    ownAccount: "You cannot delete your own Super Admin account.",
+    confirmDelete: (name, id) =>
+      `Are you sure you want to delete ${name || "this Admin"} (${id})?\n\nThis action cannot be undone.`,
+    dash: "—",
+    administration: "Administration",
+  },
+  hi: {
+    admins: "एडमिन",
+    search: "CAMPX खोजें...",
+    backDashboard: "डैशबोर्ड पर वापस जाएं",
+    management: "एडमिन प्रबंधन",
+    managementDesc: "पंजीकृत CAMPX एडमिनिस्ट्रेटरों को देखें और प्रबंधित करें।",
+    refreshing: "रिफ्रेश हो रहा है...",
+    refresh: "रिफ्रेश",
+    totalAdmins: "कुल एडमिन",
+    activeAdmins: "सक्रिय एडमिन",
+    departments: "विभाग",
+    registeredAdmins: "पंजीकृत एडमिन",
+    administrator: "एडमिनिस्ट्रेटर",
+    administrators: "एडमिनिस्ट्रेटर",
+    addAdmin: "+ एडमिन जोड़ें",
+    loadingAdmins: "एडमिन लोड हो रहे हैं...",
+    noAdmins: "कोई एडमिन नहीं मिला",
+    noAccounts: "अभी तक कोई एडमिन खाता पंजीकृत नहीं हुआ है।",
+    addFirst: "पहला एडमिन जोड़ें",
+    facultyId: "फैकल्टी ID",
+    administratorColumn: "एडमिनिस्ट्रेटर",
+    department: "विभाग",
+    designation: "पद",
+    status: "स्थिति",
+    created: "बनाया गया",
+    action: "कार्रवाई",
+    active: "सक्रिय",
+    inactive: "निष्क्रिय",
+    deleteAdmin: "एडमिन हटाएं",
+    expired: "आपका सत्र समाप्त हो गया है। कृपया फिर से लॉगिन करें।",
+    unableLoad: "एडमिन लोड नहीं हो सके।",
+    unableDelete: "एडमिन हटाया नहीं जा सका।",
+    deletedSuccess: "एडमिन सफलतापूर्वक हटा दिया गया।",
+    ownAccount: "आप अपना Super Admin खाता नहीं हटा सकते।",
+    confirmDelete: (name, id) =>
+      `क्या आप ${name || "इस एडमिन"} (${id}) को हटाना चाहते हैं?\n\nयह कार्रवाई पूर्ववत नहीं की जा सकती।`,
+    dash: "—",
+    administration: "प्रशासन",
+  },
+  or: {
+    admins: "ଆଡମିନ୍",
+    search: "CAMPX ଖୋଜନ୍ତୁ...",
+    backDashboard: "ଡ୍ୟାସବୋର୍ଡକୁ ଫେରନ୍ତୁ",
+    management: "ଆଡମିନ୍ ପରିଚାଳନା",
+    managementDesc: "ପଞ୍ଜୀକୃତ CAMPX ଆଡମିନିଷ୍ଟ୍ରେଟରମାନଙ୍କୁ ଦେଖନ୍ତୁ ଏବଂ ପରିଚାଳନା କରନ୍ତୁ।",
+    refreshing: "ରିଫ୍ରେଶ୍ ହେଉଛି...",
+    refresh: "ରିଫ୍ରେଶ୍",
+    totalAdmins: "ମୋଟ ଆଡମିନ୍",
+    activeAdmins: "ସକ୍ରିୟ ଆଡମିନ୍",
+    departments: "ବିଭାଗ",
+    registeredAdmins: "ପଞ୍ଜୀକୃତ ଆଡମିନ୍",
+    administrator: "ଆଡମିନିଷ୍ଟ୍ରେଟର୍",
+    administrators: "ଆଡମିନିଷ୍ଟ୍ରେଟର୍",
+    addAdmin: "+ ଆଡମିନ୍ ଯୋଡନ୍ତୁ",
+    loadingAdmins: "ଆଡମିନ୍ ଲୋଡ୍ ହେଉଛି...",
+    noAdmins: "କୌଣସି ଆଡମିନ୍ ମିଳିଲା ନାହିଁ",
+    noAccounts: "ଏପର୍ଯ୍ୟନ୍ତ କୌଣସି ଆଡମିନ୍ ଖାତା ପଞ୍ଜୀକୃତ ହୋଇନାହିଁ।",
+    addFirst: "ପ୍ରଥମ ଆଡମିନ୍ ଯୋଡନ୍ତୁ",
+    facultyId: "ଫ୍ୟାକଲ୍ଟି ID",
+    administratorColumn: "ଆଡମିନିଷ୍ଟ୍ରେଟର୍",
+    department: "ବିଭାଗ",
+    designation: "ପଦବୀ",
+    status: "ସ୍ଥିତି",
+    created: "ସୃଷ୍ଟି",
+    action: "କାର୍ଯ୍ୟ",
+    active: "ସକ୍ରିୟ",
+    inactive: "ନିଷ୍କ୍ରିୟ",
+    deleteAdmin: "ଆଡମିନ୍ ହଟାନ୍ତୁ",
+    expired: "ଆପଣଙ୍କ ସେସନ୍ ସମାପ୍ତ ହୋଇଛି। ଦୟାକରି ପୁଣି ଲଗଇନ୍ କରନ୍ତୁ।",
+    unableLoad: "ଆଡମିନ୍ ଲୋଡ୍ ହୋଇପାରିଲା ନାହିଁ।",
+    unableDelete: "ଆଡମିନ୍ ହଟାଇ ପାରିଲୁ ନାହିଁ।",
+    deletedSuccess: "ଆଡମିନ୍ ସଫଳତାର ସହ ହଟାଯାଇଛି।",
+    ownAccount: "ଆପଣ ନିଜ Super Admin ଖାତାକୁ ହଟାଇ ପାରିବେ ନାହିଁ।",
+    confirmDelete: (name, id) =>
+      `ଆପଣ ${name || "ଏହି ଆଡମିନ୍"} (${id})ଙ୍କୁ ହଟାଇବାକୁ ନିଶ୍ଚିତ କି?\n\nଏହି କାର୍ଯ୍ୟକୁ ପୁନଃସ୍ଥାପନ କରିହେବ ନାହିଁ।`,
+    dash: "—",
+    administration: "ପ୍ରଶାସନ",
+  },
+};
+
 export default function AdminList() {
 
   const navigate =
     useNavigate();
+
+  const { language } = useLanguage();
+  const t =
+    ADMIN_FACULTY_TRANSLATIONS[language] ||
+    ADMIN_FACULTY_TRANSLATIONS.en;
 
 
   // ===================================================
@@ -73,7 +200,7 @@ export default function AdminList() {
         if (!token) {
 
           throw new Error(
-            "Your session has expired. Please login again."
+            t.expired
           );
 
         }
@@ -107,7 +234,7 @@ export default function AdminList() {
 
           throw new Error(
             data.message ||
-            "Unable to load Admins."
+            t.unableLoad
           );
 
         }
@@ -128,7 +255,7 @@ export default function AdminList() {
 
         setError(
           err.message ||
-          "Unable to load Admins."
+          t.unableLoad
         );
 
 
@@ -185,14 +312,12 @@ export default function AdminList() {
         currentUser.faculty_id;
 
       if (currentFacultyId === facultyId) {
-        alert("You cannot delete your own Super Admin account.");
+        alert(t.ownAccount);
         return;
       }
 
       const confirmed =
-        window.confirm(
-          `Are you sure you want to delete ${adminName || "this Admin"} (${facultyId})?\n\nThis action cannot be undone.`
-        );
+        window.confirm(t.confirmDelete(adminName, facultyId));
 
       if (!confirmed) return;
 
@@ -205,7 +330,7 @@ export default function AdminList() {
 
         if (!token) {
           throw new Error(
-            "Your session has expired. Please login again."
+            t.expired
           );
         }
 
@@ -227,13 +352,13 @@ export default function AdminList() {
         if (!response.ok) {
           throw new Error(
             data.message ||
-            "Unable to delete Admin."
+            t.unableDelete
           );
         }
 
         alert(
           data.message ||
-          "Admin deleted successfully."
+          t.deletedSuccess
         );
 
         loadAdmins();
@@ -247,7 +372,7 @@ export default function AdminList() {
 
         setError(
           err.message ||
-          "Unable to delete Admin."
+          t.unableDelete
         );
 
       }
@@ -285,7 +410,7 @@ export default function AdminList() {
 
 
       return date.toLocaleDateString(
-        "en-IN",
+        language === "or" ? "or-IN" : language === "hi" ? "hi-IN" : "en-IN",
         {
           day: "2-digit",
           month: "short",
@@ -307,7 +432,7 @@ export default function AdminList() {
         admin.departmentName ||
         admin.department ||
         admin.admin_section ||
-        "Administration"
+        t.administration
       );
 
     };
@@ -343,7 +468,7 @@ export default function AdminList() {
         <div className="topbar">
 
           <h1>
-            Admins
+            {t.admins}
           </h1>
 
 
@@ -357,7 +482,7 @@ export default function AdminList() {
 
               <input
                 type="text"
-                placeholder="Search CampX..."
+                placeholder={t.search}
               />
 
             </div>
@@ -424,7 +549,7 @@ export default function AdminList() {
                   size={17}
                 />
 
-                Back to Dashboard
+                {t.backDashboard}
 
               </button>
 
@@ -432,12 +557,11 @@ export default function AdminList() {
               <div className="dashboard-header">
 
                 <h1>
-                  Admin Management
+                  {t.management}
                 </h1>
 
                 <p>
-                  View and manage registered
-                  CAMPX administrators.
+                  {t.managementDesc}
                 </p>
 
               </div>
@@ -545,7 +669,7 @@ export default function AdminList() {
                         "14px",
                     }}
                   >
-                    Total Admins
+                    {t.totalAdmins}
                   </div>
 
                   <div
@@ -621,7 +745,7 @@ export default function AdminList() {
                         "14px",
                     }}
                   >
-                    Active Admins
+                    {t.activeAdmins}
                   </div>
 
                   <div
@@ -707,7 +831,7 @@ export default function AdminList() {
                         "14px",
                     }}
                   >
-                    Departments
+                    {t.departments}
                   </div>
 
                   <div
@@ -836,7 +960,7 @@ export default function AdminList() {
                         "#102d52",
                     }}
                   >
-                    Registered Admins
+                    {t.registeredAdmins}
                   </h2>
 
                   <p
@@ -848,11 +972,9 @@ export default function AdminList() {
                     }}
                   >
                     {admins.length}{" "}
-                    administrator
-                    {admins.length !==
-                    1
-                      ? "s"
-                      : ""}
+                    {admins.length === 1
+                      ? t.administrator
+                      : t.administrators}
                   </p>
 
                 </div>
@@ -870,7 +992,7 @@ export default function AdminList() {
                 }
               >
 
-                + Add Admin
+                {t.addAdmin}
 
               </button>
 
@@ -892,7 +1014,7 @@ export default function AdminList() {
                 }}
               >
 
-                Loading Admins...
+                {t.loadingAdmins}
 
               </div>
 
@@ -933,7 +1055,7 @@ export default function AdminList() {
                         "0 0 8px",
                     }}
                   >
-                    No Admins Found
+                    {t.noAdmins}
                   </h3>
 
                   <p
@@ -944,8 +1066,7 @@ export default function AdminList() {
                         "20px",
                     }}
                   >
-                    No Admin accounts have
-                    been registered yet.
+                    {t.noAccounts}
                   </p>
 
                   <button
@@ -961,7 +1082,7 @@ export default function AdminList() {
                       size={17}
                     />
 
-                    Add First Admin
+                    {t.addFirst}
                   </button>
 
                 </div>
@@ -1018,7 +1139,7 @@ export default function AdminList() {
                               "600",
                           }}
                         >
-                          Faculty ID
+                          {t.facultyId}
                         </th>
 
 
@@ -1036,7 +1157,7 @@ export default function AdminList() {
                               "600",
                           }}
                         >
-                          Administrator
+                          {t.administratorColumn}
                         </th>
 
 
@@ -1054,7 +1175,7 @@ export default function AdminList() {
                               "600",
                           }}
                         >
-                          Department
+                          {t.department}
                         </th>
 
 
@@ -1072,7 +1193,7 @@ export default function AdminList() {
                               "600",
                           }}
                         >
-                          Designation
+                          {t.designation}
                         </th>
 
 
@@ -1090,7 +1211,7 @@ export default function AdminList() {
                               "600",
                           }}
                         >
-                          Status
+                          {t.status}
                         </th>
 
 
@@ -1108,7 +1229,7 @@ export default function AdminList() {
                               "600",
                           }}
                         >
-                          Created
+                          {t.created}
                         </th>
 
                         <th
@@ -1125,7 +1246,7 @@ export default function AdminList() {
                               "600",
                           }}
                         >
-                          Action
+                          {t.action}
                         </th>
 
                       </tr>
@@ -1336,7 +1457,7 @@ export default function AdminList() {
 
                                 {
                                   admin.designation ||
-                                  "—"
+                                  t.dash
                                 }
 
                               </td>
@@ -1417,7 +1538,7 @@ export default function AdminList() {
 
                                 <button
                                   type="button"
-                                  title="Delete Admin"
+                                  title={t.deleteAdmin}
                                   onClick={() =>
                                     handleDeleteAdmin(
                                       admin.faculty_id,

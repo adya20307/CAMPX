@@ -4,65 +4,47 @@ const jwt = require("jsonwebtoken");
 
 const db = require("../db");
 
+const {
+  DEPARTMENTS,
+  getAllDepartments,
+} = require("../config/departmentPermissions");
+
 const router = express.Router();
 
 
 // =====================================================
 // VALID DEPARTMENTS
 // =====================================================
+//
+// Departments are now loaded from the central
+// departmentPermissions.js configuration.
+//
+// =====================================================
 
-const VALID_DEPARTMENTS = [
-  "DOCUMENTATION",
-  "ACCOUNTS",
-  "ACADEMIC",
-  "EXAMINATION",
-  "NOTICE_COMMUNICATION",
-  "HOSTEL",
-  "STUDENT_AFFAIRS",
-  "ADMINISTRATION",
-  "LIBRARY",
-  "TRANSPORT",
-  "IT",
-  "PLACEMENT",
-  "DISCIPLINE",
-  "HEALTH_EMERGENCY",
-  "INFRASTRUCTURE_MAINTENANCE",
-  "MESS_FOOD",
-];
+const VALID_DEPARTMENTS =
+  Object.keys(DEPARTMENTS);
 
 
 // =====================================================
 // DEPARTMENT DISPLAY NAMES
 // =====================================================
 
-const DEPARTMENT_NAMES = {
-  DOCUMENTATION: "Documentation",
-  ACCOUNTS: "Accounts",
-  ACADEMIC: "Academic / Class",
-  EXAMINATION: "Examination",
-  NOTICE_COMMUNICATION: "Notice & Communication",
-  HOSTEL: "Hostel",
-  STUDENT_AFFAIRS: "Student Affairs",
-  ADMINISTRATION: "Administration",
-  LIBRARY: "Library",
-  TRANSPORT: "Transport",
-  IT: "IT Services",
-  PLACEMENT: "Placement",
-  DISCIPLINE: "Discipline",
-  HEALTH_EMERGENCY: "Health & Emergency",
-  INFRASTRUCTURE_MAINTENANCE:
-    "Infrastructure & Maintenance",
-  MESS_FOOD: "Mess / Food Services",
-};
+const DEPARTMENT_NAMES =
+  DEPARTMENTS;
 
 
 // =====================================================
 // AUTHENTICATION MIDDLEWARE
 // =====================================================
 
-function authenticateToken(req, res, next) {
+function authenticateToken(
+  req,
+  res,
+  next
+) {
 
-  const authHeader = req.headers.authorization;
+  const authHeader =
+    req.headers.authorization;
 
   const token =
     authHeader &&
@@ -74,7 +56,8 @@ function authenticateToken(req, res, next) {
   if (!token) {
 
     return res.status(401).json({
-      message: "Authentication required.",
+      message:
+        "Authentication required.",
     });
 
   }
@@ -82,10 +65,11 @@ function authenticateToken(req, res, next) {
 
   try {
 
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET
-    );
+    const decoded =
+      jwt.verify(
+        token,
+        process.env.JWT_SECRET
+      );
 
     req.user = decoded;
 
@@ -104,6 +88,7 @@ function authenticateToken(req, res, next) {
     });
 
   }
+
 }
 
 
@@ -141,26 +126,18 @@ function requireSuperAdmin(
 
 
   next();
+
 }
 
 
 // =====================================================
 // CREATE ADMIN
 // =====================================================
+//
 // POST /api/faculty/admin
 //
 // Only SUPER_ADMIN can create an Admin.
 //
-// Required:
-// name
-// email
-// department
-// designation
-// faculty_id
-// password
-//
-// admin_section is NOT trusted from frontend.
-// It is automatically set equal to department.
 // =====================================================
 
 router.post(
@@ -240,16 +217,22 @@ router.post(
       ) {
 
         return res.status(400).json({
+
           message:
             "Invalid department selected.",
+
           validDepartments:
             VALID_DEPARTMENTS.map(
               (id) => ({
+
                 id,
+
                 name:
                   DEPARTMENT_NAMES[id],
+
               })
             ),
+
         });
 
       }
@@ -264,8 +247,10 @@ router.post(
       ) {
 
         return res.status(400).json({
+
           message:
             "Password must contain at least 6 characters.",
+
         });
 
       }
@@ -280,8 +265,10 @@ router.post(
       ) {
 
         return res.status(400).json({
+
           message:
             "Faculty ID must contain at least 3 characters.",
+
         });
 
       }
@@ -294,6 +281,7 @@ router.post(
       const [
         existingFaculty,
       ] = await db.query(
+
         `
         SELECT
           id,
@@ -303,7 +291,9 @@ router.post(
         WHERE faculty_id = ?
         LIMIT 1
         `,
+
         [cleanFacultyId]
+
       );
 
 
@@ -312,8 +302,10 @@ router.post(
       ) {
 
         return res.status(409).json({
+
           message:
             `Faculty ID ${cleanFacultyId} already exists.`,
+
         });
 
       }
@@ -326,6 +318,7 @@ router.post(
       const [
         existingEmail,
       ] = await db.query(
+
         `
         SELECT
           id,
@@ -335,7 +328,9 @@ router.post(
         WHERE LOWER(email) = ?
         LIMIT 1
         `,
+
         [cleanEmail]
+
       );
 
 
@@ -344,8 +339,10 @@ router.post(
       ) {
 
         return res.status(409).json({
+
           message:
             `Email ${cleanEmail} is already registered.`,
+
         });
 
       }
@@ -366,18 +363,15 @@ router.post(
       // INSERT ADMIN
       // ============================================
       //
-      // IMPORTANT:
+      // department and admin_section are kept
+      // synchronized.
       //
-      // department = selected department
-      // admin_section = same department
-      //
-      // This keeps both existing database
-      // fields synchronized.
       // ============================================
 
       const [
         result,
       ] = await db.query(
+
         `
         INSERT INTO faculty
         (
@@ -394,6 +388,7 @@ router.post(
         VALUES
         (?, ?, ?, ?, ?, ?, 'ADMIN', ?, TRUE)
         `,
+
         [
           cleanFacultyId,
           cleanName,
@@ -403,6 +398,7 @@ router.post(
           cleanDepartment,
           cleanDepartment,
         ]
+
       );
 
 
@@ -455,6 +451,7 @@ router.post(
 
       });
 
+
     } catch (error) {
 
       console.error(
@@ -473,8 +470,10 @@ router.post(
       ) {
 
         return res.status(409).json({
+
           message:
             "Faculty ID or email already exists.",
+
         });
 
       }
@@ -485,8 +484,10 @@ router.post(
       // ==========================================
 
       return res.status(500).json({
+
         message:
           "Server error while creating Admin.",
+
       });
 
     }
@@ -498,10 +499,11 @@ router.post(
 // =====================================================
 // GET VALID DEPARTMENTS
 // =====================================================
+//
 // GET /api/faculty/departments
 //
-// This will be used by the Add Admin frontend
-// to populate the Department dropdown.
+// Used by AddAdmin.jsx.
+//
 // =====================================================
 
 router.get(
@@ -513,11 +515,15 @@ router.get(
     try {
 
       const departments =
-        VALID_DEPARTMENTS.map(
-          (id) => ({
-            id,
+        getAllDepartments().map(
+          (department) => ({
+
+            id:
+              department.id,
+
             name:
-              DEPARTMENT_NAMES[id],
+              department.name,
+
           })
         );
 
@@ -530,6 +536,7 @@ router.get(
 
       });
 
+
     } catch (error) {
 
       console.error(
@@ -538,8 +545,10 @@ router.get(
       );
 
       return res.status(500).json({
+
         message:
           "Server error while loading departments.",
+
       });
 
     }
@@ -551,9 +560,11 @@ router.get(
 // =====================================================
 // GET ALL ADMINS
 // =====================================================
+//
 // GET /api/faculty/admins
 //
 // Only Super Admin can see all registered Admins.
+//
 // =====================================================
 
 router.get(
@@ -567,6 +578,7 @@ router.get(
       const [
         admins,
       ] = await db.query(
+
         `
         SELECT
           id,
@@ -583,6 +595,7 @@ router.get(
         WHERE role = 'ADMIN'
         ORDER BY created_at DESC
         `
+
       );
 
 
@@ -611,6 +624,7 @@ router.get(
 
       });
 
+
     } catch (error) {
 
       console.error(
@@ -619,8 +633,10 @@ router.get(
       );
 
       return res.status(500).json({
+
         message:
           "Server error while loading Admins.",
+
       });
 
     }
@@ -630,12 +646,11 @@ router.get(
 
 
 // =====================================================
-// GET CURRENT ADMIN PROFILE
+// GET CURRENT ADMIN / FACULTY PROFILE
 // =====================================================
+//
 // GET /api/faculty/me
 //
-// Returns the logged-in faculty information.
-// Useful for department-based frontend permissions.
 // =====================================================
 
 router.get(
@@ -653,8 +668,10 @@ router.get(
       if (!facultyId) {
 
         return res.status(400).json({
+
           message:
             "Faculty ID not found in authentication token.",
+
         });
 
       }
@@ -663,6 +680,7 @@ router.get(
       const [
         faculty,
       ] = await db.query(
+
         `
         SELECT
           id,
@@ -679,7 +697,9 @@ router.get(
         WHERE faculty_id = ?
         LIMIT 1
         `,
+
         [facultyId]
+
       );
 
 
@@ -688,8 +708,10 @@ router.get(
       ) {
 
         return res.status(404).json({
+
           message:
             "Faculty account not found.",
+
         });
 
       }
@@ -717,6 +739,7 @@ router.get(
 
       });
 
+
     } catch (error) {
 
       console.error(
@@ -725,8 +748,10 @@ router.get(
       );
 
       return res.status(500).json({
+
         message:
           "Server error while loading faculty profile.",
+
       });
 
     }
@@ -736,14 +761,12 @@ router.get(
 
 
 // =====================================================
-// EXPORT
-// =====================================================
-// =====================================================
 // DELETE ADMIN
 // =====================================================
 //
+// DELETE /api/faculty/admin/:facultyId
+//
 // Only SUPER_ADMIN can delete an ADMIN.
-// SUPER_ADMIN cannot delete itself.
 //
 // =====================================================
 
@@ -753,7 +776,10 @@ router.delete(
   requireSuperAdmin,
   async (req, res) => {
 
-    const { facultyId } = req.params;
+    const {
+      facultyId,
+    } = req.params;
+
 
     try {
 
@@ -763,14 +789,19 @@ router.delete(
       // -----------------------------------------------
 
       if (
-        req.user.facultyId === facultyId ||
-        req.user.faculty_id === facultyId
+        req.user.facultyId ===
+          facultyId ||
+        req.user.faculty_id ===
+          facultyId
       ) {
 
         return res.status(400).json({
+
           success: false,
+
           message:
             "You cannot delete the currently logged-in Super Admin.",
+
         });
 
       }
@@ -780,27 +811,42 @@ router.delete(
       // Check that the Admin exists
       // -----------------------------------------------
 
-      const [admins] = await db.query(
+      const [
+        admins,
+      ] = await db.query(
+
         `
-        SELECT faculty_id, name, role
+        SELECT
+          faculty_id,
+          name,
+          role
         FROM faculty
         WHERE faculty_id = ?
         `,
+
         [facultyId]
+
       );
 
 
-      if (admins.length === 0) {
+      if (
+        admins.length === 0
+      ) {
 
         return res.status(404).json({
+
           success: false,
-          message: "Admin not found.",
+
+          message:
+            "Admin not found.",
+
         });
 
       }
 
 
-      const admin = admins[0];
+      const admin =
+        admins[0];
 
 
       // -----------------------------------------------
@@ -808,13 +854,17 @@ router.delete(
       // -----------------------------------------------
 
       if (
-        admin.role !== "ADMIN"
+        admin.role !==
+        "ADMIN"
       ) {
 
         return res.status(400).json({
+
           success: false,
+
           message:
             "Only normal Admin accounts can be deleted.",
+
         });
 
       }
@@ -825,11 +875,14 @@ router.delete(
       // -----------------------------------------------
 
       await db.query(
+
         `
         DELETE FROM admin_departments
         WHERE faculty_id = ?
         `,
+
         [facultyId]
+
       );
 
 
@@ -837,13 +890,18 @@ router.delete(
       // Delete Admin
       // -----------------------------------------------
 
-      const [result] = await db.query(
+      const [
+        result,
+      ] = await db.query(
+
         `
         DELETE FROM faculty
         WHERE faculty_id = ?
           AND role = 'ADMIN'
         `,
+
         [facultyId]
+
       );
 
 
@@ -852,8 +910,12 @@ router.delete(
       ) {
 
         return res.status(404).json({
+
           success: false,
-          message: "Admin could not be deleted.",
+
+          message:
+            "Admin could not be deleted.",
+
         });
 
       }
@@ -889,22 +951,34 @@ router.delete(
       ) {
 
         return res.status(409).json({
+
           success: false,
+
           message:
             "This Admin cannot be deleted because they are referenced by existing campus records.",
+
         });
 
       }
 
 
       return res.status(500).json({
+
         success: false,
+
         message:
           "Server error while deleting Admin.",
+
       });
 
     }
 
   }
 );
+
+
+// =====================================================
+// EXPORT
+// =====================================================
+
 module.exports = router;

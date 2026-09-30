@@ -12,10 +12,116 @@ import {
 } from "lucide-react";
 
 import { addNotification } from "../notificationStorage";
+import { useLanguage } from "../context/LanguageContext";
 
 const GATEPASS_KEY = "campx_gate_passes";
 
+
+const GATEPASS_TRANSLATIONS = {
+  en: {
+    administration: "CAMPX ADMINISTRATION",
+    title: "Gate Pass Requests",
+    description: "Review and manage student gate pass requests.",
+    refresh: "Refresh",
+    pending: "Pending",
+    approved: "Approved",
+    rejected: "Rejected",
+    totalRequests: "Total Requests",
+    studentRequests: "Student Requests",
+    reviewApplications: "Review submitted gate pass applications.",
+    noRequests: "No gate pass requests",
+    newRequests: "New student requests will appear here.",
+    student: "Student",
+    na: "N/A",
+    destination: "Destination",
+    purpose: "Purpose",
+    date: "Date",
+    time: "Time",
+    notSpecified: "Not specified",
+    requestId: "Request ID",
+    reject: "Reject",
+    approve: "Approve",
+    approvedSuccessfully: "Gate pass approved successfully.",
+    requestRejected: "Gate pass request rejected.",
+    approvedNotification: "Gate Pass Approved",
+    rejectedNotification: "Gate Pass Rejected",
+    approvedMessage: (destination, date) =>
+      `Your gate pass for ${destination} on ${date} has been approved by the administration.`,
+    rejectedMessage: (destination, date) =>
+      `Your gate pass request for ${destination} on ${date} has been rejected by the administration.`,
+  },
+  hi: {
+    administration: "CAMPX प्रशासन",
+    title: "गेट पास अनुरोध",
+    description: "छात्रों के गेट पास अनुरोधों की समीक्षा और प्रबंधन करें।",
+    refresh: "रिफ्रेश",
+    pending: "लंबित",
+    approved: "स्वीकृत",
+    rejected: "अस्वीकृत",
+    totalRequests: "कुल अनुरोध",
+    studentRequests: "छात्र अनुरोध",
+    reviewApplications: "प्रस्तुत गेट पास आवेदनों की समीक्षा करें।",
+    noRequests: "कोई गेट पास अनुरोध नहीं",
+    newRequests: "नए छात्र अनुरोध यहां दिखाई देंगे।",
+    student: "छात्र",
+    na: "उपलब्ध नहीं",
+    destination: "गंतव्य",
+    purpose: "उद्देश्य",
+    date: "तारीख",
+    time: "समय",
+    notSpecified: "निर्दिष्ट नहीं",
+    requestId: "अनुरोध ID",
+    reject: "अस्वीकार करें",
+    approve: "स्वीकृत करें",
+    approvedSuccessfully: "गेट पास सफलतापूर्वक स्वीकृत हुआ।",
+    requestRejected: "गेट पास अनुरोध अस्वीकार कर दिया गया।",
+    approvedNotification: "गेट पास स्वीकृत",
+    rejectedNotification: "गेट पास अस्वीकृत",
+    approvedMessage: (destination, date) =>
+      `आपका ${destination} के लिए ${date} का गेट पास प्रशासन द्वारा स्वीकृत किया गया है।`,
+    rejectedMessage: (destination, date) =>
+      `आपका ${destination} के लिए ${date} का गेट पास अनुरोध प्रशासन द्वारा अस्वीकार किया गया है।`,
+  },
+  or: {
+    administration: "CAMPX ପ୍ରଶାସନ",
+    title: "ଗେଟ୍ ପାସ୍ ଅନୁରୋଧ",
+    description: "ଛାତ୍ରଛାତ୍ରୀଙ୍କ ଗେଟ୍ ପାସ୍ ଅନୁରୋଧ ସମୀକ୍ଷା ଏବଂ ପରିଚାଳନା କରନ୍ତୁ।",
+    refresh: "ରିଫ୍ରେଶ୍",
+    pending: "ବିଚାରାଧୀନ",
+    approved: "ଅନୁମୋଦିତ",
+    rejected: "ପ୍ରତ୍ୟାଖ୍ୟାନ",
+    totalRequests: "ମୋଟ ଅନୁରୋଧ",
+    studentRequests: "ଛାତ୍ର ଅନୁରୋଧ",
+    reviewApplications: "ଦାଖଲ ହୋଇଥିବା ଗେଟ୍ ପାସ୍ ଆବେଦନଗୁଡ଼ିକ ସମୀକ୍ଷା କରନ୍ତୁ।",
+    noRequests: "କୌଣସି ଗେଟ୍ ପାସ୍ ଅନୁରୋଧ ନାହିଁ",
+    newRequests: "ନୂତନ ଛାତ୍ର ଅନୁରୋଧ ଏଠାରେ ଦେଖାଯିବ।",
+    student: "ଛାତ୍ର",
+    na: "ଉପଲବ୍ଧ ନାହିଁ",
+    destination: "ଗନ୍ତବ୍ୟସ୍ଥଳ",
+    purpose: "ଉଦ୍ଦେଶ୍ୟ",
+    date: "ତାରିଖ",
+    time: "ସମୟ",
+    notSpecified: "ନିର୍ଦ୍ଦିଷ୍ଟ ନୁହେଁ",
+    requestId: "ଅନୁରୋଧ ID",
+    reject: "ପ୍ରତ୍ୟାଖ୍ୟାନ କରନ୍ତୁ",
+    approve: "ଅନୁମୋଦନ କରନ୍ତୁ",
+    approvedSuccessfully: "ଗେଟ୍ ପାସ୍ ସଫଳତାର ସହ ଅନୁମୋଦିତ ହୋଇଛି।",
+    requestRejected: "ଗେଟ୍ ପାସ୍ ଅନୁରୋଧ ପ୍ରତ୍ୟାଖ୍ୟାନ ହୋଇଛି।",
+    approvedNotification: "ଗେଟ୍ ପାସ୍ ଅନୁମୋଦିତ",
+    rejectedNotification: "ଗେଟ୍ ପାସ୍ ପ୍ରତ୍ୟାଖ୍ୟାନ",
+    approvedMessage: (destination, date) =>
+      `${destination} ପାଇଁ ${date}ର ଆପଣଙ୍କ ଗେଟ୍ ପାସ୍ ପ୍ରଶାସନ ଦ୍ୱାରା ଅନୁମୋଦିତ ହୋଇଛି।`,
+    rejectedMessage: (destination, date) =>
+      `${destination} ପାଇଁ ${date}ର ଆପଣଙ୍କ ଗେଟ୍ ପାସ୍ ଅନୁରୋଧ ପ୍ରଶାସନ ଦ୍ୱାରା ପ୍ରତ୍ୟାଖ୍ୟାନ ହୋଇଛି।`,
+  },
+};
+
 export default function GatePassRequests() {
+  const { language } = useLanguage();
+  const t =
+    GATEPASS_TRANSLATIONS[language] ||
+    GATEPASS_TRANSLATIONS.en;
+
   const [requests, setRequests] = useState([]);
 
   // ==================================================
@@ -144,13 +250,13 @@ export default function GatePassRequests() {
 
       title:
         status === "Approved"
-          ? "Gate Pass Approved"
-          : "Gate Pass Rejected",
+          ? t.approvedNotification
+          : t.rejectedNotification,
 
       message:
         status === "Approved"
-          ? `Your gate pass for ${request.destination} on ${request.exitDate} has been approved by the administration.`
-          : `Your gate pass request for ${request.destination} on ${request.exitDate} has been rejected by the administration.`,
+          ? t.approvedMessage(request.destination, request.exitDate)
+          : t.rejectedMessage(request.destination, request.exitDate),
 
       status,
       relatedId: request.id,
@@ -200,16 +306,15 @@ export default function GatePassRequests() {
         <div>
 
           <div className="eyebrow">
-            CAMPX ADMINISTRATION
+            {t.administration}
           </div>
 
           <h1>
-            Gate Pass Requests
+            {t.title}
           </h1>
 
           <p>
-            Review and manage student gate pass
-            requests.
+            {t.description}
           </p>
 
         </div>
@@ -220,7 +325,7 @@ export default function GatePassRequests() {
           onClick={loadRequests}
         >
           <RefreshCw size={17} />
-          Refresh
+          {t.refresh}
         </button>
 
       </div>
@@ -241,7 +346,7 @@ export default function GatePassRequests() {
           </div>
 
           <div>
-            <span>Pending</span>
+            <span>{t.pending}</span>
 
             <strong>
               {pendingCount}
@@ -260,7 +365,7 @@ export default function GatePassRequests() {
           </div>
 
           <div>
-            <span>Approved</span>
+            <span>{t.approved}</span>
 
             <strong>
               {approvedCount}
@@ -279,7 +384,7 @@ export default function GatePassRequests() {
           </div>
 
           <div>
-            <span>Rejected</span>
+            <span>{t.rejected}</span>
 
             <strong>
               {rejectedCount}
@@ -298,7 +403,7 @@ export default function GatePassRequests() {
           </div>
 
           <div>
-            <span>Total Requests</span>
+            <span>{t.totalRequests}</span>
 
             <strong>
               {requests.length}
@@ -321,12 +426,11 @@ export default function GatePassRequests() {
           <div>
 
             <h2>
-              Student Requests
+              {t.studentRequests}
             </h2>
 
             <p>
-              Review submitted gate pass
-              applications.
+              {t.reviewApplications}
             </p>
 
           </div>
@@ -347,12 +451,11 @@ export default function GatePassRequests() {
             <DoorOpen size={42} />
 
             <h3>
-              No gate pass requests
+              {t.noRequests}
             </h3>
 
             <p>
-              New student requests will
-              appear here.
+              {t.newRequests}
             </p>
 
           </div>
@@ -387,12 +490,12 @@ export default function GatePassRequests() {
 
                       <h3>
                         {request.studentName ||
-                          "Student"}
+                          t.student}
                       </h3>
 
                       <span className="student-id">
                         {request.studentId ||
-                          "N/A"}
+                          t.na}
                       </span>
 
                     </div>
@@ -425,8 +528,11 @@ export default function GatePassRequests() {
                         <XCircle size={14} />
                       )}
 
-                      {request.status ||
-                        "Pending"}
+                      {request.status === "Approved"
+                        ? t.approved
+                        : request.status === "Rejected"
+                        ? t.rejected
+                        : t.pending}
 
                     </div>
 
@@ -450,7 +556,7 @@ export default function GatePassRequests() {
                         </small>
 
                         {request.destination ||
-                          "Not specified"}
+                          t.notSpecified}
 
                       </span>
 
@@ -470,7 +576,7 @@ export default function GatePassRequests() {
                         </small>
 
                         {request.purpose ||
-                          "Not specified"}
+                          t.notSpecified}
 
                       </span>
 
@@ -488,11 +594,11 @@ export default function GatePassRequests() {
                       <span>
 
                         <small>
-                          Date
+                          {t.date}
                         </small>
 
                         {request.exitDate ||
-                          "N/A"}
+                          t.na}
 
                       </span>
 
@@ -508,16 +614,16 @@ export default function GatePassRequests() {
                       <span>
 
                         <small>
-                          Time
+                          {t.time}
                         </small>
 
                         {request.exitTime ||
-                          "N/A"}
+                          t.na}
 
                         {" → "}
 
                         {request.returnTime ||
-                          "N/A"}
+                          t.na}
 
                       </span>
 
@@ -605,8 +711,7 @@ export default function GatePassRequests() {
                         size={16}
                       />
 
-                      Gate pass approved
-                      successfully.
+                      {t.approvedSuccessfully}
 
                     </div>
 
@@ -622,8 +727,7 @@ export default function GatePassRequests() {
 
                       <XCircle size={16} />
 
-                      Gate pass request
-                      rejected.
+                      {t.requestRejected}
 
                     </div>
 

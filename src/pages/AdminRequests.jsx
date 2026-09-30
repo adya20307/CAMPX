@@ -9,11 +9,97 @@ import {
 
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
+import { useLanguage } from "../context/LanguageContext";
 import { addNotification } from "../notificationStorage";
 
 const REQUESTS_KEY = "campxRequests";
 
+
+
+const ADMIN_REQUESTS_TRANSLATIONS = {
+  en: {
+    requestManagement: "Request Management",
+    studentRequests: "Student Requests",
+    description: "Review and process student service requests.",
+    refresh: "Refresh",
+    totalRequests: "Total Requests",
+    liveCampusData: "Live campus data",
+    submitted: "Submitted",
+    awaitingAction: "Awaiting action",
+    inProgress: "In Progress",
+    beingProcessed: "Being processed",
+    resolved: "Resolved",
+    completedRequests: "Completed requests",
+    all: "All",
+    noRequestsFound: "No requests found",
+    requestsAppear: "Student requests will appear here automatically.",
+    student: "Student",
+    studentId: "Student ID",
+    requestType: "Request Type",
+    submittedLabel: "Submitted",
+    updateStatus: "Update status:",
+    na: "N/A",
+    request: "Request",
+    now: "now",
+  },
+  hi: {
+    requestManagement: "अनुरोध प्रबंधन",
+    studentRequests: "छात्र अनुरोध",
+    description: "छात्र सेवा अनुरोधों की समीक्षा और प्रक्रिया करें।",
+    refresh: "रिफ्रेश",
+    totalRequests: "कुल अनुरोध",
+    liveCampusData: "लाइव कैंपस डेटा",
+    submitted: "प्रस्तुत",
+    awaitingAction: "कार्रवाई की प्रतीक्षा",
+    inProgress: "प्रगति में",
+    beingProcessed: "प्रक्रिया में",
+    resolved: "समाधान किया गया",
+    completedRequests: "पूर्ण अनुरोध",
+    all: "सभी",
+    noRequestsFound: "कोई अनुरोध नहीं मिला",
+    requestsAppear: "छात्र अनुरोध यहां अपने आप दिखाई देंगे।",
+    student: "छात्र",
+    studentId: "छात्र ID",
+    requestType: "अनुरोध प्रकार",
+    submittedLabel: "प्रस्तुत",
+    updateStatus: "स्थिति अपडेट करें:",
+    na: "उपलब्ध नहीं",
+    request: "अनुरोध",
+    now: "अब",
+  },
+  or: {
+    requestManagement: "ଅନୁରୋଧ ପରିଚାଳନା",
+    studentRequests: "ଛାତ୍ର ଅନୁରୋଧ",
+    description: "ଛାତ୍ର ସେବା ଅନୁରୋଧଗୁଡିକୁ ସମୀକ୍ଷା ଏବଂ ପ୍ରକ୍ରିୟାକରଣ କରନ୍ତୁ।",
+    refresh: "ରିଫ୍ରେଶ୍",
+    totalRequests: "ମୋଟ ଅନୁରୋଧ",
+    liveCampusData: "ଲାଇଭ୍ କ୍ୟାମ୍ପସ୍ ଡାଟା",
+    submitted: "ଦାଖଲ",
+    awaitingAction: "କାର୍ଯ୍ୟାନୁଷ୍ଠାନ ଅପେକ୍ଷାରେ",
+    inProgress: "ପ୍ରଗତିରେ",
+    beingProcessed: "ପ୍ରକ୍ରିୟାକରଣ ହେଉଛି",
+    resolved: "ସମାଧାନ ହୋଇଛି",
+    completedRequests: "ସମ୍ପୂର୍ଣ୍ଣ ଅନୁରୋଧ",
+    all: "ସମସ୍ତ",
+    noRequestsFound: "କୌଣସି ଅନୁରୋଧ ମିଳିଲା ନାହିଁ",
+    requestsAppear: "ଛାତ୍ର ଅନୁରୋଧଗୁଡିକ ଏଠାରେ ସ୍ୱୟଂଚାଳିତ ଭାବରେ ଦେଖାଯିବ।",
+    student: "ଛାତ୍ର",
+    studentId: "ଛାତ୍ର ID",
+    requestType: "ଅନୁରୋଧ ପ୍ରକାର",
+    submittedLabel: "ଦାଖଲ",
+    updateStatus: "ସ୍ଥିତି ଅପଡେଟ୍ କରନ୍ତୁ:",
+    na: "ଉପଲବ୍ଧ ନାହିଁ",
+    request: "ଅନୁରୋଧ",
+    now: "ବର୍ତ୍ତମାନ",
+  },
+};
+
 export default function AdminRequests() {
+  const { language } = useLanguage();
+  const t =
+    ADMIN_REQUESTS_TRANSLATIONS[language] ||
+    ADMIN_REQUESTS_TRANSLATIONS.en;
+
   const [requests, setRequests] = useState([]);
   const [filter, setFilter] = useState("All");
 
@@ -96,8 +182,8 @@ export default function AdminRequests() {
         audience: "student",
         studentId: request.studentId,
         type: "request",
-        title: `Request ${newStatus}`,
-        message: `Your ${request.type} request (${request.id}) is now ${newStatus}.`,
+        title: `${t.request} ${newStatus === "In Progress" ? t.inProgress : newStatus === "Resolved" ? t.resolved : t.submitted}`,
+        message: `${t.request} ${request.type} (${request.id}) ${t.now} ${newStatus === "In Progress" ? t.inProgress : newStatus === "Resolved" ? t.resolved : t.submitted}.`,
         relatedId: request.id,
         status: newStatus,
       });
@@ -140,7 +226,7 @@ export default function AdminRequests() {
 
       <main className="main-content">
 
-        <Topbar title="Request Management" />
+        <Topbar title={t.requestManagement} />
 
         <div className="page-content">
 
@@ -189,7 +275,7 @@ export default function AdminRequests() {
                 </div>
 
                 <span className="stat-title">
-                  Total Requests
+                  {t.totalRequests}
                 </span>
 
               </div>
@@ -214,7 +300,7 @@ export default function AdminRequests() {
                 </div>
 
                 <span className="stat-title">
-                  Submitted
+                  {t.submitted}
                 </span>
 
               </div>
@@ -239,7 +325,7 @@ export default function AdminRequests() {
                 </div>
 
                 <span className="stat-title">
-                  In Progress
+                  {t.inProgress}
                 </span>
 
               </div>
@@ -264,7 +350,7 @@ export default function AdminRequests() {
                 </div>
 
                 <span className="stat-title">
-                  Resolved
+                  {t.resolved}
                 </span>
 
               </div>
@@ -304,7 +390,13 @@ export default function AdminRequests() {
                   setFilter(status)
                 }
               >
-                {status}
+                {status === "All"
+                  ? t.all
+                  : status === "Submitted"
+                  ? t.submitted
+                  : status === "In Progress"
+                  ? t.inProgress
+                  : t.resolved}
               </button>
 
             ))}
@@ -324,12 +416,11 @@ export default function AdminRequests() {
                 <FileText size={38} />
 
                 <h3>
-                  No requests found
+                  {t.noRequestsFound}
                 </h3>
 
                 <p>
-                  Student requests will
-                  appear here automatically.
+                  {t.requestsAppear}
                 </p>
 
               </div>
@@ -379,7 +470,11 @@ export default function AdminRequests() {
                         )}
 
                         <span>
-                          {request.status}
+                          {request.status === "In Progress"
+                              ? t.inProgress
+                              : request.status === "Resolved"
+                              ? t.resolved
+                              : t.submitted}
                         </span>
 
                       </div>
@@ -401,7 +496,7 @@ export default function AdminRequests() {
                       <div>
 
                         <strong>
-                          Student
+                          {t.student}
                         </strong>
 
                         <span>
@@ -417,7 +512,7 @@ export default function AdminRequests() {
                       <div>
 
                         <strong>
-                          Student ID
+                          {t.studentId}
                         </strong>
 
                         <span>
@@ -430,7 +525,7 @@ export default function AdminRequests() {
                       <div>
 
                         <strong>
-                          Request Type
+                          {t.requestType}
                         </strong>
 
                         <span>
@@ -443,7 +538,7 @@ export default function AdminRequests() {
                       <div>
 
                         <strong>
-                          Submitted
+                          {t.submitted}
                         </strong>
 
                         <span>
@@ -451,7 +546,7 @@ export default function AdminRequests() {
                             ? new Date(
                                 request.createdAt
                               ).toLocaleString()
-                            : "N/A"}
+                            : t.na}
                         </span>
 
                       </div>
@@ -482,7 +577,7 @@ export default function AdminRequests() {
                           )
                         }
                       >
-                        Submitted
+                        {t.submitted}
                       </button>
 
 
@@ -500,7 +595,7 @@ export default function AdminRequests() {
                           )
                         }
                       >
-                        In Progress
+                        {t.inProgress}
                       </button>
 
 
@@ -518,7 +613,7 @@ export default function AdminRequests() {
                           )
                         }
                       >
-                        Resolved
+                        {t.resolved}
                       </button>
 
                     </div>

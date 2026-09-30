@@ -18,11 +18,235 @@ import { useNavigate } from "react-router-dom";
 
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
+import { useLanguage } from "../context/LanguageContext";
 
 export default function Profile() {
   const navigate = useNavigate();
+  const { language } = useLanguage();
 
   const [user, setUser] = useState(null);
+
+  // =====================================================
+  // TRANSLATIONS
+  // =====================================================
+
+  const translations = {
+    en: {
+      profile: "Profile",
+      account: "CAMPX ACCOUNT",
+      myProfile: "My Profile",
+      profileDescription:
+        "View your CampX account information.",
+      back: "Back",
+
+      profileNotAvailable: "Profile not available",
+      loginAgain:
+        "Please login again to view your profile information.",
+      goToLogin: "Go to Login",
+
+      student: "Student",
+      administrator: "Administrator",
+      superAdministrator: "Super Administrator",
+      activeAccount: "Active Account",
+
+      accountInformation: "Account Information",
+      accountDetails: "Your CampX account details",
+
+      fullName: "Full Name",
+      emailAddress: "Email Address",
+
+      facultyId: "Faculty ID",
+      role: "Role",
+      department: "Department",
+      adminSection: "Admin Section",
+      designation: "Designation",
+
+      superAdmin: "Super Admin",
+      admin: "Admin",
+
+      registrationNumber: "Registration Number",
+      branch: "Branch",
+      semester: "Semester",
+      section: "Section",
+      batchYear: "Batch Year",
+      phoneNumber: "Phone Number",
+      hostelStatus: "Hostel Status",
+      hosteller: "Hosteller",
+      nonHosteller: "Non-Hosteller",
+      hostel: "Hostel",
+      roomNumber: "Room Number",
+
+      accessInformation: "Access Information",
+      superAdminAccess: "Super Admin Access",
+      adminAccess: "Admin Access",
+      studentAccess: "Student Access",
+
+      fullAdministrativeAccess:
+        "You have full administrative access to the CampX system.",
+
+      sectionAccess:
+        "You have administrative access for the {section} section.",
+
+      studentPortalAccess:
+        "You have access to your CampX student portal and student services.",
+
+      notAvailable: "—",
+    },
+
+    hi: {
+      profile: "प्रोफ़ाइल",
+      account: "CAMPX खाता",
+      myProfile: "मेरी प्रोफ़ाइल",
+      profileDescription:
+        "अपने CampX खाते की जानकारी देखें।",
+      back: "वापस",
+
+      profileNotAvailable: "प्रोफ़ाइल उपलब्ध नहीं है",
+      loginAgain:
+        "अपनी प्रोफ़ाइल जानकारी देखने के लिए कृपया फिर से लॉगिन करें।",
+      goToLogin: "लॉगिन पर जाएं",
+
+      student: "छात्र",
+      administrator: "प्रशासक",
+      superAdministrator: "सुपर प्रशासक",
+      activeAccount: "सक्रिय खाता",
+
+      accountInformation: "खाता जानकारी",
+      accountDetails: "आपके CampX खाते का विवरण",
+
+      fullName: "पूरा नाम",
+      emailAddress: "ईमेल पता",
+
+      facultyId: "फैकल्टी ID",
+      role: "भूमिका",
+      department: "विभाग",
+      adminSection: "प्रशासन अनुभाग",
+      designation: "पद",
+
+      superAdmin: "सुपर एडमिन",
+      admin: "एडमिन",
+
+      registrationNumber: "पंजीकरण संख्या",
+      branch: "शाखा",
+      semester: "सेमेस्टर",
+      section: "सेक्शन",
+      batchYear: "बैच वर्ष",
+      phoneNumber: "फोन नंबर",
+      hostelStatus: "हॉस्टल स्थिति",
+      hosteller: "हॉस्टल छात्र",
+      nonHosteller: "गैर-हॉस्टल छात्र",
+      hostel: "हॉस्टल",
+      roomNumber: "कमरा नंबर",
+
+      accessInformation: "एक्सेस जानकारी",
+      superAdminAccess: "सुपर एडमिन एक्सेस",
+      adminAccess: "एडमिन एक्सेस",
+      studentAccess: "छात्र एक्सेस",
+
+      fullAdministrativeAccess:
+        "आपके पास CampX सिस्टम का पूर्ण प्रशासनिक एक्सेस है।",
+
+      sectionAccess:
+        "आपके पास {section} अनुभाग के लिए प्रशासनिक एक्सेस है।",
+
+      studentPortalAccess:
+        "आपके पास अपने CampX छात्र पोर्टल और छात्र सेवाओं का एक्सेस है।",
+
+      notAvailable: "—",
+    },
+
+    or: {
+      profile: "ପ୍ରୋଫାଇଲ୍",
+      account: "CAMPX ଆକାଉଣ୍ଟ",
+      myProfile: "ମୋ ପ୍ରୋଫାଇଲ୍",
+      profileDescription:
+        "ଆପଣଙ୍କ CampX ଆକାଉଣ୍ଟ ସୂଚନା ଦେଖନ୍ତୁ।",
+      back: "ପଛକୁ",
+
+      profileNotAvailable: "ପ୍ରୋଫାଇଲ୍ ଉପଲବ୍ଧ ନାହିଁ",
+      loginAgain:
+        "ଆପଣଙ୍କ ପ୍ରୋଫାଇଲ୍ ସୂଚନା ଦେଖିବା ପାଇଁ ପୁନର୍ବାର ଲଗଇନ୍ କରନ୍ତୁ।",
+      goToLogin: "ଲଗଇନ୍ କୁ ଯାଆନ୍ତୁ",
+
+      student: "ଛାତ୍ର",
+      administrator: "ପ୍ରଶାସକ",
+      superAdministrator: "ସୁପର ପ୍ରଶାସକ",
+      activeAccount: "ସକ୍ରିୟ ଆକାଉଣ୍ଟ",
+
+      accountInformation: "ଆକାଉଣ୍ଟ ସୂଚନା",
+      accountDetails: "ଆପଣଙ୍କ CampX ଆକାଉଣ୍ଟ ବିବରଣୀ",
+
+      fullName: "ସମ୍ପୂର୍ଣ୍ଣ ନାମ",
+      emailAddress: "ଇମେଲ୍ ଠିକଣା",
+
+      facultyId: "ଫ୍ୟାକଲ୍ଟି ID",
+      role: "ଭୂମିକା",
+      department: "ବିଭାଗ",
+      adminSection: "ପ୍ରଶାସନ ବିଭାଗ",
+      designation: "ପଦବୀ",
+
+      superAdmin: "ସୁପର ଆଡମିନ୍",
+      admin: "ଆଡମିନ୍",
+
+      registrationNumber: "ପଞ୍ଜୀକରଣ ନମ୍ବର",
+      branch: "ଶାଖା",
+      semester: "ସେମିଷ୍ଟର",
+      section: "ସେକ୍ସନ୍",
+      batchYear: "ବ୍ୟାଚ୍ ବର୍ଷ",
+      phoneNumber: "ଫୋନ୍ ନମ୍ବର",
+      hostelStatus: "ହଷ୍ଟେଲ୍ ସ୍ଥିତି",
+      hosteller: "ହଷ୍ଟେଲ୍ ଛାତ୍ର",
+      nonHosteller: "ନନ୍-ହଷ୍ଟେଲର୍ ଛାତ୍ର",
+      hostel: "ହଷ୍ଟେଲ୍",
+      roomNumber: "ରୁମ୍ ନମ୍ବର",
+
+      accessInformation: "ଆକ୍ସେସ୍ ସୂଚନା",
+      superAdminAccess: "ସୁପର ଆଡମିନ୍ ଆକ୍ସେସ୍",
+      adminAccess: "ଆଡମିନ୍ ଆକ୍ସେସ୍",
+      studentAccess: "ଛାତ୍ର ଆକ୍ସେସ୍",
+
+      fullAdministrativeAccess:
+        "ଆପଣଙ୍କ ପାଖରେ CampX ସିଷ୍ଟମର ସମ୍ପୂର୍ଣ୍ଣ ପ୍ରଶାସନିକ ଆକ୍ସେସ୍ ଅଛି।",
+
+      sectionAccess:
+        "ଆପଣଙ୍କ ପାଖରେ {section} ବିଭାଗ ପାଇଁ ପ୍ରଶାସନିକ ଆକ୍ସେସ୍ ଅଛି।",
+
+      studentPortalAccess:
+        "ଆପଣଙ୍କ ପାଖରେ CampX ଛାତ୍ର ପୋର୍ଟାଲ୍ ଏବଂ ଛାତ୍ର ସେବାଗୁଡ଼ିକର ଆକ୍ସେସ୍ ଅଛି।",
+
+      notAvailable: "—",
+    },
+  };
+
+  const t = translations[language] || translations.en;
+
+  // =====================================================
+  // TRANSLATE COMMON VALUES
+  // =====================================================
+
+  const translateValue = (value) => {
+    if (!value) return t.notAvailable;
+
+    const map = {
+      "SUPER_ADMIN": t.superAdmin,
+      "ADMIN": t.admin,
+
+      "Super Admin": t.superAdmin,
+      "Admin": t.admin,
+
+      "Super Administrator": t.superAdministrator,
+      "Administrator": t.administrator,
+      Student: t.student,
+
+      HOSTELLER: t.hosteller,
+      NON_HOSTELLER: t.nonHosteller,
+
+      Hosteller: t.hosteller,
+      "Non-Hosteller": t.nonHosteller,
+    };
+
+    return map[value] || value;
+  };
 
   // =====================================================
   // LOAD CURRENT LOGGED-IN USER
@@ -59,7 +283,7 @@ export default function Profile() {
 
         <main className="main-content">
 
-          <Topbar title="Profile" />
+          <Topbar title={t.profile} />
 
           <div className="content">
 
@@ -70,12 +294,11 @@ export default function Profile() {
               </div>
 
               <h2>
-                Profile not available
+                {t.profileNotAvailable}
               </h2>
 
               <p>
-                Please login again to view
-                your profile information.
+                {t.loginAgain}
               </p>
 
               <button
@@ -84,7 +307,7 @@ export default function Profile() {
                   navigate("/login")
                 }
               >
-                Go to Login
+                {t.goToLogin}
               </button>
 
             </div>
@@ -105,6 +328,9 @@ export default function Profile() {
     user.role === "ADMIN" ||
     user.role === "SUPER_ADMIN";
 
+  const isSuperAdmin =
+    user.role === "SUPER_ADMIN";
+
   // =====================================================
   // USER INITIALS
   // =====================================================
@@ -115,8 +341,7 @@ export default function Profile() {
       .filter(Boolean)
       .slice(0, 2)
       .map(
-        (part) =>
-          part.charAt(0)
+        (part) => part.charAt(0)
       )
       .join("")
       .toUpperCase() || "U";
@@ -128,12 +353,12 @@ export default function Profile() {
   const studentId =
     user.studentId ||
     user.student_id ||
-    "—";
+    t.notAvailable;
 
   const batchYear =
     user.batchYear ||
     user.batch_year ||
-    "—";
+    t.notAvailable;
 
   const hostelStatus =
     user.hostelStatus ||
@@ -164,7 +389,7 @@ export default function Profile() {
 
       <main className="main-content">
 
-        <Topbar title="Profile" />
+        <Topbar title={t.profile} />
 
         <div className="content">
 
@@ -177,16 +402,15 @@ export default function Profile() {
             <div>
 
               <div className="profile-eyebrow">
-                CAMPX ACCOUNT
+                {t.account}
               </div>
 
               <h1>
-                My Profile
+                {t.myProfile}
               </h1>
 
               <p>
-                View your CampX account
-                information.
+                {t.profileDescription}
               </p>
 
             </div>
@@ -202,7 +426,7 @@ export default function Profile() {
               }
             >
               <ArrowLeft size={17} />
-              Back
+              {t.back}
             </button>
 
           </div>
@@ -232,18 +456,17 @@ export default function Profile() {
 
                 <p>
                   {isAdmin
-                    ? user.role ===
-                      "SUPER_ADMIN"
-                      ? "Super Administrator"
-                      : "Administrator"
-                    : "Student"}
+                    ? isSuperAdmin
+                      ? t.superAdministrator
+                      : t.administrator
+                    : t.student}
                 </p>
 
                 <div className="profile-status">
 
                   <span className="status-dot"></span>
 
-                  Active Account
+                  {t.activeAccount}
 
                 </div>
 
@@ -267,11 +490,11 @@ export default function Profile() {
                 <div>
 
                   <h3>
-                    Account Information
+                    {t.accountInformation}
                   </h3>
 
                   <p>
-                    Your CampX account details
+                    {t.accountDetails}
                   </p>
 
                 </div>
@@ -285,7 +508,7 @@ export default function Profile() {
 
                 <ProfileItem
                   icon={<User size={18} />}
-                  label="Full Name"
+                  label={t.fullName}
                   value={user.name}
                 />
 
@@ -294,7 +517,7 @@ export default function Profile() {
 
                 <ProfileItem
                   icon={<Mail size={18} />}
-                  label="Email Address"
+                  label={t.emailAddress}
                   value={user.email}
                 />
 
@@ -310,51 +533,46 @@ export default function Profile() {
                       icon={
                         <Hash size={18} />
                       }
-                      label="Faculty ID"
+                      label={t.facultyId}
                       value={
                         user.facultyId ||
                         user.faculty_id ||
-                        "—"
+                        t.notAvailable
                       }
                     />
+
 
                     <ProfileItem
                       icon={
                         <Shield size={18} />
                       }
-                      label="Role"
-                      value={
-                        user.role ===
-                        "SUPER_ADMIN"
-                          ? "Super Admin"
-                          : "Admin"
-                      }
+                      label={t.role}
+                      value={translateValue(
+                        user.role
+                      )}
                     />
+
 
                     <ProfileItem
                       icon={
-                        <Building2
-                          size={18}
-                        />
+                        <Building2 size={18} />
                       }
-                      label="Department"
+                      label={t.department}
                       value={
                         user.department ||
-                        "—"
+                        t.notAvailable
                       }
                     />
 
+
                     <ProfileItem
                       icon={
-                        <BookOpen
-                          size={18}
-                        />
+                        <BookOpen size={18} />
                       }
-                      label="Admin Section"
-                      value={
-                        adminSection
-                      }
+                      label={t.adminSection}
+                      value={adminSection}
                     />
+
 
                     <ProfileItem
                       icon={
@@ -362,10 +580,10 @@ export default function Profile() {
                           size={18}
                         />
                       }
-                      label="Designation"
+                      label={t.designation}
                       value={
                         user.designation ||
-                        "Administrator"
+                        t.administrator
                       }
                     />
 
@@ -382,9 +600,12 @@ export default function Profile() {
                       icon={
                         <Hash size={18} />
                       }
-                      label="Registration Number"
+                      label={
+                        t.registrationNumber
+                      }
                       value={studentId}
                     />
+
 
                     <ProfileItem
                       icon={
@@ -392,12 +613,13 @@ export default function Profile() {
                           size={18}
                         />
                       }
-                      label="Branch"
+                      label={t.branch}
                       value={
                         user.branch ||
-                        "—"
+                        t.notAvailable
                       }
                     />
+
 
                     <ProfileItem
                       icon={
@@ -405,23 +627,25 @@ export default function Profile() {
                           size={18}
                         />
                       }
-                      label="Semester"
+                      label={t.semester}
                       value={
                         user.semester ||
-                        "—"
+                        t.notAvailable
                       }
                     />
+
 
                     <ProfileItem
                       icon={
                         <User size={18} />
                       }
-                      label="Section"
+                      label={t.section}
                       value={
                         user.section ||
-                        "—"
+                        t.notAvailable
                       }
                     />
+
 
                     <ProfileItem
                       icon={
@@ -429,33 +653,33 @@ export default function Profile() {
                           size={18}
                         />
                       }
-                      label="Batch Year"
+                      label={t.batchYear}
                       value={batchYear}
                     />
+
 
                     <ProfileItem
                       icon={
                         <Phone size={18} />
                       }
-                      label="Phone Number"
+                      label={t.phoneNumber}
                       value={
                         user.phone ||
-                        "—"
+                        t.notAvailable
                       }
                     />
+
 
                     <ProfileItem
                       icon={
                         <Home size={18} />
                       }
-                      label="Hostel Status"
-                      value={
-                        hostelStatus ===
-                        "HOSTELLER"
-                          ? "Hosteller"
-                          : "Non-Hosteller"
-                      }
+                      label={t.hostelStatus}
+                      value={translateValue(
+                        hostelStatus
+                      )}
                     />
+
 
                     {/* HOSTEL DETAILS */}
 
@@ -467,12 +691,13 @@ export default function Profile() {
                           icon={
                             <Home size={18} />
                           }
-                          label="Hostel"
+                          label={t.hostel}
                           value={
                             user.hostel ||
-                            "—"
+                            t.notAvailable
                           }
                         />
+
 
                         <ProfileItem
                           icon={
@@ -480,10 +705,10 @@ export default function Profile() {
                               size={18}
                             />
                           }
-                          label="Room Number"
+                          label={t.roomNumber}
                           value={
                             user.room ||
-                            "—"
+                            t.notAvailable
                           }
                         />
 
@@ -514,22 +739,23 @@ export default function Profile() {
                 <h4>
 
                   {isAdmin
-                    ? user.role ===
-                      "SUPER_ADMIN"
-                      ? "Super Admin Access"
-                      : "Admin Access"
-                    : "Student Access"}
+                    ? isSuperAdmin
+                      ? t.superAdminAccess
+                      : t.adminAccess
+                    : t.studentAccess}
 
                 </h4>
 
                 <p>
 
                   {isAdmin
-                    ? user.role ===
-                      "SUPER_ADMIN"
-                      ? "You have full administrative access to the CampX system."
-                      : `You have administrative access for the ${adminSection} section.`
-                    : "You have access to your CampX student portal and student services."}
+                    ? isSuperAdmin
+                      ? t.fullAdministrativeAccess
+                      : t.sectionAccess.replace(
+                          "{section}",
+                          adminSection
+                        )
+                    : t.studentPortalAccess}
 
                 </p>
 

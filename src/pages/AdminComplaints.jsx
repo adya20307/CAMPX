@@ -7,11 +7,115 @@ import {
 } from "lucide-react";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
+import { useLanguage } from "../context/LanguageContext";
 import { addNotification } from "../notificationStorage";
 
 const COMPLAINTS_KEY = "campxComplaints";
 
+
+
+const ADMIN_COMPLAINTS_TRANSLATIONS = {
+  en: {
+    complaints: "Complaints",
+    management: "Complaints Management",
+    description: "Review, assign and resolve student complaints.",
+    totalComplaints: "Total Complaints",
+    submitted: "Submitted",
+    inProgress: "In Progress",
+    resolved: "Resolved",
+    all: "All",
+    noComplaints: "No complaints found",
+    noComplaintsCategory: "There are no complaints in this category.",
+    studentComplaint: "Student Complaint",
+    low: "Low",
+    critical: "Critical",
+    high: "High",
+    medium: "Medium",
+    student: "Student",
+    unknownStudent: "Unknown Student",
+    studentId: "Student ID",
+    na: "N/A",
+    department: "Department",
+    general: "General",
+    location: "Location",
+    notSpecified: "Not specified",
+    room: "Room",
+    submittedLabel: "Submitted",
+    updateStatus: "Update status:",
+    complaintStatus: "Complaint",
+    complaintNow: "Your complaint",
+    isNow: "is now",
+  },
+  hi: {
+    complaints: "शिकायतें",
+    management: "शिकायत प्रबंधन",
+    description: "छात्रों की शिकायतों की समीक्षा, आवंटन और समाधान करें।",
+    totalComplaints: "कुल शिकायतें",
+    submitted: "प्रस्तुत",
+    inProgress: "प्रगति में",
+    resolved: "समाधान किया गया",
+    all: "सभी",
+    noComplaints: "कोई शिकायत नहीं मिली",
+    noComplaintsCategory: "इस श्रेणी में कोई शिकायत नहीं है।",
+    studentComplaint: "छात्र शिकायत",
+    low: "कम",
+    critical: "गंभीर",
+    high: "उच्च",
+    medium: "मध्यम",
+    student: "छात्र",
+    unknownStudent: "अज्ञात छात्र",
+    studentId: "छात्र ID",
+    na: "उपलब्ध नहीं",
+    department: "विभाग",
+    general: "सामान्य",
+    location: "स्थान",
+    notSpecified: "निर्दिष्ट नहीं",
+    room: "कमरा",
+    submittedLabel: "प्रस्तुत",
+    updateStatus: "स्थिति अपडेट करें:",
+    complaintStatus: "शिकायत",
+    complaintNow: "आपकी शिकायत",
+    isNow: "अब",
+  },
+  or: {
+    complaints: "ଅଭିଯୋଗ",
+    management: "ଅଭିଯୋଗ ପରିଚାଳନା",
+    description: "ଛାତ୍ରଛାତ୍ରୀଙ୍କ ଅଭିଯୋଗ ସମୀକ୍ଷା, ବଣ୍ଟନ ଏବଂ ସମାଧାନ କରନ୍ତୁ।",
+    totalComplaints: "ମୋଟ ଅଭିଯୋଗ",
+    submitted: "ଦାଖଲ",
+    inProgress: "ପ୍ରଗତିରେ",
+    resolved: "ସମାଧାନ ହୋଇଛି",
+    all: "ସମସ୍ତ",
+    noComplaints: "କୌଣସି ଅଭିଯୋଗ ମିଳିଲା ନାହିଁ",
+    noComplaintsCategory: "ଏହି ବର୍ଗରେ କୌଣସି ଅଭିଯୋଗ ନାହିଁ।",
+    studentComplaint: "ଛାତ୍ର ଅଭିଯୋଗ",
+    low: "କମ୍",
+    critical: "ଗୁରୁତର",
+    high: "ଉଚ୍ଚ",
+    medium: "ମଧ୍ୟମ",
+    student: "ଛାତ୍ର",
+    unknownStudent: "ଅଜଣା ଛାତ୍ର",
+    studentId: "ଛାତ୍ର ID",
+    na: "ଉପଲବ୍ଧ ନାହିଁ",
+    department: "ବିଭାଗ",
+    general: "ସାଧାରଣ",
+    location: "ସ୍ଥାନ",
+    notSpecified: "ନିର୍ଦ୍ଦିଷ୍ଟ ନୁହେଁ",
+    room: "କୋଠରୀ",
+    submittedLabel: "ଦାଖଲ",
+    updateStatus: "ସ୍ଥିତି ଅପଡେଟ୍ କରନ୍ତୁ:",
+    complaintStatus: "ଅଭିଯୋଗ",
+    complaintNow: "ଆପଣଙ୍କ ଅଭିଯୋଗ",
+    isNow: "ବର୍ତ୍ତମାନ",
+  },
+};
+
 function AdminComplaints() {
+  const { language } = useLanguage();
+  const t =
+    ADMIN_COMPLAINTS_TRANSLATIONS[language] ||
+    ADMIN_COMPLAINTS_TRANSLATIONS.en;
+
   const [complaints, setComplaints] = useState([]);
   const [filter, setFilter] = useState("All");
 
@@ -74,8 +178,8 @@ function AdminComplaints() {
         audience: "student",
         studentId: complaint.studentId,
         type: "complaint",
-        title: `Complaint ${newStatus}`,
-        message: `Your complaint ${complaint.id} is now ${newStatus}.`,
+        title: `${t.complaintStatus} ${newStatus === "In Progress" ? t.inProgress : newStatus === "Resolved" ? t.resolved : t.submitted}`,
+        message: `${t.complaintNow} ${complaint.id} ${t.isNow} ${newStatus === "In Progress" ? t.inProgress : newStatus === "Resolved" ? t.resolved : t.submitted}.`,
         relatedId: complaint.id,
         status: newStatus,
       });
@@ -126,14 +230,14 @@ function AdminComplaints() {
       <Sidebar admin />
 
       <main className="main-content">
-        <Topbar />
+        <Topbar title={t.management} />
 
         <div className="page-content">
           <div className="page-header">
             <div>
-              <h1>Complaints Management</h1>
+              <h1>{t.management}</h1>
               <p>
-                Review, assign and resolve student complaints.
+                {t.description}
               </p>
             </div>
           </div>
@@ -146,7 +250,7 @@ function AdminComplaints() {
               </div>
 
               <div>
-                <p>Total Complaints</p>
+                <p>{t.totalComplaints}</p>
                 <h2>{total}</h2>
               </div>
             </div>
@@ -157,7 +261,7 @@ function AdminComplaints() {
               </div>
 
               <div>
-                <p>Submitted</p>
+                <p>{t.submitted}</p>
                 <h2>{submitted}</h2>
               </div>
             </div>
@@ -168,7 +272,7 @@ function AdminComplaints() {
               </div>
 
               <div>
-                <p>In Progress</p>
+                <p>{t.inProgress}</p>
                 <h2>{inProgress}</h2>
               </div>
             </div>
@@ -179,7 +283,7 @@ function AdminComplaints() {
               </div>
 
               <div>
-                <p>Resolved</p>
+                <p>{t.resolved}</p>
                 <h2>{resolved}</h2>
               </div>
             </div>
@@ -209,9 +313,9 @@ function AdminComplaints() {
             {filteredComplaints.length === 0 ? (
               <div className="empty-state">
                 <CheckCircle size={40} />
-                <h3>No complaints found</h3>
+                <h3>{t.noComplaints}</h3>
                 <p>
-                  There are no complaints in this category.
+                  {t.noComplaintsCategory}
                 </p>
               </div>
             ) : (
@@ -226,7 +330,7 @@ function AdminComplaints() {
                         <h3>
                           {complaint.issue ||
                             complaint.category ||
-                            "Student Complaint"}
+                            t.studentComplaint}
                         </h3>
 
                         <span
@@ -234,7 +338,7 @@ function AdminComplaints() {
                             complaint.priority
                           )}`}
                         >
-                          {complaint.priority || "Low"}
+                          {complaint.priority === "Critical" ? t.critical : complaint.priority === "High" ? t.high : complaint.priority === "Medium" ? t.medium : t.low}
                         </span>
                       </div>
 
@@ -245,7 +349,13 @@ function AdminComplaints() {
 
                     <div className="complaint-status">
                       {getStatusIcon(complaint.status)}
-                      <span>{complaint.status}</span>
+                      <span>
+                        {complaint.status === "In Progress"
+                          ? t.inProgress
+                          : complaint.status === "Resolved"
+                          ? t.resolved
+                          : t.submitted}
+                      </span>
                     </div>
                   </div>
 
@@ -255,42 +365,42 @@ function AdminComplaints() {
 
                   <div className="complaint-details">
                     <div>
-                      <strong>Student</strong>
+                      <strong>{t.student}</strong>
                       <span>
-                        {complaint.studentName || "Unknown Student"}
+                        {complaint.studentName || t.unknownStudent}
                       </span>
                     </div>
 
                     <div>
-                      <strong>Student ID</strong>
+                      <strong>{t.studentId}</strong>
                       <span>
-                        {complaint.studentId || "N/A"}
+                        {complaint.studentId || t.na}
                       </span>
                     </div>
 
                     <div>
-                      <strong>Department</strong>
+                      <strong>{t.department}</strong>
                       <span>
-                        {complaint.department || "General"}
+                        {complaint.department || t.general}
                       </span>
                     </div>
 
                     <div>
-                      <strong>Location</strong>
+                      <strong>{t.location}</strong>
                       <span>
-                        {complaint.location || "Not specified"}
+                        {complaint.location || t.notSpecified}
                       </span>
                     </div>
 
                     <div>
-                      <strong>Room</strong>
+                      <strong>{t.room}</strong>
                       <span>
-                        {complaint.room || "N/A"}
+                        {complaint.room || t.na}
                       </span>
                     </div>
 
                     <div>
-                      <strong>Submitted</strong>
+                      <strong>{t.submittedLabel}</strong>
                       <span>
                         {complaint.createdAt
                           ? new Date(
@@ -302,7 +412,7 @@ function AdminComplaints() {
                   </div>
 
                   <div className="complaint-actions">
-                    <span>Update status:</span>
+                    <span>{t.updateStatus}</span>
 
                     <button
                       className={

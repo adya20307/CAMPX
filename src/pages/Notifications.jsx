@@ -15,38 +15,117 @@ import {
   getNotifications,
   markNotificationRead,
   markAllNotificationsRead,
-} from "./notificationStorage";
+} from "../notificationStorage";
+
+import { useLanguage } from "../context/LanguageContext";
 
 // Current logged-in student
 const CURRENT_STUDENT_ID = "CX2026001";
 
 export default function Notifications() {
+  const { language, t } = useLanguage();
+
   const [notifications, setNotifications] = useState([]);
 
   const navigate = useNavigate();
+
+  // ============================================
+  // TRANSLATIONS
+  // ============================================
+
+  const translations = {
+    en: {
+      communication: "COMMUNICATION",
+      notifications: "Notifications",
+      description: "Important updates from your campus.",
+      yourNotifications: "Your Notifications",
+      stayUpdated: "Stay updated with campus activities and requests.",
+      markAllRead: "Mark all read",
+      noNotifications: "No notifications",
+      caughtUp: "You're all caught up.",
+      new: "NEW",
+      clickToView: "Click to view →",
+      approved: "Approved",
+      rejected: "Rejected",
+      resolved: "Resolved",
+    },
+
+    hi: {
+      communication: "संचार",
+      notifications: "सूचनाएं",
+      description: "आपके कैंपस से महत्वपूर्ण अपडेट।",
+      yourNotifications: "आपकी सूचनाएं",
+      stayUpdated: "कैंपस गतिविधियों और अनुरोधों से अपडेट रहें।",
+      markAllRead: "सभी को पढ़ा हुआ करें",
+      noNotifications: "कोई सूचना नहीं",
+      caughtUp: "आप सभी सूचनाओं से अपडेट हैं।",
+      new: "नई",
+      clickToView: "देखने के लिए क्लिक करें →",
+      approved: "स्वीकृत",
+      rejected: "अस्वीकृत",
+      resolved: "समाधान किया गया",
+    },
+
+    or: {
+      communication: "ଯୋଗାଯୋଗ",
+      notifications: "ବିଜ୍ଞପ୍ତି",
+      description: "ଆପଣଙ୍କ କ୍ୟାମ୍ପସରୁ ଗୁରୁତ୍ୱପୂର୍ଣ୍ଣ ଅପଡେଟ୍।",
+      yourNotifications: "ଆପଣଙ୍କ ବିଜ୍ଞପ୍ତି",
+      stayUpdated: "କ୍ୟାମ୍ପସ କାର୍ଯ୍ୟକଳାପ ଏବଂ ଅନୁରୋଧ ବିଷୟରେ ଅପଡେଟ୍ ରୁହନ୍ତୁ।",
+      markAllRead: "ସମସ୍ତଙ୍କୁ ପଢ଼ା ହୋଇଛି ବୋଲି ଚିହ୍ନଟ କରନ୍ତୁ",
+      noNotifications: "କୌଣସି ବିଜ୍ଞପ୍ତି ନାହିଁ",
+      caughtUp: "ଆପଣ ସମସ୍ତ ବିଜ୍ଞପ୍ତି ଦେଖିସାରିଛନ୍ତି।",
+      new: "ନୂଆ",
+      clickToView: "ଦେଖିବା ପାଇଁ କ୍ଲିକ୍ କରନ୍ତୁ →",
+      approved: "ଅନୁମୋଦିତ",
+      rejected: "ପ୍ରତ୍ୟାଖ୍ୟାନ",
+      resolved: "ସମାଧାନ ହୋଇଛି",
+    },
+  };
+
+  const local = translations[language] || translations.en;
+
+  // ============================================
+  // TRANSLATE NOTIFICATION STATUS
+  // ============================================
+
+  const translateStatus = (status) => {
+    if (!status) return "";
+
+    if (status === "Approved") {
+      return local.approved;
+    }
+
+    if (status === "Rejected") {
+      return local.rejected;
+    }
+
+    if (status === "Resolved") {
+      return local.resolved;
+    }
+
+    return status;
+  };
 
   // ============================================
   // LOAD STUDENT NOTIFICATIONS ONLY
   // ============================================
 
   const loadNotifications = () => {
-    const studentNotifications =
-      getNotifications("student");
+    const studentNotifications = getNotifications("student");
 
-    const filteredNotifications =
-      studentNotifications.filter(
-        (notification) => {
-          if (
-            notification.studentId &&
-            notification.studentId !==
-              CURRENT_STUDENT_ID
-          ) {
-            return false;
-          }
-
-          return true;
+    const filteredNotifications = studentNotifications.filter(
+      (notification) => {
+        if (
+          notification.studentId &&
+          notification.studentId !== CURRENT_STUDENT_ID
+        ) {
+          return false;
         }
-      );
+
+        return true;
+      }
+    );
 
     setNotifications(filteredNotifications);
   };
@@ -86,12 +165,18 @@ export default function Notifications() {
   }, []);
 
   // ============================================
+  // RELOAD WHEN LANGUAGE CHANGES
+  // ============================================
+
+  useEffect(() => {
+    loadNotifications();
+  }, [language]);
+
+  // ============================================
   // HANDLE NOTIFICATION CLICK
   // ============================================
 
-  const handleNotificationClick = (
-    notification
-  ) => {
+  const handleNotificationClick = (notification) => {
     // Mark notification as read
     markNotificationRead(notification.id);
 
@@ -191,7 +276,14 @@ export default function Notifications() {
     if (!date) return "";
 
     try {
-      return new Date(date).toLocaleString();
+      const locale =
+        language === "hi"
+          ? "hi-IN"
+          : language === "or"
+          ? "or-IN"
+          : "en-IN";
+
+      return new Date(date).toLocaleString(locale);
     } catch {
       return date;
     }
@@ -213,15 +305,15 @@ export default function Notifications() {
         <div>
 
           <div className="eyebrow">
-            COMMUNICATION
+            {local.communication}
           </div>
 
           <h1>
-            Notifications
+            {local.notifications}
           </h1>
 
           <p>
-            Important updates from your campus.
+            {local.description}
           </p>
 
         </div>
@@ -244,12 +336,11 @@ export default function Notifications() {
           <div>
 
             <h2>
-              Your Notifications
+              {local.yourNotifications}
             </h2>
 
             <p>
-              Stay updated with campus
-              activities and requests.
+              {local.stayUpdated}
             </p>
 
           </div>
@@ -282,9 +373,11 @@ export default function Notifications() {
                   fontWeight: "600",
                 }}
               >
+
                 <CheckCheck size={16} />
 
-                Mark all read
+                {local.markAllRead}
+
               </button>
             )}
 
@@ -306,11 +399,11 @@ export default function Notifications() {
             <Bell size={42} />
 
             <h3>
-              No notifications
+              {local.noNotifications}
             </h3>
 
             <p>
-              You're all caught up.
+              {local.caughtUp}
             </p>
 
           </div>
@@ -381,7 +474,7 @@ export default function Notifications() {
 
                       {!notification.read && (
                         <span className="notification-new">
-                          NEW
+                          {local.new}
                         </span>
                       )}
 
@@ -391,6 +484,21 @@ export default function Notifications() {
                     <p>
                       {notification.message}
                     </p>
+
+
+                    {notification.status && (
+                      <small
+                        style={{
+                          display: "block",
+                          marginTop: "4px",
+                          fontWeight: "600",
+                        }}
+                      >
+                        {translateStatus(
+                          notification.status
+                        )}
+                      </small>
+                    )}
 
 
                     <small>
@@ -416,7 +524,7 @@ export default function Notifications() {
                           fontWeight: "600",
                         }}
                       >
-                        Click to view →
+                        {local.clickToView}
                       </small>
                     )}
 

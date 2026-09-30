@@ -13,14 +13,8 @@ import {
   Users,
   UserPlus,
   Utensils,
-  BookOpen,
-  Bus,
-  Briefcase,
   CreditCard,
-  ShieldCheck,
   Building2,
-  Wrench,
-  HeartPulse,
 } from "lucide-react";
 
 import {
@@ -29,354 +23,119 @@ import {
   useNavigate,
 } from "react-router-dom";
 
+import { useLanguage } from "../context/LanguageContext";
+
+
 // =====================================================
-// DEPARTMENT LINKS
+// SIDEBAR TRANSLATIONS
 // =====================================================
 
-const DEPARTMENT_LINKS = {
+const SIDEBAR_TRANSLATIONS = {
 
-  // ===================================================
-  // DOCUMENTATION
-  // ===================================================
+  en: {
+    dashboard: "Dashboard",
+    overview: "Overview",
+    addAdmin: "Add Admin",
+    admins: "Admins",
+    students: "Students",
+    addStudents: "Add Students",
+    complaints: "Complaints",
+    gatePass: "Gate Pass",
+    requests: "Requests",
+    applications: "Applications",
+    attendance: "Attendance",
+    academicControl: "Academic Control",
+    notifications: "Notifications",
+    hostel: "Hostel",
+    canteen: "Canteen",
+    accounts: "Accounts",
+    myFees: "My Fees",
+    profile: "Profile",
+    settings: "Settings",
+    logout: "Logout",
+    superAdminPortal: "Super Admin Portal",
+    adminPortal: "Admin Portal",
+    studentPortal: "Student Portal",
+    academicsStudentAffairs:
+      "Academics & Student Affairs",
+    hostelManagement:
+      "Hostel Management",
+    documentation:
+      "Documentation",
+    teachingFaculty:
+      "Teaching Faculty",
+  },
 
-  DOCUMENTATION: [
-    {
-      name: "Requests",
-      path: "/admin/requests",
-      icon: FileText,
-    },
+  hi: {
+    dashboard: "डैशबोर्ड",
+    overview: "अवलोकन",
+    addAdmin: "एडमिन जोड़ें",
+    admins: "एडमिन",
+    students: "छात्र",
+    addStudents: "छात्र जोड़ें",
+    complaints: "शिकायतें",
+    gatePass: "गेट पास",
+    requests: "अनुरोध",
+    applications: "आवेदन",
+    attendance: "उपस्थिति",
+    academicControl: "शैक्षणिक नियंत्रण",
+    notifications: "सूचनाएं",
+    hostel: "हॉस्टल",
+    canteen: "कैंटीन",
+    accounts: "अकाउंट्स",
+    myFees: "मेरी फीस",
+    profile: "प्रोफ़ाइल",
+    settings: "सेटिंग्स",
+    logout: "लॉगआउट",
+    superAdminPortal: "सुपर एडमिन पोर्टल",
+    adminPortal: "एडमिन पोर्टल",
+    studentPortal: "छात्र पोर्टल",
+    academicsStudentAffairs:
+      "शैक्षणिक एवं छात्र मामले",
+    hostelManagement:
+      "हॉस्टल प्रबंधन",
+    documentation:
+      "दस्तावेज़ीकरण",
+    teachingFaculty:
+      "शिक्षण फैकल्टी",
+  },
 
-    {
-      name: "Applications",
-      path: "/admin/applications",
-      icon: FileText,
-    },
+  or: {
+    dashboard: "ଡ୍ୟାସବୋର୍ଡ",
+    overview: "ସମୀକ୍ଷା",
+    addAdmin: "ଆଡମିନ୍ ଯୋଡନ୍ତୁ",
+    admins: "ଆଡମିନ୍",
+    students: "ଛାତ୍ରଛାତ୍ରୀ",
+    addStudents: "ଛାତ୍ରଛାତ୍ରୀ ଯୋଡନ୍ତୁ",
+    complaints: "ଅଭିଯୋଗ",
+    gatePass: "ଗେଟ୍ ପାସ୍",
+    requests: "ଅନୁରୋଧ",
+    applications: "ଆବେଦନ",
+    attendance: "ଉପସ୍ଥାନ",
+    academicControl: "ଶିକ୍ଷାଗତ ନିୟନ୍ତ୍ରଣ",
+    notifications: "ବିଜ୍ଞପ୍ତି",
+    hostel: "ହଷ୍ଟେଲ୍",
+    canteen: "କ୍ୟାଣ୍ଟିନ୍",
+    accounts: "ଆକାଉଣ୍ଟସ୍",
+    myFees: "ମୋ ଫିସ୍",
+    profile: "ପ୍ରୋଫାଇଲ୍",
+    settings: "ସେଟିଂସ୍",
+    logout: "ଲଗଆଉଟ୍",
+    superAdminPortal: "ସୁପର୍ ଆଡମିନ୍ ପୋର୍ଟାଲ୍",
+    adminPortal: "ଆଡମିନ୍ ପୋର୍ଟାଲ୍",
+    studentPortal: "ଛାତ୍ର ପୋର୍ଟାଲ୍",
+    academicsStudentAffairs:
+      "ଶିକ୍ଷା ଓ ଛାତ୍ର ବ୍ୟାପାର",
+    hostelManagement:
+      "ହଷ୍ଟେଲ୍ ପରିଚାଳନା",
+    documentation:
+      "ଦଲିଲପତ୍ର",
+    teachingFaculty:
+      "ଶିକ୍ଷକ ଫ୍ୟାକଲ୍ଟି",
+  },
 
-    {
-      name: "Complaints",
-      path: "/admin/complaints",
-      icon: ClipboardList,
-    },
-  ],
-
-  // ===================================================
-  // ACCOUNTS
-  // ===================================================
-
-  ACCOUNTS: [
-    {
-      name: "Accounts",
-      path: "/admin/accounts",
-      icon: CreditCard,
-    },
-  ],
-
-  // ===================================================
-  // ACADEMIC / CLASS
-  // ===================================================
-
-  ACADEMIC: [
-    {
-      name: "Attendance",
-      path: "/admin/attendance",
-      icon: ClipboardCheck,
-    },
-
-    {
-      name: "Academic Control",
-      path: "/admin/timetable",
-      icon: CalendarDays,
-    },
-  ],
-
-  // ===================================================
-  // EXAMINATION
-  // ===================================================
-
-  EXAMINATION: [
-    {
-      name: "Applications",
-      path: "/admin/applications",
-      icon: FileText,
-    },
-  ],
-
-  // ===================================================
-  // NOTICE & COMMUNICATION
-  // ===================================================
-
-  NOTICE_COMMUNICATION: [
-    {
-      name: "Notifications",
-      path: "/admin/notifications",
-      icon: Bell,
-    },
-  ],
-
-  // ===================================================
-  // HOSTEL
-  // ===================================================
-
-  HOSTEL: [
-    {
-      name: "Hostel",
-      path: "/admin/hostel",
-      icon: Building2,
-    },
-
-    {
-      name: "Gate Pass",
-      path: "/admin/gatepass",
-      icon: DoorOpen,
-    },
-  ],
-
-  // ===================================================
-  // STUDENT AFFAIRS
-  // ===================================================
-
-  STUDENT_AFFAIRS: [
-    {
-      name: "Students",
-      path: "/admin/students",
-      icon: Users,
-    },
-  ],
-
-  // ===================================================
-  // ADMINISTRATION
-  // ===================================================
-
-  ADMINISTRATION: [
-    {
-      name: "Students",
-      path: "/admin/students",
-      icon: Users,
-    },
-
-    {
-      name: "Complaints",
-      path: "/admin/complaints",
-      icon: ClipboardList,
-    },
-
-    {
-      name: "Gate Pass",
-      path: "/admin/gatepass",
-      icon: DoorOpen,
-    },
-  ],
-
-  // ===================================================
-  // LIBRARY
-  // ===================================================
-
-  LIBRARY: [
-    {
-      name: "Library",
-      path: "/admin/library",
-      icon: BookOpen,
-    },
-  ],
-
-  // ===================================================
-  // TRANSPORT
-  // ===================================================
-
-  TRANSPORT: [
-    {
-      name: "Transport",
-      path: "/admin/transport",
-      icon: Bus,
-    },
-  ],
-
-  // ===================================================
-  // IT SERVICES
-  // ===================================================
-
-  IT: [
-    {
-      name: "Settings",
-      path: "/admin/settings",
-      icon: Settings,
-    },
-  ],
-
-  // ===================================================
-  // PLACEMENT
-  // ===================================================
-
-  PLACEMENT: [
-    {
-      name: "Placement",
-      path: "/admin/placement",
-      icon: Briefcase,
-    },
-  ],
-
-  // ===================================================
-  // DISCIPLINE
-  // ===================================================
-
-  DISCIPLINE: [
-    {
-      name: "Discipline",
-      path: "/admin/discipline",
-      icon: ShieldCheck,
-    },
-  ],
-
-  // ===================================================
-  // HEALTH & EMERGENCY
-  // ===================================================
-
-  HEALTH_EMERGENCY: [
-    {
-      name: "Health & Emergency",
-      path: "/admin/health",
-      icon: HeartPulse,
-    },
-  ],
-
-  // ===================================================
-  // INFRASTRUCTURE & MAINTENANCE
-  // ===================================================
-
-  INFRASTRUCTURE_MAINTENANCE: [
-    {
-      name: "Infrastructure",
-      path: "/admin/infrastructure",
-      icon: Wrench,
-    },
-  ],
-
-  // ===================================================
-  // MESS / FOOD
-  // ===================================================
-
-  MESS_FOOD: [
-    {
-      name: "Canteen",
-      path: "/admin/canteen",
-      icon: Utensils,
-    },
-  ],
 };
 
-// =====================================================
-// SUPER ADMIN LINKS
-// =====================================================
-
-const SUPER_ADMIN_LINKS = [
-  {
-    name: "Overview",
-    path: "/admin/dashboard",
-    icon: LayoutDashboard,
-  },
-
-  {
-    name: "Add Admin",
-    path: "/admin/faculty/add",
-    icon: UserPlus,
-  },
-
-  {
-    name: "Admins",
-    path: "/admin/faculty",
-    icon: Users,
-  },
-
-  {
-    name: "Students",
-    path: "/admin/students",
-    icon: Users,
-  },
-
-  {
-    name: "Add Students",
-    path: "/admin/students/add",
-    icon: UserPlus,
-  },
-
-  {
-    name: "Complaints",
-    path: "/admin/complaints",
-    icon: ClipboardList,
-  },
-
-  {
-    name: "Gate Pass",
-    path: "/admin/gatepass",
-    icon: DoorOpen,
-  },
-
-  {
-    name: "Requests",
-    path: "/admin/requests",
-    icon: FileText,
-  },
-
-  {
-    name: "Applications",
-    path: "/admin/applications",
-    icon: FileText,
-  },
-
-  {
-    name: "Attendance",
-    path: "/admin/attendance",
-    icon: ClipboardCheck,
-  },
-
-  {
-    name: "Academic Control",
-    path: "/admin/timetable",
-    icon: CalendarDays,
-  },
-
-  {
-    name: "Notifications",
-    path: "/admin/notifications",
-    icon: Bell,
-  },
-
-  {
-    name: "Library",
-    path: "/admin/library",
-    icon: BookOpen,
-  },
-
-  {
-    name: "Hostel",
-    path: "/admin/hostel",
-    icon: Building2,
-  },
-
-  {
-    name: "Transport",
-    path: "/admin/transport",
-    icon: Bus,
-  },
-
-  {
-    name: "Placement",
-    path: "/admin/placement",
-    icon: Briefcase,
-  },
-
-  {
-    name: "Accounts",
-    path: "/admin/accounts",
-    icon: CreditCard,
-  },
-
-  {
-    name: "Canteen",
-    path: "/admin/canteen",
-    icon: Utensils,
-  },
-];
 
 // =====================================================
 // COMPONENT
@@ -385,8 +144,34 @@ const SUPER_ADMIN_LINKS = [
 export default function Sidebar({
   admin = false,
 }) {
-  const location = useLocation();
-  const navigate = useNavigate();
+
+  const location =
+    useLocation();
+
+  const navigate =
+    useNavigate();
+
+  const {
+    language,
+  } = useLanguage();
+
+
+  // ===================================================
+  // TRANSLATION HELPER
+  // ===================================================
+
+  const currentTranslations =
+    SIDEBAR_TRANSLATIONS[
+      language
+    ] ||
+    SIDEBAR_TRANSLATIONS.en;
+
+  const translate =
+    (key) =>
+      currentTranslations[key] ||
+      SIDEBAR_TRANSLATIONS.en[key] ||
+      key;
+
 
   // ===================================================
   // DETERMINE PORTAL
@@ -394,37 +179,61 @@ export default function Sidebar({
 
   const isAdmin =
     admin ||
-    location.pathname.startsWith("/admin");
+    location.pathname.startsWith(
+      "/admin"
+    );
+
 
   // ===================================================
   // CURRENT USER
   // ===================================================
 
   const storedUser =
-    localStorage.getItem("campx_user");
+    localStorage.getItem(
+      "campx_user"
+    );
 
   let currentUser = {};
 
   try {
-    currentUser = storedUser
-      ? JSON.parse(storedUser)
-      : {};
+
+    currentUser =
+      storedUser
+        ? JSON.parse(storedUser)
+        : {};
+
   } catch (error) {
+
     console.error(
       "Invalid CAMPX user data:",
       error
     );
+
   }
+
 
   // ===================================================
   // ROLE
   // ===================================================
 
+  const userRole =
+    String(
+      currentUser?.role ||
+      currentUser?.userRole ||
+      currentUser?.user_role ||
+      ""
+    )
+      .trim()
+      .toUpperCase();
+
+
   const isSuperAdmin =
-    currentUser?.role === "SUPER_ADMIN";
+    userRole ===
+    "SUPER_ADMIN";
+
 
   // ===================================================
-  // DEPARTMENT
+  // ADMIN DEPARTMENT
   // ===================================================
 
   const adminDepartment =
@@ -432,229 +241,585 @@ export default function Sidebar({
     currentUser?.admin_section ||
     "";
 
+
   const normalizedDepartment =
-    String(adminDepartment)
+    String(
+      adminDepartment
+    )
       .trim()
       .toUpperCase();
 
+
   // ===================================================
-  // HOSTELLER CHECK
+  // HOSTELLER
   // ===================================================
 
   const isHosteller =
-    currentUser?.hostelStatus === "HOSTELLER" ||
-    currentUser?.hostel_status === "HOSTELLER";
+    currentUser?.hostelStatus ===
+      "HOSTELLER" ||
+    currentUser?.hostel_status ===
+      "HOSTELLER";
+
 
   // ===================================================
   // STUDENT LINKS
   // ===================================================
 
   const studentLinks = [
+
     {
-      name: "Dashboard",
+      nameKey: "dashboard",
       path: "/student",
       icon: LayoutDashboard,
     },
 
     {
-      name: "Complaints",
+      nameKey: "myFees",
+      path: "/student/fees",
+      icon: CreditCard,
+    },
+
+    {
+      nameKey: "complaints",
       path: "/complaints",
       icon: ClipboardList,
     },
 
     {
-      name: "AI Assistant",
+      nameKey: "aiAssistant",
       path: "/ai-complaint",
       icon: Bot,
     },
 
     {
-      name: "Timetable",
+      nameKey: "timetable",
       path: "/timetable",
       icon: CalendarDays,
     },
 
     {
-      name: "Requests",
+      nameKey: "requests",
       path: "/requests",
       icon: FileText,
     },
 
-    // =================================================
-    // HOSTELLER ONLY
-    // =================================================
-
     ...(isHosteller
       ? [
+
           {
-            name: "Gate Pass",
+            nameKey: "gatePass",
             path: "/gatepass",
             icon: DoorOpen,
           },
 
           {
-            name: "Canteen",
+            nameKey: "canteen",
             path: "/canteen",
             icon: Utensils,
           },
+
         ]
       : []),
 
     {
-      name: "Applications",
+      nameKey: "applications",
       path: "/applications",
       icon: FileText,
     },
 
     {
-      name: "Attendance",
+      nameKey: "attendance",
       path: "/attendance",
       icon: ClipboardCheck,
     },
 
     {
-      name: "Notifications",
+      nameKey: "notifications",
       path: "/notifications",
       icon: Bell,
     },
+
+
   ];
 
+
   // ===================================================
-  // ADMIN LINKS
+  // SUPER ADMIN LINKS
   // ===================================================
 
-  let adminLinks = [];
+  const superAdminLinks = [
 
-  if (isSuperAdmin) {
-    // -------------------------------------------------
-    // SUPER ADMIN
-    // -------------------------------------------------
+    {
+      nameKey: "overview",
+      path: "/admin/dashboard",
+      icon: LayoutDashboard,
+    },
 
-    adminLinks = SUPER_ADMIN_LINKS;
-  } else {
-    // -------------------------------------------------
-    // NORMAL ADMIN
-    // -------------------------------------------------
+    {
+      nameKey: "addAdmin",
+      path: "/admin/faculty/add",
+      icon: UserPlus,
+    },
 
-    const departmentLinks =
-      DEPARTMENT_LINKS[
-        normalizedDepartment
-      ] || [];
+    {
+      nameKey: "admins",
+      path: "/admin/faculty",
+      icon: Users,
+    },
 
-    adminLinks = [
-      // -----------------------------------------------
-      // COMMON ADMIN
-      // -----------------------------------------------
+    {
+      nameKey: "students",
+      path: "/admin/students",
+      icon: Users,
+    },
+
+    {
+      nameKey: "addStudents",
+      path: "/admin/students/add",
+      icon: UserPlus,
+    },
+
+    {
+      nameKey: "complaints",
+      path: "/admin/complaints",
+      icon: ClipboardList,
+    },
+
+    {
+      nameKey: "gatePass",
+      path: "/admin/gatepass",
+      icon: DoorOpen,
+    },
+
+    {
+      nameKey: "requests",
+      path: "/admin/requests",
+      icon: FileText,
+    },
+
+    {
+      nameKey: "applications",
+      path: "/admin/applications",
+      icon: FileText,
+    },
+
+    {
+      nameKey: "attendance",
+      path: "/admin/attendance",
+      icon: ClipboardCheck,
+    },
+
+    {
+      nameKey: "academicControl",
+      path: "/admin/timetable",
+      icon: CalendarDays,
+    },
+
+    {
+      nameKey: "notifications",
+      path: "/admin/notifications",
+      icon: Bell,
+    },
+
+    {
+      nameKey: "hostel",
+      path: "/admin/hostel",
+      icon: Building2,
+    },
+
+    {
+      nameKey: "canteen",
+      path: "/admin/canteen",
+      icon: Utensils,
+    },
+
+  ];
+
+
+  // ===================================================
+  // NORMAL ADMIN LINKS
+  // ===================================================
+
+  let departmentLinks = [];
+
+
+  // ===================================================
+  // ACADEMICS & STUDENT AFFAIRS
+  // ===================================================
+
+  if (
+    normalizedDepartment ===
+    "ACADEMICS_STUDENT_AFFAIRS"
+  ) {
+
+    departmentLinks = [
 
       {
-        name: "Overview",
-        path: "/admin/dashboard",
-        icon: LayoutDashboard,
-      },
-
-      // -----------------------------------------------
-      // EVERY ADMIN CAN ADD STUDENTS
-      // -----------------------------------------------
-
-      {
-        name: "Add Students",
-        path: "/admin/students/add",
-        icon: UserPlus,
-      },
-
-      // -----------------------------------------------
-      // EVERY ADMIN CAN VIEW STUDENTS
-      // -----------------------------------------------
-
-      {
-        name: "Students",
+        nameKey: "students",
         path: "/admin/students",
         icon: Users,
       },
 
-      // -----------------------------------------------
-      // DEPARTMENT-SPECIFIC LINKS
-      // -----------------------------------------------
+      {
+        nameKey: "attendance",
+        path: "/admin/attendance",
+        icon: ClipboardCheck,
+      },
 
-      ...departmentLinks,
+      {
+        nameKey: "academicControl",
+        path: "/admin/timetable",
+        icon: CalendarDays,
+      },
+
+      {
+        nameKey: "notifications",
+        path: "/admin/notifications",
+        icon: Bell,
+      },
+
+      {
+        nameKey: "complaints",
+        path: "/admin/complaints",
+        icon: ClipboardList,
+      },
+
     ];
+
   }
 
+
   // ===================================================
-  // REMOVE DUPLICATE LINKS
+  // HOSTEL MANAGEMENT
   // ===================================================
 
-  adminLinks = adminLinks.filter(
-    (link, index, array) =>
-      index ===
-      array.findIndex(
-        (item) =>
-          item.path === link.path
-      )
-  );
+  else if (
+    normalizedDepartment ===
+    "HOSTEL_MANAGEMENT"
+  ) {
+
+    departmentLinks = [
+
+      {
+        nameKey: "hostel",
+        path: "/admin/hostel",
+        icon: Building2,
+      },
+
+      {
+        nameKey: "gatePass",
+        path: "/admin/gatepass",
+        icon: DoorOpen,
+      },
+
+      {
+        nameKey: "canteen",
+        path: "/admin/canteen",
+        icon: Utensils,
+      },
+
+      {
+        nameKey: "complaints",
+        path: "/admin/complaints",
+        icon: ClipboardList,
+      },
+
+    ];
+
+  }
+
+
+  // ===================================================
+  // DOCUMENTATION
+  // ===================================================
+
+  else if (
+    normalizedDepartment ===
+    "DOCUMENTATION"
+  ) {
+
+    departmentLinks = [
+
+      {
+        nameKey: "requests",
+        path: "/admin/requests",
+        icon: FileText,
+      },
+
+      {
+        nameKey: "applications",
+        path: "/admin/applications",
+        icon: FileText,
+      },
+
+      {
+        nameKey: "complaints",
+        path: "/admin/complaints",
+        icon: ClipboardList,
+      },
+
+    ];
+
+  }
+
+
+  // ===================================================
+  // TEACHING FACULTY
+  // ===================================================
+
+  else if (
+    normalizedDepartment ===
+    "TEACHING_FACULTY"
+  ) {
+
+    departmentLinks = [
+
+      {
+        nameKey: "attendance",
+        path: "/admin/attendance",
+        icon: ClipboardCheck,
+      },
+
+      {
+        nameKey: "academicControl",
+        path: "/admin/timetable",
+        icon: CalendarDays,
+      },
+
+    ];
+
+  }
+
+
+  // ===================================================
+  // ACCOUNTS
+  // ===================================================
+
+  else if (
+    normalizedDepartment ===
+    "ACCOUNTS"
+  ) {
+
+    departmentLinks = [
+
+      {
+        nameKey: "accounts",
+        path: "/admin/accounts",
+        icon: CreditCard,
+      },
+
+      {
+        nameKey: "students",
+        path: "/admin/students",
+        icon: Users,
+      },
+
+    ];
+
+  }
+
+
+  // ===================================================
+  // COMMON ADMIN LINKS
+  // ===================================================
+
+  const normalAdminLinks = [
+
+    {
+      nameKey: "overview",
+      path: "/admin/dashboard",
+      icon: LayoutDashboard,
+    },
+
+    {
+      nameKey: "addStudents",
+      path: "/admin/students/add",
+      icon: UserPlus,
+    },
+
+    ...departmentLinks,
+
+  ];
+
+
+  // ===================================================
+  // FINAL ADMIN LINKS
+  // ===================================================
+
+  let adminLinks =
+    isSuperAdmin
+      ? superAdminLinks
+      : normalAdminLinks;
+
+
+  // ===================================================
+  // REMOVE DUPLICATES
+  // ===================================================
+
+  adminLinks =
+    adminLinks.filter(
+      (
+        link,
+        index,
+        array
+      ) =>
+        index ===
+        array.findIndex(
+          (item) =>
+            item.path ===
+            link.path
+        )
+    );
+
 
   // ===================================================
   // FINAL LINKS
   // ===================================================
 
-  const links = isAdmin
-    ? adminLinks
-    : studentLinks;
+  const links =
+    isAdmin
+      ? adminLinks
+      : studentLinks;
+
+
+  // ===================================================
+  // LINK LABELS
+  // ===================================================
+
+  const getLinkLabel =
+    (nameKey) => {
+
+      // Student-specific labels
+      if (
+        nameKey ===
+        "dashboard"
+      ) {
+        return translate(
+          "dashboard"
+        );
+      }
+
+      if (
+        nameKey ===
+        "aiAssistant"
+      ) {
+        if (
+          language === "hi"
+        ) {
+          return "AI सहायक";
+        }
+
+        if (
+          language === "or"
+        ) {
+          return "AI ସହାୟକ";
+        }
+
+        return "AI Assistant";
+      }
+
+      if (
+        nameKey ===
+        "timetable"
+      ) {
+        if (
+          language === "hi"
+        ) {
+          return "समय सारणी";
+        }
+
+        if (
+          language === "or"
+        ) {
+          return "ସମୟ ସାରଣୀ";
+        }
+
+        return "Timetable";
+      }
+
+      return translate(
+        nameKey
+      );
+    };
+
 
   // ===================================================
   // LOGOUT
   // ===================================================
 
-  const handleLogout = () => {
+  const handleLogout =
+    () => {
 
-    // IMPORTANT:
-    // Determine portal BEFORE clearing user data.
+      const wasAdmin =
+        isAdmin ||
+        userRole === "ADMIN" ||
+        userRole === "SUPER_ADMIN";
 
-    const userRole =
-      currentUser?.role || "";
 
-    const wasAdmin =
-      isAdmin ||
-      location.pathname.startsWith("/admin") ||
-      userRole === "ADMIN" ||
-      userRole === "SUPER_ADMIN";
+      localStorage.removeItem(
+        "campx_token"
+      );
 
-    // Clear authentication
-    localStorage.removeItem(
-      "campx_token"
+      localStorage.removeItem(
+        "campx_user"
+      );
+
+
+      if (wasAdmin) {
+
+        navigate(
+          "/admin",
+          {
+            replace: true,
+          }
+        );
+
+        return;
+      }
+
+
+      navigate(
+        "/login",
+        {
+          replace: true,
+        }
+      );
+
+    };
+
+
+  // ===================================================
+  // PORTAL TITLE
+  // ===================================================
+
+  let portalTitle =
+    translate(
+      "studentPortal"
     );
 
-    localStorage.removeItem(
-      "campx_user"
-    );
 
-    // -------------------------------------------------
-    // ADMIN / SUPER ADMIN
-    // -------------------------------------------------
+  if (isAdmin) {
 
-    if (wasAdmin) {
-      navigate("/admin", {
-        replace: true,
-      });
+    portalTitle =
+      isSuperAdmin
+        ? translate(
+            "superAdminPortal"
+          )
+        : translate(
+            "adminPortal"
+          );
 
-      return;
-    }
+  }
 
-    // -------------------------------------------------
-    // STUDENT
-    // -------------------------------------------------
-
-    navigate("/login", {
-      replace: true,
-    });
-  };
 
   // ===================================================
   // SIDEBAR
   // ===================================================
 
   return (
+
     <aside className="sidebar">
+
 
       {/* =================================================
           LOGO
@@ -667,20 +832,19 @@ export default function Sidebar({
         </div>
 
         <div>
+
           <strong>
             CampX
           </strong>
 
           <span>
-            {isAdmin
-              ? isSuperAdmin
-                ? "Super Admin Portal"
-                : "Admin Portal"
-              : "Student Portal"}
+            {portalTitle}
           </span>
+
         </div>
 
       </div>
+
 
       {/* =================================================
           NAVIGATION
@@ -688,37 +852,59 @@ export default function Sidebar({
 
       <nav className="sidebar-nav">
 
-        {links.map((link) => {
+        {links.map(
+          (link) => {
 
-          const Icon = link.icon;
+            const Icon =
+              link.icon;
 
-          return (
-            <NavLink
-              key={link.path}
-              to={link.path}
-              className={({ isActive }) =>
-                isActive
-                  ? "nav-link active"
-                  : "nav-link"
-              }
-            >
-              <Icon size={19} />
 
-              <span>
-                {link.name}
-              </span>
-            </NavLink>
-          );
+            return (
 
-        })}
+              <NavLink
+                key={
+                  link.path
+                }
+                to={
+                  link.path
+                }
+                className={({
+                  isActive,
+                }) =>
+                  isActive
+                    ? "nav-link active"
+                    : "nav-link"
+                }
+              >
+
+                <Icon
+                  size={19}
+                />
+
+                <span>
+                  {
+                    getLinkLabel(
+                      link.nameKey
+                    )
+                  }
+                </span>
+
+              </NavLink>
+
+            );
+
+          }
+        )}
 
       </nav>
+
 
       {/* =================================================
           BOTTOM
       ================================================= */}
 
       <div className="sidebar-bottom">
+
 
         {/* =================================================
             PROFILE
@@ -730,18 +916,29 @@ export default function Sidebar({
               ? "/admin/profile"
               : "/student/profile"
           }
-          className={({ isActive }) =>
+          className={({
+            isActive,
+          }) =>
             isActive
               ? "nav-link active"
               : "nav-link"
           }
         >
-          <User size={19} />
+
+          <User
+            size={19}
+          />
 
           <span>
-            Profile
+            {
+              translate(
+                "profile"
+              )
+            }
           </span>
+
         </NavLink>
+
 
         {/* =================================================
             SETTINGS
@@ -753,18 +950,29 @@ export default function Sidebar({
               ? "/admin/settings"
               : "/student/settings"
           }
-          className={({ isActive }) =>
+          className={({
+            isActive,
+          }) =>
             isActive
               ? "nav-link active"
               : "nav-link"
           }
         >
-          <Settings size={19} />
+
+          <Settings
+            size={19}
+          />
 
           <span>
-            Settings
+            {
+              translate(
+                "settings"
+              )
+            }
           </span>
+
         </NavLink>
+
 
         {/* =================================================
             LOGOUT
@@ -773,17 +981,30 @@ export default function Sidebar({
         <button
           type="button"
           className="nav-link logout"
-          onClick={handleLogout}
+          onClick={
+            handleLogout
+          }
         >
-          <LogOut size={19} />
+
+          <LogOut
+            size={19}
+          />
 
           <span>
-            Logout
+            {
+              translate(
+                "logout"
+              )
+            }
           </span>
+
         </button>
+
 
       </div>
 
     </aside>
+
   );
+
 }

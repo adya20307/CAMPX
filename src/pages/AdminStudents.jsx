@@ -17,13 +17,134 @@ import {
 
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
+import { useLanguage } from "../context/LanguageContext";
 
 const API_URL =
   import.meta.env.VITE_API_URL || "/api";
 
+
+const STUDENT_TRANSLATIONS = {
+  en: {
+    students: "Students",
+    management: "Student Management",
+    managementDesc: "View and manage registered CAMPX students.",
+    refresh: "Refresh",
+    addStudent: "Add Student",
+    searchPlaceholder: "Search by name, registration number, branch...",
+    registeredStudents: "Registered Students",
+    student: "student",
+    studentsPlural: "students",
+    loading: "Loading students...",
+    noStudentsFound: "No students found",
+    tryDifferent: "Try a different search.",
+    noRegistered: "No students have been registered yet.",
+    addFirst: "Add First Student",
+    studentColumn: "Student",
+    registrationNo: "Registration No.",
+    branch: "Branch",
+    batch: "Batch",
+    semester: "Semester",
+    hostel: "Hostel",
+    action: "Action",
+    hosteller: "Hosteller",
+    nonHosteller: "Non-Hosteller",
+    deleteStudent: "Delete Student",
+    delete: "Delete",
+    administrator: "Administrator",
+    expired: "Your session has expired. Please login again.",
+    loadFailed: "Failed to load students",
+    unableLoad: "Unable to load students",
+    deleteFailed: "Failed to delete student.",
+    unableDelete: "Unable to delete student.",
+    confirmDelete: (name, id) =>
+      `Are you sure you want to delete ${name} (${id})?\n\nThis action cannot be undone.`,
+    studentFallback: "this student",
+    dash: "—",
+    errorTitle: "Error",
+  },
+  hi: {
+    students: "छात्र",
+    management: "छात्र प्रबंधन",
+    managementDesc: "पंजीकृत CAMPX छात्रों को देखें और प्रबंधित करें।",
+    refresh: "रिफ्रेश",
+    addStudent: "छात्र जोड़ें",
+    searchPlaceholder: "नाम, रजिस्ट्रेशन नंबर, शाखा से खोजें...",
+    registeredStudents: "पंजीकृत छात्र",
+    student: "छात्र",
+    studentsPlural: "छात्र",
+    loading: "छात्र लोड हो रहे हैं...",
+    noStudentsFound: "कोई छात्र नहीं मिला",
+    tryDifferent: "कोई अलग खोज आज़माएं।",
+    noRegistered: "अभी तक कोई छात्र पंजीकृत नहीं हुआ है।",
+    addFirst: "पहला छात्र जोड़ें",
+    studentColumn: "छात्र",
+    registrationNo: "रजिस्ट्रेशन नंबर",
+    branch: "शाखा",
+    batch: "बैच",
+    semester: "सेमेस्टर",
+    hostel: "हॉस्टल",
+    action: "कार्रवाई",
+    hosteller: "हॉस्टल छात्र",
+    nonHosteller: "गैर-हॉस्टल छात्र",
+    deleteStudent: "छात्र हटाएं",
+    delete: "हटाएं",
+    administrator: "एडमिनिस्ट्रेटर",
+    expired: "आपका सत्र समाप्त हो गया है। कृपया फिर से लॉगिन करें।",
+    loadFailed: "छात्र लोड करने में विफल",
+    unableLoad: "छात्र लोड नहीं हो सके",
+    deleteFailed: "छात्र हटाने में विफल।",
+    unableDelete: "छात्र हटाया नहीं जा सका।",
+    confirmDelete: (name, id) =>
+      `क्या आप ${name} (${id}) को हटाना चाहते हैं?\n\nयह कार्रवाई पूर्ववत नहीं की जा सकती।`,
+    studentFallback: "इस छात्र",
+    dash: "—",
+    errorTitle: "त्रुटि",
+  },
+  or: {
+    students: "ଛାତ୍ରଛାତ୍ରୀ",
+    management: "ଛାତ୍ର ପରିଚାଳନା",
+    managementDesc: "ପଞ୍ଜୀକୃତ CAMPX ଛାତ୍ରଛାତ୍ରୀଙ୍କୁ ଦେଖନ୍ତୁ ଏବଂ ପରିଚାଳନା କରନ୍ତୁ।",
+    refresh: "ରିଫ୍ରେଶ୍",
+    addStudent: "ଛାତ୍ର ଯୋଡନ୍ତୁ",
+    searchPlaceholder: "ନାମ, ପଞ୍ଜୀକରଣ ନମ୍ବର, ଶାଖା ଦ୍ୱାରା ଖୋଜନ୍ତୁ...",
+    registeredStudents: "ପଞ୍ଜୀକୃତ ଛାତ୍ରଛାତ୍ରୀ",
+    student: "ଛାତ୍ର",
+    studentsPlural: "ଛାତ୍ରଛାତ୍ରୀ",
+    loading: "ଛାତ୍ରଛାତ୍ରୀ ଲୋଡ୍ ହେଉଛନ୍ତି...",
+    noStudentsFound: "କୌଣସି ଛାତ୍ର ମିଳିଲା ନାହିଁ",
+    tryDifferent: "ଅନ୍ୟ ଏକ ସନ୍ଧାନ ଚେଷ୍ଟା କରନ୍ତୁ।",
+    noRegistered: "ଏପର୍ଯ୍ୟନ୍ତ କୌଣସି ଛାତ୍ର ପଞ୍ଜୀକୃତ ହୋଇନାହାନ୍ତି।",
+    addFirst: "ପ୍ରଥମ ଛାତ୍ର ଯୋଡନ୍ତୁ",
+    studentColumn: "ଛାତ୍ର",
+    registrationNo: "ପଞ୍ଜୀକରଣ ନମ୍ବର",
+    branch: "ଶାଖା",
+    batch: "ବ୍ୟାଚ୍",
+    semester: "ସେମିଷ୍ଟର",
+    hostel: "ହଷ୍ଟେଲ୍",
+    action: "କାର୍ଯ୍ୟ",
+    hosteller: "ହଷ୍ଟେଲ୍ ଛାତ୍ର",
+    nonHosteller: "ନନ୍-ହଷ୍ଟେଲ୍ ଛାତ୍ର",
+    deleteStudent: "ଛାତ୍ରଙ୍କୁ ହଟାନ୍ତୁ",
+    delete: "ହଟାନ୍ତୁ",
+    administrator: "ଆଡମିନିଷ୍ଟ୍ରେଟର୍",
+    expired: "ଆପଣଙ୍କ ସେସନ୍ ସମାପ୍ତ ହୋଇଛି। ଦୟାକରି ପୁଣି ଲଗଇନ୍ କରନ୍ତୁ।",
+    loadFailed: "ଛାତ୍ରଛାତ୍ରୀ ଲୋଡ୍ କରିବା ବିଫଳ ହେଲା",
+    unableLoad: "ଛାତ୍ରଛାତ୍ରୀ ଲୋଡ୍ ହୋଇପାରିଲେ ନାହିଁ",
+    deleteFailed: "ଛାତ୍ରଙ୍କୁ ହଟାଇବା ବିଫଳ ହେଲା।",
+    unableDelete: "ଛାତ୍ରଙ୍କୁ ହଟାଇ ପାରିଲୁ ନାହିଁ।",
+    confirmDelete: (name, id) =>
+      `ଆପଣ ${name} (${id})ଙ୍କୁ ହଟାଇବାକୁ ନିଶ୍ଚିତ କି?\n\nଏହି କାର୍ଯ୍ୟକୁ ପୁନଃସ୍ଥାପନ କରିହେବ ନାହିଁ।`,
+    studentFallback: "ଏହି ଛାତ୍ର",
+    dash: "—",
+    errorTitle: "ତ୍ରୁଟି",
+  },
+};
+
 export default function AdminStudents() {
 
   const navigate = useNavigate();
+  const { language } = useLanguage();
+  const t = STUDENT_TRANSLATIONS[language] || STUDENT_TRANSLATIONS.en;
 
   // ==========================================
   // STATE
@@ -75,7 +196,7 @@ export default function AdminStudents() {
 
         throw new Error(
           data.message ||
-          "Failed to load students"
+          t.loadFailed
         );
 
       }
@@ -97,7 +218,7 @@ export default function AdminStudents() {
 
       setError(
         err.message ||
-        "Unable to load students"
+        t.unableLoad
       );
 
     } finally {
@@ -117,7 +238,7 @@ export default function AdminStudents() {
 
     loadStudents();
 
-  }, []);
+  }, [language]);
 
 
   // ==========================================
@@ -150,10 +271,10 @@ export default function AdminStudents() {
 
   const handleDeleteStudent = async (student) => {
     const studentId = student.student_id || student.studentId;
-    const studentName = student.name || "this student";
+    const studentName = student.name || t.studentFallback;
 
     const confirmed = window.confirm(
-      `Are you sure you want to delete ${studentName} (${studentId})?\n\nThis action cannot be undone.`
+      t.confirmDelete(studentName, studentId)
     );
 
     if (!confirmed) return;
@@ -165,7 +286,7 @@ export default function AdminStudents() {
 
       if (!token) {
         throw new Error(
-          "Your session has expired. Please login again."
+          t.expired
         );
       }
 
@@ -183,7 +304,7 @@ export default function AdminStudents() {
 
       if (!response.ok) {
         throw new Error(
-          data.message || "Failed to delete student."
+          data.message || t.deleteFailed
         );
       }
 
@@ -196,7 +317,7 @@ export default function AdminStudents() {
     } catch (error) {
       console.error("Delete student error:", error);
       setError(
-        error.message || "Unable to delete student."
+        error.message || t.unableDelete
       );
     }
   };
@@ -223,7 +344,7 @@ export default function AdminStudents() {
       <main className="main-content">
 
         <Topbar
-          title="Students"
+          title={t.students}
         />
 
 
@@ -248,12 +369,11 @@ export default function AdminStudents() {
             <div>
 
               <h1>
-                Student Management
+                {t.management}
               </h1>
 
               <p>
-                View and manage registered
-                CAMPX students.
+                {t.managementDesc}
               </p>
 
             </div>
@@ -279,7 +399,7 @@ export default function AdminStudents() {
                   size={17}
                 />
 
-                Refresh
+                {t.refresh}
 
               </button>
 
@@ -297,7 +417,7 @@ export default function AdminStudents() {
                   size={17}
                 />
 
-                Add Student
+                {t.addStudent}
 
               </button>
 
@@ -345,7 +465,7 @@ export default function AdminStudents() {
                     event.target.value
                   )
                 }
-                placeholder="Search by name, registration number, branch..."
+                placeholder={t.searchPlaceholder}
                 style={{
                   width: "100%",
                   padding:
@@ -421,7 +541,7 @@ export default function AdminStudents() {
                     margin: 0,
                   }}
                 >
-                  Registered Students
+                  {t.registeredStudents}
                 </h2>
 
                 <p
@@ -431,11 +551,10 @@ export default function AdminStudents() {
                     color: "#64748b",
                   }}
                 >
-                  {filteredStudents.length}
-                  {" "}student
-                  {filteredStudents.length !== 1
-                    ? "s"
-                    : ""}
+                  {filteredStudents.length}{" "}
+                  {filteredStudents.length === 1
+                    ? t.student
+                    : t.studentsPlural}
                 </p>
 
               </div>
@@ -452,7 +571,7 @@ export default function AdminStudents() {
                   color: "#64748b",
                 }}
               >
-                Loading students...
+                {t.loading}
               </div>
 
             ) : filteredStudents.length === 0 ? (
@@ -474,7 +593,7 @@ export default function AdminStudents() {
                 />
 
                 <h3>
-                  No students found
+                  {t.noStudentsFound}
                 </h3>
 
                 <p
@@ -483,8 +602,8 @@ export default function AdminStudents() {
                   }}
                 >
                   {search
-                    ? "Try a different search."
-                    : "No students have been registered yet."}
+                    ? t.tryDifferent
+                    : t.noRegistered}
                 </p>
 
                 {!search && (
@@ -501,7 +620,7 @@ export default function AdminStudents() {
                       size={17}
                     />
 
-                    Add First Student
+                    {t.addFirst}
                   </button>
 
                 )}
@@ -536,37 +655,37 @@ export default function AdminStudents() {
                       <th
                         style={thStyle}
                       >
-                        Student
+                        {t.studentColumn}
                       </th>
 
                       <th
                         style={thStyle}
                       >
-                        Registration No.
+                        {t.registrationNo}
                       </th>
 
                       <th
                         style={thStyle}
                       >
-                        Branch
+                        {t.branch}
                       </th>
 
                       <th
                         style={thStyle}
                       >
-                        Batch
+                        {t.batch}
                       </th>
 
                       <th
                         style={thStyle}
                       >
-                        Semester
+                        {t.semester}
                       </th>
 
                       <th
                         style={thStyle}
                       >
-                        Hostel
+                        {t.hostel}
                       </th>
 
                       <th
@@ -575,7 +694,7 @@ export default function AdminStudents() {
                           textAlign: "center",
                         }}
                       >
-                        Action
+                        {t.action}
                       </th>
 
                     </tr>
@@ -602,7 +721,7 @@ export default function AdminStudents() {
                             <strong>
                               {
                                 student.name ||
-                                "—"
+                                t.dash
                               }
                             </strong>
 
@@ -618,7 +737,7 @@ export default function AdminStudents() {
                             >
                               {
                                 student.email ||
-                                "—"
+                                t.dash
                               }
                             </div>
 
@@ -631,7 +750,7 @@ export default function AdminStudents() {
                             {
                               student.student_id ||
                               student.studentId ||
-                              "—"
+                              t.dash
                             }
                           </td>
 
@@ -641,7 +760,7 @@ export default function AdminStudents() {
                           >
                             {
                               student.branch ||
-                              "—"
+                              t.dash
                             }
                           </td>
 
@@ -652,7 +771,7 @@ export default function AdminStudents() {
                             {
                               student.batch_year ||
                               student.batchYear ||
-                              "—"
+                              t.dash
                             }
                           </td>
 
@@ -662,7 +781,7 @@ export default function AdminStudents() {
                           >
                             {
                               student.semester ||
-                              "—"
+                              t.dash
                             }
                           </td>
 
@@ -692,7 +811,7 @@ export default function AdminStudents() {
                                     "600",
                                 }}
                               >
-                                Hosteller
+                                {t.hosteller}
                               </span>
                             ) : (
                               <span
@@ -711,7 +830,7 @@ export default function AdminStudents() {
                                     "600",
                                 }}
                               >
-                                Non-Hosteller
+                                {t.nonHosteller}
                               </span>
                             )}
 
@@ -741,10 +860,10 @@ export default function AdminStudents() {
                                 cursor: "pointer",
                                 fontWeight: "600",
                               }}
-                              title="Delete Student"
+                              title={t.deleteStudent}
                             >
                               <Trash2 size={16} />
-                              Delete
+                              {t.delete}
                             </button>
                           </td>
 
